@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>סמנטעל</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="js/semantle.js"></script>
+</head>
+<body dir='rtl'>
+<h1>סמנטעל</h1>
+    <h3>נחשו את המילה הסודית</h3>
+    <p>
+        כל ניחוש יכול להיות מילה או ביטוי קצר בכל אורך.
+        המשחק יגיד כמה המילה קרובה סמנטית למילה הסודית -
+        האיות זה לא מה שמשנה כאן, אלא המשמעות. הקרבה הסמנטית נמדדת באמצעות
+        <a href="https://he.wikipedia.org/wiki/Word2vec">Word2Vec</a>.
+        במילים אחרות, ״כמה הגיוני להשתמש במילה בקונטקסט דומה בתוך ויקיפדיה״.
+        הציון למרחק הסמנטי הוא בין 0-100, כש-100 זאת המילה הסודית עצמה.
+    </p>
+    <p>
+        המילה הסודית יכולה להיות כל
+        <a href="https://he.wikipedia.org/wiki/%D7%97%D7%9C%D7%A7%D7%99_%D7%94%D7%93%D7%99%D7%91%D7%A8">חלק דיבר</a>,
+        אבל תמיד תהיה מילה בודדת.
+    </p>
+    <p>
+המשחק גם מציין האם הניחוש שלך הוא אחת מ1000 המילים הקרובות ביותר למילה הסודית. אחרת, הוא יסמן את המילה ב״רחוק״.
+    </p>
+    <p>
+        כנראה שצריך יותר מ6 ניחושים.
+כנראה שכמה עשרות, ויש מילה חדשה כל יום.
+
+    </p>
+
+<p>
+    המילה הכי קרובה למילה הסודית היום היא במרחק של
+    <b>{{closest1}}</b>,
+    המילה העשירית הכי קרובה היא במרחק של
+    {{closest10}}
+    והמילה האלף הכי קרובה היא במרחק של
+    {{closest1000}}.
+</p>
+
+<div id="error" style="color:#ff0000"></div>
+    <form id="form" autocorrect="off" autocapitalize="none"
+          autocomplete="off">
+    <br/>
+    <input placeholder="ניחוש" autocorrect="off" autocapitalize="none"
+           autocomplete="off"
+           type="search" id="guess">
+    <input type="submit" value="ניחוש" id="guess-btn">
+    <input type="button" value="נמאס לי" id="give-up-btn">
+    </form>
+
+    <table id="guesses">
+    </table>
+
+</body>
+</html>

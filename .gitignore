@@ -1,0 +1,5 @@
+.coverage
+.idea
+venv
+__pycache__
+config.py

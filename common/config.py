@@ -1,4 +1,5 @@
 import os
+import sys
 
 THIS = os.path.realpath(__file__)
 HERE = os.path.dirname(THIS)
@@ -17,9 +18,15 @@ def parse_config_file(config, path):
 
 parse_config_file(globals(), os.path.join(BASE, 'config.py'))
 
-try:
-    db = os.environ['JAWSDB_MARIA_URL']
-    redis = os.environ['REDISTOGO_URL']
-    api_key = os.environ['API_KEY']
-except:
-    pass
+thismodule = sys.modules[__name__]
+top_up_config = {
+    'db': 'JAWSDB_MARIA_URL',   # TODO: generic
+    'redis': 'REDISTOGO_URL',   # TODO: generic
+    'api_key': 'API_KEY',
+}
+
+for var, key in top_up_config.items():
+    try:
+        setattr(thismodule, var, os.environ[key])
+    except KeyError:
+        pass

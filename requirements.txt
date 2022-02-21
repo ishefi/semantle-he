@@ -4,3 +4,6 @@ redis~=4.1.4
 numpy~=1.22.2
 gensim~=4.1.2
 alembic~=1.7.6
+mock~=4.0.3
+fakeredis~=1.7.1
+wikipedia~=1.4.0

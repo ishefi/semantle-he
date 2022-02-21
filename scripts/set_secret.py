@@ -14,7 +14,7 @@ from logic import CacheSecretLogic
 
 def valid_date(date_str):
     try:
-        return datetime.strptime(date_str, '%Y-%m-%d')
+        return datetime.strptime(date_str, '%Y-%m-%d').date()
     except ValueError:
         raise ArgumentTypeError("Bad date: should be of the format YYYY-mm-dd")
 
@@ -26,7 +26,10 @@ def main():
         '-d', '--date', metavar='DATE', type=valid_date, help="Date of secret. If not provided today's date is used"
     )
     parser.add_argument(
-        '-l', '--lite', help="Use SQLite", action="store_true"
+        '-l', '--lite', help="Use SQLite local db", action="store_true"
+    )
+    parser.add_argument(
+        '--dry', action='store_true', help="If passed, just prints the list of 1000 closest words"
     )
 
     args = parser.parse_args()
@@ -35,7 +38,14 @@ def main():
     redis = get_redis()
 
     logic = CacheSecretLogic(session_factory, redis, args.secret, args.date)
-    logic.set_secret()
+    logic.set_secret(args.dry)
+    if args.dry:
+        cache = logic.cache[::-1]
+        print(cache)
+        for rng in (range(1, 11), range(100, 1000, 100)):
+            for i in rng:
+                score, w = cache[i]
+                print(f"{i}: {score}: {w[::-1]}")
 
 
 if __name__ == '__main__':

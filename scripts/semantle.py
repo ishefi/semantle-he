@@ -19,14 +19,14 @@ def main():
     inp = None
     session_factory = get_session_factory(lite=args.lite)
     redis = get_redis()
-    logic = VectorLogic(session_factory, redis)
+    logic = VectorLogic(session_factory)
     secret = logic.secret_logic.get_secret()
     date = datetime.utcnow().date()
     cache_logic = CacheSecretLogic(session_factory, redis, secret=secret, dt=date)
     while inp != 'exit':
         if datetime.utcnow().date() != date:
             date = datetime.utcnow().date()
-            logic = VectorLogic(session_factory, redis)
+            logic = VectorLogic(session_factory)
             secret = logic.secret_logic.get_secret()
             cache_logic = CacheSecretLogic(
                 session_factory, redis, secret=secret, dt=date

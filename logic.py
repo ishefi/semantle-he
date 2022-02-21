@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import timedelta
 import heapq
 import struct
 from typing import TYPE_CHECKING
@@ -13,36 +14,40 @@ from numpy.linalg import norm
 
 from datetime import datetime
 if TYPE_CHECKING:
-    from redis import Redis
     from typing import Optional
+    from datetime import date
 
 
 class SecretLogic:
-    _secret_key = 'hs:secret:{}'
 
-    def __init__(self, session_factory, redis: Redis, dt: Optional[datetime] = None) -> None:
-        self.redis = redis
+    def __init__(self, session_factory, dt: Optional[date] = None) -> None:
         if dt is None:
             dt = datetime.utcnow().date()
-        self.date = str(dt)
+        self.date = dt
         self.session_factory = session_factory
 
-    @property
-    def secret_key(self):
-        return self._secret_key.format(self.date)
-
     def get_secret(self):
-        return self.redis.get(self.secret_key)
+        query = self.session_factory().query(Word2Vec)
+        query = query.filter(Word2Vec.secret_date == self.date)
+        wv = query.one_or_none()
+        if wv:
+            return wv.word
+        else:
+            return None
 
     def set_secret(self, secret):
-        return self.redis.set(self.secret_key, secret)
+        session = self.session_factory()
+        wv = session.query(Word2Vec).filter(Word2Vec.word == secret).one()
+        session.begin()
+        wv.secret_date = self.date
+        session.add(wv)
+        session.commit()
 
 
 class VectorLogic:
-    def __init__(self, session_factory, redis):
+    def __init__(self, session_factory, dt=None):
         self.session_factory = session_factory
-        self.redis = redis
-        self.secret_logic = SecretLogic(self.session_factory, self.redis)
+        self.secret_logic = SecretLogic(self.session_factory, dt=dt)
 
     def get_vector(self, word: str):
         session = self.session_factory()
@@ -82,19 +87,28 @@ class CacheSecretLogic:
     def __init__(self, session_factory, redis, secret, dt):
         self.session_factory = session_factory
         self.redis = redis
-        self.vector_logic = VectorLogic(self.session_factory, self.redis)
-        self.secret = secret
         if dt is None:
             dt = datetime.utcnow().date()
         self.date = str(dt)
+        self.vector_logic = VectorLogic(self.session_factory, dt=dt)
+        self.secret = secret
         self._cache = None
 
     @property
     def secret_cache_key(self):
         return self._secret_cache_key.format(self.secret, self.date)
 
-    def set_secret(self):
+    def set_secret(self, dry=False):
+        if self.vector_logic.secret_logic.get_secret() is not None:
+            raise ValueError("There is already a secret for this date")
+
+        query = self.session_factory().query(Word2Vec)
+        wv = query.filter(Word2Vec.word == self.secret).one()
+        if wv.secret_date is not None:
+            raise ValueError("This word was a secret in the past")
+
         target_vec = self.vector_logic.get_vector(self.secret)
+
         nearest = []
         for word, vec in self.vector_logic.iterate_all():
             s = self.vector_logic.calc_similarity(vec, target_vec)
@@ -102,8 +116,12 @@ class CacheSecretLogic:
             if len(nearest) > 1000:
                 heapq.heappop(nearest)
         nearest.sort()
-        self.redis.rpush(self.secret_cache_key, *[w[1] for w in nearest])
-        self.vector_logic.secret_logic.set_secret(self.secret)
+        if not dry:
+            self.redis.rpush(self.secret_cache_key, *[w[1] for w in nearest])
+            self.redis.expire(self.secret_cache_key, timedelta(hours=96))
+            self.vector_logic.secret_logic.set_secret(self.secret)
+        else:
+            self._cache = nearest
 
     @property
     def cache(self):
@@ -116,4 +134,3 @@ class CacheSecretLogic:
             return self.cache.index(word) + 1
         except ValueError:
             return -1
-

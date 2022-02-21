@@ -1,8 +1,10 @@
 from datetime import datetime
+from datetime import timedelta
 import json
 import tornado.web
 
 from logic import CacheSecretLogic
+from logic import SecretLogic
 from logic import VectorLogic
 
 
@@ -16,13 +18,12 @@ def get_handlers():
 class BaseHandler(tornado.web.RequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        session_factory = self.application.session_factory
-        redis = self.application.redis
-        self.logic = VectorLogic(session_factory, redis)
+        self.session_factory = self.application.session_factory
+        self.redis = self.application.redis
+        self.logic = VectorLogic(self.session_factory)
         secret = self.logic.secret_logic.get_secret()
         date = datetime.utcnow().date()
-        self.cache_logic = CacheSecretLogic(session_factory, redis, secret=secret, dt=date)
-
+        self.cache_logic = CacheSecretLogic(self.session_factory, self.redis, secret=secret, dt=date)
 
     def reply(self, content):
         content = json.dumps(content)
@@ -33,18 +34,29 @@ class BaseHandler(tornado.web.RequestHandler):
 
 
 class IndexHandler(BaseHandler):
+    FIRST_DATE = datetime(2022, 2, 21).date()
+
     def get(self):
         cache = self.cache_logic.cache
         closest1 = self.logic.get_similarity(cache[-2])
         closest10 = self.logic.get_similarity(cache[-12])
         closest1000 = self.logic.get_similarity(cache[0])
 
+        yesterdate = datetime.utcnow().date() - timedelta(days=1)
+        yesterday_secret = SecretLogic(
+            self.session_factory, yesterdate
+        ).get_secret()
+        yesterday_cache = CacheSecretLogic(
+            self.session_factory, self.redis, secret=yesterday_secret, dt=yesterdate,
+        ).cache
+        number = (self.FIRST_DATE - yesterdate).days
         self.render(
             'static/index.html',
+            number=number,
             closest1=closest1,
             closest10=closest10,
             closest1000=closest1000,
-            yesterday=[],
+            yesterday=yesterday_cache[-11:],
         )
 
 

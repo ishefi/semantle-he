@@ -19,7 +19,7 @@ depends_on = None
 def upgrade():
     op.create_table(
         "word2vec",
-        sa.Column("word", sa.String(128), primary_key=True, nullable=False),
+        sa.Column("word", sa.Text, primary_key=True, nullable=False),
         sa.Column("vec", sa.LargeBinary, nullable=False),
     )
 

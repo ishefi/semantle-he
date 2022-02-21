@@ -4,11 +4,8 @@ import os
 import tornado.httpserver
 import tornado.ioloop
 import tornado.web
-# from sqlalchemy import create_engine
-# from sqlalchemy.orm import scoped_session, sessionmaker
 
-# from common import config
-# from common.logger import logger
+from common.logger import logger
 from common.session import get_redis
 from common.session import get_session_factory
 import handlers
@@ -60,5 +57,5 @@ if __name__ == "__main__":
         try:
             tornado.ioloop.IOLoop.current().start()
         except Exception as ex:
-            # logger.exception(ex)
+            logger.exception(ex)
             pass

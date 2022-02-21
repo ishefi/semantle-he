@@ -54,7 +54,7 @@ if __name__ == "__main__":
     http_server.listen(port)
 
     while True:
-        logger.info("Running app on port %d", port)
+        logger.warning("Running app on port %d", port)
         try:
             tornado.ioloop.IOLoop.current().start()
         except Exception as ex:

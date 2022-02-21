@@ -113,7 +113,7 @@ class CacheSecretLogic:
 
     def get_cache_score(self, word):
         try:
-            return self.cache.index(word)
+            return self.cache.index(word) + 1
         except ValueError:
             return -1
 

@@ -31,7 +31,7 @@ let Semantle = (function() {
     let cls = "";
     if (percentile > 0) {
         if (percentile == 1000) {
-            percentileText = "FOUND!";
+            percentileText = "מצאת!";
         } else {
             cls = "close";
             percentileText = `<span style="text-align:right; width:5em; display:inline-block;">${percentile}/1000</span>&nbsp;`;
@@ -46,7 +46,10 @@ let Semantle = (function() {
     } else {
         color = '#000000';
     }
-    return `<tr><td>${guessNumber}</td><td style="color:${color}" onclick="select('${oldGuess}', secretVec);">${oldGuess}</td><td>${similarity.toFixed(2)}</td><td class="${cls}">${percentileText}${progress}
+    return `<tr><td>${guessNumber}</td>
+    <td style="color:${color}" onclick="select('${oldGuess}', secretVec);">${oldGuess}</td>
+    <td>${similarity.toFixed(2)}</td>
+    <td class="${cls}">${percentileText}${progress}
 </td></tr>`;
 
 }
@@ -60,7 +63,13 @@ let Semantle = (function() {
     }
 
     function updateGuesses(guess) {
-        let inner = `<tr><th>#</th><th>ניחוש</th><th>דמיון</th><th>מתחמם?</th></tr>`;
+        let inner = `<tr>
+        <th>#</th>
+        <th>ניחוש</th>
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        <th>קרבה</th>
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        <th>מתחמם?</th></tr>`;
         /* This is dumb: first we find the most-recent word, and put
            it at the top.  Then we do the rest. */
         for (let entry of guesses) {
@@ -83,13 +92,13 @@ let Semantle = (function() {
     $('#form')[0].addEventListener('submit', async function(event) {
             event.preventDefault();
             $('#guess').focus();
-            $('#error').textContent = "";
+            $('#error')[0].textContent = "";
             let guess = $('#guess')[0].value.trim().replace("!", "").replace("*", "");
             if (!guess) {
                 return false;
             }
 
-            $('#guess').value = "";
+            $('#guess')[0].value = "";
 
             const guessData = await getSim(guess);
             if (guessData.similarity < 0) {
@@ -122,7 +131,21 @@ let Semantle = (function() {
 //            }
             return false;
         });
+        const winState = storage.getItem("winState");
+        if (winState != null) {
+            guesses = JSON.parse(storage.getItem("guesses"));
+            for (let guess of guesses) {
+                guessed.add(guess[1]);
+            }
+            guessCount = guessed.size;
+            updateGuesses("");
+            if (winState != -1) {
+                endGame(winState);
+            }
         }
+        }
+
+
         return {
         init: init
     };

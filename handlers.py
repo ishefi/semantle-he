@@ -44,6 +44,7 @@ class IndexHandler(BaseHandler):
             closest1=closest1,
             closest10=closest10,
             closest1000=closest1000,
+            yesterday=[],
         )
 
 

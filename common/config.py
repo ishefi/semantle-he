@@ -29,4 +29,4 @@ for var, key in top_up_config.items():
     try:
         setattr(thismodule, var, os.environ[key])
     except KeyError:
-        pass
+        print('Could not configure %s: %s' % (var, key))

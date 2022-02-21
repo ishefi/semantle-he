@@ -50,10 +50,11 @@ if __name__ == "__main__":
     is_lite = bool(os.environ.get("LITE"))
     app = WebApp(is_lite, handlers)
     http_server = tornado.httpserver.HTTPServer(app)
-    port = int(os.environ.get("PORT", 5050))
+    port = int(os.environ["PORT"])
     http_server.listen(port)
 
     while True:
+        logger.info("Running app on port %d", port)
         try:
             tornado.ioloop.IOLoop.current().start()
         except Exception as ex:

@@ -12,6 +12,12 @@ let Semantle = (function() {
     let gameOver = false;
     const storage = window.localStorage;
 
+//    TODO: use value sent from BE ?
+    const now = Date.now();
+    const today = Math.floor(now / 86400000);
+    const initialDay = 19044;
+    const puzzleNumber = today + 1 - initialDay;
+
     async function getSim(word) {
         if (cache.hasOwnProperty(word)) {
             return cache[word];
@@ -132,7 +138,7 @@ let Semantle = (function() {
             return false;
         });
 
-        let puzzleNumber = $("#puzzleNumber")[0].innerText;
+//        let puzzleNumber = $("#puzzleNumber")[0].innerText;
         let storagePuzzleNumber = storage.getItem("puzzleNumber");
         if (storagePuzzleNumber != puzzleNumber) {
             storage.clear();

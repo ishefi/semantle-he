@@ -42,14 +42,15 @@ class IndexHandler(BaseHandler):
         closest10 = self.logic.get_similarity(cache[-12])
         closest1000 = self.logic.get_similarity(cache[0])
 
-        yesterdate = datetime.utcnow().date() - timedelta(days=1)
+        todate = datetime.utcnow().date()
+        yesterdate = todate - timedelta(days=1)
         yesterday_secret = SecretLogic(
             self.session_factory, yesterdate
         ).get_secret()
         yesterday_cache = CacheSecretLogic(
             self.session_factory, self.redis, secret=yesterday_secret, dt=yesterdate,
         ).cache
-        number = (self.FIRST_DATE - yesterdate).days
+        number = (todate - self.FIRST_DATE).days + 1
         self.render(
             'static/index.html',
             number=number,

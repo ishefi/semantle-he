@@ -131,6 +131,14 @@ let Semantle = (function() {
 //            }
             return false;
         });
+
+        let puzzleNumber = $("#puzzleNumber")[0].innerText;
+        let storagePuzzleNumber = storage.getItem("puzzleNumber");
+        if (storagePuzzleNumber != puzzleNumber) {
+            storage.clear();
+            storage.setItem("puzzleNumber", puzzleNumber);
+        }
+
         const winState = storage.getItem("winState");
         if (winState != null) {
             guesses = JSON.parse(storage.getItem("guesses"));

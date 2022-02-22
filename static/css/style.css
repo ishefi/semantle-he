@@ -1,0 +1,87 @@
+body, input {
+    font-size: 17px;
+    line-height: 27px;
+    -webkit-font-smoothing: subpixel-antialiased;
+    font-family:-apple-system-font, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+    text-rendering: optimizeLegibility;
+    font-weight:400;
+}
+
+#guess-wrapper {
+    display: flex;
+    margin: 20px 0;
+    align-items: center;
+}
+
+#guess-wrapper input {
+    height: 44px;
+}
+
+#guesses {
+    margin-bottom:40px;
+}
+
+#give-up-btn {
+    height: 44px;
+}
+
+input[type="checkbox"] {
+    margin-bottom: 20px;
+}
+
+body {
+    padding-left:20px;
+    padding-right:20px;
+    padding-top:18px;
+}
+
+
+th {
+    padding-right: 3em;
+}
+
+th#chronoOrder, th#alphaOrder, th#similarityOrder, input#give-up-btn, input#guess-btn, input#lower{
+    cursor: pointer;
+}
+
+.gaveup {
+    border: 1px solid black;
+    padding-top: 0.7ex;
+    padding-bottom: 0.7ex;
+    padding-left: 0.7em;
+    background-color: #eeeeff;
+}
+
+.close {
+    text-align: left;
+}
+
+/*"Unusual word found!  This word is not in the list of \"normal\" words that we use for the top-1000 list, but it is still similar!";*/
+
+.weirdWord {
+    position: relative;
+    display: inline-block;
+    border-bottom: 1px dotted black;
+}
+
+.weirdWord .tooltiptext {
+ visibility: hidden;
+  width: 20em;
+  background-color: black;
+  color: #fff;
+  text-align: center;
+  padding: 0.3ex 0;
+  border-radius: 1ex;
+
+  position: absolute;
+  z-index: 1;
+}
+
+
+.weirdWord:hover .tooltiptext {
+  visibility: visible;
+}
+
+footer {
+    margin-top: 200px;
+}

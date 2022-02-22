@@ -4,21 +4,29 @@ body, input {
     -webkit-font-smoothing: subpixel-antialiased;
     font-family:-apple-system-font, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
     text-rendering: optimizeLegibility;
-    font-weight:400;
+    font-weight:200;
 }
 
 #guess-wrapper {
     display: flex;
     margin: 20px 0;
     align-items: center;
+    width: 120%;
 }
 
 #guess-wrapper input {
     height: 44px;
+    display: flex;
+    font-size: 25px;
+}
+
+#guess {
+    width: 75%;
 }
 
 #guesses {
     margin-bottom:40px;
+    font-size: 25px;
 }
 
 #give-up-btn {
@@ -37,7 +45,7 @@ body {
 
 
 th {
-    padding-right: 3em;
+    padding-left: 3em;
 }
 
 th#chronoOrder, th#alphaOrder, th#similarityOrder, input#give-up-btn, input#guess-btn, input#lower{

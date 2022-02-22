@@ -72,9 +72,7 @@ let Semantle = (function() {
         let inner = `<tr>
         <th>#</th>
         <th>ניחוש</th>
-        &nbsp;&nbsp;&nbsp;&nbsp;
         <th>קרבה</th>
-        &nbsp;&nbsp;&nbsp;&nbsp;
         <th>מתחמם?</th></tr>`;
         /* This is dumb: first we find the most-recent word, and put
            it at the top.  Then we do the rest. */

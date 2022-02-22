@@ -1,5 +1,6 @@
 -r requirements.txt
-mock~=4.0.3
-fakeredis~=1.7.1
 pytest==7.0.1
 pytest-cov==3.0.0
+mock~=4.0.3
+fakeredis~=1.7.1
+wikipedia~=1.4.0

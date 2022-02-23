@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="css/style.css">
+    <title>סמנטעל: 1000 המילים הכי קרובות ל{{yesterday[-1]}}</title>
+
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-PP8J7V4T0X"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-PP8J7V4T0X');
+</script>
+
+</head>
+<body dir='rtl'>
+    <a href="/">חזרה</a>
+    <h3>1000 המילים הכי קרובות למילה "{{yesterday[0][0]}}"</h3>
+    <table>
+        <tbody>
+        <tr>
+            <th>מספר (גבוה = קרוב)</th>
+            <th>מילה</th>
+            <th>ציון קרבה</th>
+        </tr>
+        {% for i, ws in enumerate(yesterday[1:], start=1) %}
+        <tr>
+        <td>
+            {{ 1000 - i }}
+        </td>
+        <td>
+            {{ ws[0] }}
+        </td>
+        <td>
+            {{ ws[1] }}
+        </td>
+        </tr>
+        {% end %}
+        </tbody>
+    </table>
+    <a href="/">חזרה</a>
+</body>
+</html>

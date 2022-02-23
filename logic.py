@@ -62,6 +62,16 @@ class VectorLogic:
     def _unpack_vector(self, raw_vec):
         return struct.unpack(VEC_SIZE, raw_vec)
 
+    def get_similarities(self, words: [str]) -> [float]:
+        secret_vector = self.get_vector(self.secret_logic.get_secret())
+        session = self.session_factory()
+        query = session.query(Word2Vec)
+        query = query.filter(Word2Vec.word.in_(words))
+        return {
+            wv.word: self.calc_similarity(secret_vector, self._unpack_vector(wv.vec))
+            for wv in query
+        }
+
     def get_similarity(self, word: str) -> float:
         word_vector = self.get_vector(word)
         if word_vector is None:

@@ -11,6 +11,7 @@ from logic import VectorLogic
 def get_handlers():
     return [
         (r"/?", IndexHandler),
+        (r"/yesterday-top-1000/?", YesterdayClosestHandler),
         (r"/api/distance/?", DistanceHandler),
     ]
 
@@ -75,5 +76,20 @@ class DistanceHandler(BaseHandler):
         )
 
 
+class YesterdayClosestHandler(BaseHandler):
+    def get(self):
+        todate = datetime.utcnow().date()
+        yesterdate = todate - timedelta(days=1)
+        logic = VectorLogic(self.session_factory, dt=yesterdate)
+        yesterday_secret = logic.secret_logic.get_secret()
+        yesterday_cache = CacheSecretLogic(
+            self.session_factory, self.redis, secret=yesterday_secret, dt=yesterdate,
+        ).cache
 
+        yesterday_sims = logic.get_similarities(yesterday_cache)
+
+        self.render(
+            'static/closest1000.html',
+            yesterday=sorted(yesterday_sims.items(), key=lambda ws: ws[1], reverse=1),
+        )
 

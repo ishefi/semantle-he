@@ -7,8 +7,8 @@ import sys
 base = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.extend([base])
 
+from common.session import get_mongo
 from common.session import get_redis
-from common.session import get_session_factory
 from logic import CacheSecretLogic
 
 
@@ -26,18 +26,15 @@ def main():
         '-d', '--date', metavar='DATE', type=valid_date, help="Date of secret. If not provided today's date is used"
     )
     parser.add_argument(
-        '-l', '--lite', help="Use SQLite local db", action="store_true"
-    )
-    parser.add_argument(
         '--dry', action='store_true', help="If passed, just prints the list of 1000 closest words"
     )
 
     args = parser.parse_args()
 
-    session_factory = get_session_factory(args.lite)
+    mongo = get_mongo()
     redis = get_redis()
 
-    logic = CacheSecretLogic(session_factory, redis, args.secret, args.date)
+    logic = CacheSecretLogic(mongo, redis, args.secret, args.date)
     logic.set_secret(args.dry)
     if args.dry:
         cache = logic.cache[::-1]

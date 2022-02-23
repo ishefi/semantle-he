@@ -1,36 +1,31 @@
-from argparse import ArgumentParser
 from datetime import datetime
 import os
 import sys
+
 base = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.extend([base])
 
 from common.session import get_redis
-from common.session import get_session_factory
+from common.session import get_mongo
 from logic import VectorLogic
 from logic import CacheSecretLogic
 
 
 def main():
-    parser = ArgumentParser("cli Hebrew Semantle")
-    parser.add_argument('-l', '--lite', action='store_true', help='Use local sqlite')
-    args = parser.parse_args()
     print("Welcome! Take a guess:")
     inp = None
-    session_factory = get_session_factory(lite=args.lite)
+    mongo = get_mongo()
     redis = get_redis()
-    logic = VectorLogic(session_factory)
+    logic = VectorLogic(mongo)
     secret = logic.secret_logic.get_secret()
     date = datetime.utcnow().date()
-    cache_logic = CacheSecretLogic(session_factory, redis, secret=secret, dt=date)
+    cache_logic = CacheSecretLogic(mongo, redis, secret=secret, dt=date)
     while inp != 'exit':
         if datetime.utcnow().date() != date:
             date = datetime.utcnow().date()
-            logic = VectorLogic(session_factory)
+            logic = VectorLogic(mongo)
             secret = logic.secret_logic.get_secret()
-            cache_logic = CacheSecretLogic(
-                session_factory, redis, secret=secret, dt=date
-            )
+            cache_logic = CacheSecretLogic(mongo, redis, secret=secret, dt=date)
         inp = input('>')
         print(inp[::-1])
         distance = logic.get_similarity(inp)

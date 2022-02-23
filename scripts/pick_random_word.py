@@ -9,21 +9,15 @@ from wikipedia import WikipediaException
 base = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.extend([base])
 
-from common.session import get_session_factory
+from common.session import get_mongo
 from logic import CacheSecretLogic
 
 
 def main():
-    parser = ArgumentParser("Pick random word and print some of its closest words")
-    parser.add_argument(
-        '-l', '--lite', help="Use SQLite local db", action="store_true"
-    )
-    args = parser.parse_args()
-
     redis = None  # no need for redis as this is "dry"
-    session_factory = get_session_factory(args.lite)
-
+    mongo = get_mongo()
     wikipedia.set_lang('he')
+    secret = ''
     while True:
         try:
             page = wikipedia.page(wikipedia.random(1)).content
@@ -34,7 +28,7 @@ def main():
         if input(f'I chose {secret[::-1]}. Ok? [Ny] > ') in ('y', 'Y'):
             break
 
-    csl = CacheSecretLogic(session_factory, redis, secret, None)
+    csl = CacheSecretLogic(mongo, redis, secret, None)
     csl.set_secret(dry=True)
 
     cache = csl.cache[::-1]

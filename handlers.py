@@ -19,12 +19,12 @@ def get_handlers():
 class BaseHandler(tornado.web.RequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.session_factory = self.application.session_factory
+        self.mongo = self.application.mongo
         self.redis = self.application.redis
-        self.logic = VectorLogic(self.session_factory)
+        self.logic = VectorLogic(self.mongo)
         secret = self.logic.secret_logic.get_secret()
         date = datetime.utcnow().date()
-        self.cache_logic = CacheSecretLogic(self.session_factory, self.redis, secret=secret, dt=date)
+        self.cache_logic = CacheSecretLogic(self.mongo, self.redis, secret=secret, dt=date)
 
     def reply(self, content):
         content = json.dumps(content)
@@ -45,11 +45,9 @@ class IndexHandler(BaseHandler):
 
         todate = datetime.utcnow().date()
         yesterdate = todate - timedelta(days=1)
-        yesterday_secret = SecretLogic(
-            self.session_factory, yesterdate
-        ).get_secret()
+        yesterday_secret = SecretLogic(self.mongo, yesterdate).get_secret()
         yesterday_cache = CacheSecretLogic(
-            self.session_factory, self.redis, secret=yesterday_secret, dt=yesterdate,
+            self.mongo, self.redis, secret=yesterday_secret, dt=yesterdate,
         ).cache
         number = (todate - self.FIRST_DATE).days + 1
         self.render(
@@ -80,10 +78,10 @@ class YesterdayClosestHandler(BaseHandler):
     def get(self):
         todate = datetime.utcnow().date()
         yesterdate = todate - timedelta(days=1)
-        logic = VectorLogic(self.session_factory, dt=yesterdate)
+        logic = VectorLogic(self.mongo, dt=yesterdate)
         yesterday_secret = logic.secret_logic.get_secret()
         yesterday_cache = CacheSecretLogic(
-            self.session_factory, self.redis, secret=yesterday_secret, dt=yesterdate,
+            self.mongo, self.redis, secret=yesterday_secret, dt=yesterdate,
         ).cache
 
         yesterday_sims = logic.get_similarities(yesterday_cache)

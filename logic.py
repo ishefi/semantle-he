@@ -5,9 +5,9 @@ import heapq
 import struct
 from typing import TYPE_CHECKING
 
+from pymongo.collection import Collection
 
 from common.consts import VEC_SIZE
-from common.tables import Word2Vec
 
 from numpy import dot
 from numpy.linalg import norm
@@ -20,56 +20,47 @@ if TYPE_CHECKING:
 
 class SecretLogic:
 
-    def __init__(self, session_factory, dt: Optional[date] = None) -> None:
+    def __init__(self, mongo, dt: Optional[date] = None) -> None:
         if dt is None:
             dt = datetime.utcnow().date()
         self.date = dt
-        self.session_factory = session_factory
+        self.mongo = mongo
 
     def get_secret(self):
-        query = self.session_factory().query(Word2Vec)
-        query = query.filter(Word2Vec.secret_date == self.date)
-        wv = query.one_or_none()
+        wv = self.mongo.find_one({'secret_date': str(self.date)})
         if wv:
-            return wv.word
+            return wv['word']
         else:
             return None
 
     def set_secret(self, secret):
-        session = self.session_factory()
-        wv = session.query(Word2Vec).filter(Word2Vec.word == secret).one()
-        session.begin()
-        wv.secret_date = self.date
-        session.add(wv)
-        session.commit()
+        self.mongo.update_one(
+            {'word': secret},
+            {'$set': {'secret_date': str(self.date)}}
+
+        )
 
 
 class VectorLogic:
-    def __init__(self, session_factory, dt=None):
-        self.session_factory = session_factory
-        self.secret_logic = SecretLogic(self.session_factory, dt=dt)
+    def __init__(self, mongo, dt=None):
+        self.mongo: Collection = mongo
+        self.secret_logic = SecretLogic(self.mongo, dt=dt)
 
     def get_vector(self, word: str):
-        session = self.session_factory()
-        query = session.query(Word2Vec.vec)
-        query = query.filter(Word2Vec.word == word)
-        raw_vec = query.one_or_none()
-        if raw_vec is None:
+        w2v = self.mongo.find_one({'word': word})
+        if w2v is None:
             return None
         else:
-            return self._unpack_vector(raw_vec.vec)
+            return self._unpack_vector(w2v['vec'])
 
     def _unpack_vector(self, raw_vec):
         return struct.unpack(VEC_SIZE, raw_vec)
 
     def get_similarities(self, words: [str]) -> [float]:
         secret_vector = self.get_vector(self.secret_logic.get_secret())
-        session = self.session_factory()
-        query = session.query(Word2Vec)
-        query = query.filter(Word2Vec.word.in_(words))
         return {
-            wv.word: self.calc_similarity(secret_vector, self._unpack_vector(wv.vec))
-            for wv in query
+            wv['word']: self.calc_similarity(secret_vector, self._unpack_vector(wv['vec']))
+            for wv in self.mongo.find({'word': {'$in': words}})
         }
 
     def get_similarity(self, word: str) -> float:
@@ -85,22 +76,20 @@ class VectorLogic:
         ) * 100, 2)
 
     def iterate_all(self) -> [Word2Vec]:
-        session = self.session_factory()
-        query = session.query(Word2Vec)
-        for wv in query:
-            yield wv.word, self._unpack_vector(wv.vec)
+        for wv in self.mongo.find():
+            yield wv['word'], self._unpack_vector(wv['vec'])
 
 
 class CacheSecretLogic:
     _secret_cache_key = 'hs:{}:{}'
 
-    def __init__(self, session_factory, redis, secret, dt):
-        self.session_factory = session_factory
+    def __init__(self, mongo, redis, secret, dt):
+        self.mongo = mongo
         self.redis = redis
         if dt is None:
             dt = datetime.utcnow().date()
         self.date = str(dt)
-        self.vector_logic = VectorLogic(self.session_factory, dt=dt)
+        self.vector_logic = VectorLogic(self.mongo, dt=dt)
         self.secret = secret
         self._cache = None
 
@@ -112,9 +101,8 @@ class CacheSecretLogic:
         if self.vector_logic.secret_logic.get_secret() is not None:
             raise ValueError("There is already a secret for this date")
 
-        query = self.session_factory().query(Word2Vec)
-        wv = query.filter(Word2Vec.word == self.secret).one()
-        if wv.secret_date is not None:
+        wv = self.mongo.find_one({'word': self.secret})
+        if wv.get('secret_date') is not None:
             raise ValueError("This word was a secret in the past")
 
         target_vec = self.vector_logic.get_vector(self.secret)

@@ -20,9 +20,9 @@ parse_config_file(globals(), os.path.join(BASE, 'config.py'))
 
 thismodule = sys.modules[__name__]
 top_up_config = {
-    'db': 'JAWSDB_MARIA_URL',   # TODO: generic
     'redis': 'REDISTOGO_URL',   # TODO: generic
     'api_key': 'API_KEY',
+    'mongo': 'MONGODB',
 }
 
 for var, key in top_up_config.items():

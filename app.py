@@ -6,18 +6,11 @@ import tornado.ioloop
 import tornado.web
 
 from common.logger import logger
-from common.session import get_mongo
-from common.session import get_redis
 import handlers
 
 
 class WebApp(tornado.web.Application):
     PATH = os.path.dirname(os.path.realpath(__file__))
-
-    def __init__(self, *args, **kwargs):
-        self.mongo = get_mongo()
-        self.redis = get_redis()
-        super(WebApp, self).__init__(*args, **kwargs)
 
 
 static_handlers = [
@@ -50,7 +43,9 @@ if __name__ == "__main__":
     app = WebApp(handlers)
     http_server = tornado.httpserver.HTTPServer(app)
     port = int(os.environ["PORT"])
-    http_server.listen(port)
+    num_processes = int(os.environ.get("NUM_PROCESSES", 1))
+    http_server.bind(port)
+    http_server.start(num_processes)
 
     while True:
         logger.warning("Running app on port %d", port)

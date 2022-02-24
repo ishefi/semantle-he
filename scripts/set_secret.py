@@ -41,8 +41,11 @@ def main():
         print(cache)
         for rng in (range(1, 11), range(100, 1000, 100)):
             for i in rng:
-                score, w = cache[i]
-                print(f"{i}: {score}: {w[::-1]}")
+                w = cache[i]
+                print(f"{i}: {w[::-1]}")
+        pop = input("Populate?\n")
+        if pop in ('y', 'Y'):
+            logic.do_populate()
 
 
 if __name__ == '__main__':

@@ -114,12 +114,14 @@ class CacheSecretLogic:
             if len(nearest) > 1000:
                 heapq.heappop(nearest)
         nearest.sort()
+        self._cache = [w[1] for w in nearest]
         if not dry:
-            self.redis.rpush(self.secret_cache_key, *[w[1] for w in nearest])
-            self.redis.expire(self.secret_cache_key, timedelta(hours=96))
-            self.vector_logic.secret_logic.set_secret(self.secret)
-        else:
-            self._cache = nearest
+            self.do_populate()
+
+    def do_populate(self):
+        self.redis.rpush(self.secret_cache_key, *self.cache)
+        self.redis.expire(self.secret_cache_key, timedelta(hours=96))
+        self.vector_logic.secret_logic.set_secret(self.secret)
 
     @property
     def cache(self):

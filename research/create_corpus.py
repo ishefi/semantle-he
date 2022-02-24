@@ -4,7 +4,7 @@ from gensim.corpora import WikiCorpus
 from gensim.test.utils import datapath
 import urllib3
 import pathlib
-
+from tqdm import tqdm
 from research.config import WIKIFILE, CORPUS_OUTPUT
 
 
@@ -32,11 +32,13 @@ if __name__ == "__main__":
 
     corpus_output = Path(CORPUS_OUTPUT)
     print("Starting to create wiki corpus")
+
+    pbar = tqdm()
     with corpus_output.open('wb') as output:
         for i, text in enumerate(wiki.get_texts(), start=1):
             article = " ".join(text)
             output.write(f"{article}\n".encode('utf-8'))
             if i % 1000 == 0:
-                print(f"Saved {i} articles")
+                pbar.set_description_str(f"Saved {i} articles")
 
     print(f"Finished - Saved {i} articles")

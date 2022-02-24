@@ -5,8 +5,7 @@ from gensim.test.utils import datapath
 import urllib3
 import pathlib
 
-WIKIFILE = 'hewiki-latest-pages-articles.xml.bz2'
-CORPUS_OUTPUT = "wiki.he.text"
+from research.config import WIKIFILE, CORPUS_OUTPUT
 
 
 def download(url: str, dump_path: Path):

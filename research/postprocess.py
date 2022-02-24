@@ -3,10 +3,10 @@ import json
 from gensim.models import Word2Vec
 import numpy as np
 
-CUTOFF_RANK = 50000
-MODEL_PATH = "model.mdl"
-VECTORS_PATH = "model.mdl.wv.vectors.npy"
-DUMP_PATH = 'vectors.json'
+from research.config import CUTOFF_RANK
+from research.config import MODEL_PATH
+from research.config import VECTORS_PATH
+from research.config import DUMP_PATH
 
 if __name__ == "__main__":
     model = Word2Vec.load(MODEL_PATH)

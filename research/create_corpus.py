@@ -15,11 +15,19 @@ def download(url: str, dump_path: Path):
     chunk_size = 1024
     http = urllib3.PoolManager(cert_reqs='CERT_NONE')
     r = http.request('GET', url, preload_content=False)
+
+    i=0
+    pbar = tqdm()
     with dump_path.open('wb') as out:
         data = r.read(chunk_size)
         while data:
+            i+=1
             out.write(data)
+            if i % 10000 == 0:
+                pbar.set_description_str(f"downloaded {int(i/1000)} MBs")
             data = r.read(chunk_size)
+    pbar.close()
+    print(f"Finished - downloaded {chunk_size*i} KBs")
     r.release_conn()
 
 
@@ -40,5 +48,5 @@ if __name__ == "__main__":
             output.write(f"{article}\n".encode('utf-8'))
             if i % 1000 == 0:
                 pbar.set_description_str(f"Saved {i} articles")
-
+    pbar.close()
     print(f"Finished - Saved {i} articles")

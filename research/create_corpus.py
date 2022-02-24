@@ -16,11 +16,10 @@ def download(url: str, dump_path: Path):
     http = urllib3.PoolManager(cert_reqs='CERT_NONE')
     r = http.request('GET', url, preload_content=False)
     with dump_path.open('wb') as out:
-        while True:
-            data = r.read(chunk_size)
-            if not data:
-                break
+        data = r.read(chunk_size)
+        while data:
             out.write(data)
+            data = r.read(chunk_size)
     r.release_conn()
 
 

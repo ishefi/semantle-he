@@ -2,8 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>סמנטעל</title>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdn.statically.io/gh/zenorocha/clipboard.js/v2.0.10/dist/clipboard.min.js"></script>
     <script src="js/semantle.js"></script>
     <link rel="stylesheet" href="css/style.css">
 
@@ -58,7 +60,7 @@
     היום, חידה מספר <b id="puzzleNumber">{{number}}</b>,
     הקרבה של המילה הכי קרובה למילה הסודית היום היא
     <b>{{closest1}}</b>,
-    הקרבה של המילה המילה העשירית הכי קרובה היא
+    הקרבה של המילה העשירית הכי קרובה היא
     {{closest10}}
     והקרבה של המילה האלף הכי קרובה היא
     {{closest1000}}.
@@ -76,6 +78,10 @@
 <!--    <input type="button" value="נמאס לי" id="give-up-btn">-->
     </div>
     </form>
+    <div id="response"></div>
+    <div style="display:none">
+      <input type="text" id="share" />
+    </div>
 
     <table id="guesses">
     </table>

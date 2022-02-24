@@ -1,6 +1,52 @@
 const cache = {};
 
+       function solveStory(guesses, puzzleNumber) {
+//    if (guess_count == 0) {
+//        return `I gave up on Semantle ${puzzleNumber} without even guessing once.`;
+//    }
 
+//    if (guess_count == 1) {
+//        return `I got Semantle ${puzzleNumber} on my first guess!`;
+//    }
+
+    txt = 'פתרתי את סמנטעל #' + puzzleNumber + ' ב' + guesses.length + ' ניחושים!';
+    txt += '\nhttps://semantle-he.herokuapp.com\n';
+    let shareGuesses = guesses.slice();
+    shareGuesses.sort(function(a, b){return -(a[0]-b[0])});
+    shareGuesses = shareGuesses.slice(0, 6);
+    let greens = 0;
+    let whites = 0;
+    let squares = 5;
+    shareGuesses.forEach(guess => {
+        [similarity, old_guess, guess_number, percentile] = guess;
+        greens = Math.max(Math.floor(squares * percentile / 1000), 0);
+        whites = squares - greens;
+        txt += '🟩'.repeat(greens) + '⬜'.repeat(whites) + ' ';
+        txt += ' ' + guess_number;
+        if (greens != 0) {
+            txt += ' (' + percentile + '/1000)';
+        }
+        txt += '\n'
+    }
+    );
+
+    return txt;
+}
+
+
+        function share() {
+    // We use the stored guesses here, because those are not updated again
+    // once you win -- we don't want to include post-win guesses here.
+    const text = solveStory(JSON.parse(window.localStorage.getItem("guesses")), puzzleNumber.innerText);
+    const copied = ClipboardJS.copy(text);
+
+    if (copied) {
+        alert("העתקת, אפשר להדביק ברשתות החברתיות!");
+    }
+    else {
+        alert("Failed to copy to clipboard");
+    }
+}
 
 let Semantle = (function() {
     'use strict';
@@ -10,6 +56,7 @@ let Semantle = (function() {
     let guesses = [];
     let guessCount = 0;
     let gameOver = false;
+    const handleStats = false;
     const storage = window.localStorage;
 
 //    TODO: use value sent from BE ?
@@ -60,12 +107,15 @@ let Semantle = (function() {
 
 }
 
-    function saveGame(winState) {
-        let oldState = storage.getItem("winState");
-        if (oldState == -1 || oldState == null) {
-            storage.setItem("winState", winState);
-            storage.setItem("guesses", JSON.stringify(guesses));
-        }
+    function saveGame(guessCount, winState) {
+        // If we are in a tab still open from yesterday, we're done here.
+        // Don't save anything because we may overwrite today's game!
+        let savedPuzzleNumber = storage.getItem("puzzleNumber");
+        if (savedPuzzleNumber != puzzleNumber) { return }
+
+        storage.setItem("winState", winState);
+        storage.setItem("guesses", JSON.stringify(guesses));
+
     }
 
     function updateGuesses(guess) {
@@ -123,9 +173,15 @@ let Semantle = (function() {
 
                 const newEntry = [similarity, guess, guessCount, distance];
                 guesses.push(newEntry);
+                if (distance == 1000){
+                    endGame(true, true);
+                }
             }
             guesses.sort(function(a, b){return b[0]-a[0]});
-            saveGame(-1);
+            if (!gameOver){
+                saveGame(-1, -1);
+            }
+
 
             updateGuesses(guess);
 
@@ -139,7 +195,8 @@ let Semantle = (function() {
 //        let puzzleNumber = $("#puzzleNumber")[0].innerText;
         let storagePuzzleNumber = storage.getItem("puzzleNumber");
         if (storagePuzzleNumber != puzzleNumber) {
-            storage.clear();
+            storage.removeItem("guesses");
+            storage.removeItem("winState");
             storage.setItem("puzzleNumber", puzzleNumber);
         }
 
@@ -157,6 +214,65 @@ let Semantle = (function() {
         }
         }
 
+        function endGame(won, countStats) {
+        let stats;
+        if (handleStats) {
+            stats = getStats();
+            if (countStats) {
+                const onStreak = (stats['lastEnd'] == puzzleNumber - 1);
+
+                stats['lastEnd'] = puzzleNumber;
+                if (won) {
+                    if (onStreak) {
+                        stats['winStreak'] += 1;
+                    } else {
+                    stats['winStreak'] = 1;
+                    }
+                    stats['wins'] += 1;
+                } else {
+                    stats['winStreak'] = 0;
+                    stats['giveups'] += 1;
+                }
+                storage.setItem("stats", JSON.stringify(stats));
+            }
+        }
+
+        gameOver = true;
+        let response;
+        if (won) {
+            response = `<p><b>
+            ניצחת!
+            מצאת את הפתרון תוך ${guesses.length} ניחושים!
+            אפשר להמשיך לנסות להכניס מילים ולראות את הקרבה שלהן,
+            וגם <a href="javascript:share();">לשתף</a>
+            ולחזור לשחק מחר.
+             </p>`
+        } else {
+        // right now we do not allow giving up
+            response = `<p><b>You gave up!  The secret word is: ${secret}</b>.  Feel free to keep entering words if you are curious about the similarity to other words.  You can see the nearest words <a href="nearby_1k/${secretBase64}">here</a>.</p>`;
+        }
+
+        if (handleStats) {
+            const totalGames = stats['wins'] + stats['giveups'] + stats['abandons'];
+            response += `<br/>
+Stats (since we started recording, on day 23): <br/>
+<table>
+<tr><th>First game:</th><td>${stats['firstPlay']}</td></tr>
+<tr><th>Total days played:</th><td>${totalGames}</td></tr>
+<tr><th>Wins:</th><td>${stats['wins']}</td></tr>
+<tr><th>Win streak:</th><td>${stats['winStreak']}</td></tr>
+<tr><th>Give-ups:</th><td>${stats['giveups']}</td></tr>
+<tr><th>Did not finish</th><td>${stats['abandons']}</td></tr>
+<tr><th>Total guesses across all games:</th><td>${stats['totalGuesses']}</td></tr>
+</table>
+`;
+        }
+        $('#response')[0].innerHTML = response;
+
+        if (endGame) {
+            saveGame(guesses.length, won ? 1 : 0);
+        }
+    }
 
         return {
         init: init

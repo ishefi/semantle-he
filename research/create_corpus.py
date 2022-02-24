@@ -24,7 +24,7 @@ def download(url: str, dump_path: Path):
             i+=1
             out.write(data)
             if i % 10000 == 0:
-                pbar.set_description_str(f"downloaded {int(i/1000)} MBs")
+                pbar.set_description_str(f"downloaded {int(i/1024)} MBs")
             data = r.read(chunk_size)
     pbar.close()
     print(f"Finished - downloaded {chunk_size*i} KBs")

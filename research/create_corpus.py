@@ -27,7 +27,7 @@ def download(url: str, dump_path: Path):
                 pbar.set_description_str(f"downloaded {int(i/1024)} MBs")
             data = r.read(chunk_size)
     pbar.close()
-    print(f"Finished - downloaded {chunk_size*i} KBs")
+    print(f"Finished - downloaded {int(i/1024)} MBs")
     r.release_conn()
 
 

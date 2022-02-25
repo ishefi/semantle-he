@@ -16,7 +16,7 @@ def parse_config_file(config, path):
         return False
 
 
-parse_config_file(globals(), os.path.join(BASE, 'config.py'))
+parse_config_file(globals(), os.path.join(BASE, 'semantle.cfg'))
 
 thismodule = sys.modules[__name__]
 top_up_config = {

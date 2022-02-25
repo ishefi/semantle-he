@@ -65,6 +65,7 @@ class IndexHandler(BaseHandler):
 class DistanceHandler(BaseHandler):
     def get(self):
         word = self.get_argument('word')
+        word = word.replace("'", "")
         sim = self.logic.get_similarity(word)
         cache_score = self.cache_logic.get_cache_score(word)
 

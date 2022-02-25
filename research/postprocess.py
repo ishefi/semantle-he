@@ -10,9 +10,11 @@ if __name__ == "__main__":
     DUMP_PATH = config['DUMP_PATH']
 
     model = Word2Vec.load(MODEL_PATH)
-    counts = model.wv.expandos['count']
+    counts = model.wv.expandos['count'].tolist()
     vectors = model.wv.vectors
     words = [model.wv.index_to_key[i] for i in range(len(counts))]
+
+    print(f"saving {len(words)} vectors")
 
     with open(DUMP_PATH, 'w', encoding='utf-8') as f:
         json.dump([{'word': w, 'vec': v.tolist(), 'count': c} for w, v, c in zip(words, vectors, counts)], f,

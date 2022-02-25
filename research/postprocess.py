@@ -12,10 +12,10 @@ if __name__ == "__main__":
     model = Word2Vec.load(MODEL_PATH)
     counts = model.wv.expandos['count']
     vectors = model.wv.vectors
-    top_words = [model.wv.index_to_key[i] for i in range(len(counts))]
+    words = [model.wv.index_to_key[i] for i in range(len(counts))]
 
     with open(DUMP_PATH, 'w', encoding='utf-8') as f:
-        json.dump([{'word': w, 'vec': v.tolist(), 'count': c} for w, v, c in zip(top_words, vectors, counts)], f,
+        json.dump([{'word': w, 'vec': v.tolist(), 'count': c} for w, v, c in zip(words, vectors, counts)], f,
                   ensure_ascii=False)
 
-    print(top_words[:10])
+    print(words[:10])

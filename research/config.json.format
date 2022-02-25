@@ -1,3 +1,4 @@
+# remove the .format from the file and this comment
 {
   "WIKIFILE": "hewiki-latest-pages-articles.xml.bz2",
   "CORPUS_OUTPUT": "wiki.he.text",

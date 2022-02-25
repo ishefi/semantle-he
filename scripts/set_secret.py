@@ -28,6 +28,9 @@ def main():
     parser.add_argument(
         '--dry', action='store_true', help="If passed, just prints the list of 1000 closest words"
     )
+    parser.add_argument(
+        '--force', action='store_true', help="Allow rewriting dates or reusing secrets. Use with caution!"
+    )
 
     args = parser.parse_args()
 
@@ -35,7 +38,7 @@ def main():
     redis = get_redis()
 
     logic = CacheSecretLogic(mongo, redis, args.secret, args.date)
-    logic.set_secret(args.dry)
+    logic.set_secret(args.dry, args.force)
     if args.dry:
         cache = logic.cache[::-1]
         print(cache)

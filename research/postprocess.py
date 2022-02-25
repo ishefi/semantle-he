@@ -2,7 +2,7 @@ import json
 from gensim.models import Word2Vec
 import numpy as np
 
-from research import get_config
+from research.base import get_config
 
 if __name__ == "__main__":
     config = get_config()

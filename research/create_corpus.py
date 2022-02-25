@@ -6,7 +6,7 @@ import urllib3
 import pathlib
 from tqdm import tqdm
 
-from research import get_config
+from research.base import get_config
 
 
 def download(url: str, dump_path: Path):

@@ -5,7 +5,8 @@ from gensim.test.utils import datapath
 import urllib3
 import pathlib
 from tqdm import tqdm
-from research.config import WIKIFILE, CORPUS_OUTPUT
+
+from research import get_config
 
 
 def download(url: str, dump_path: Path):
@@ -32,6 +33,9 @@ def download(url: str, dump_path: Path):
 
 
 if __name__ == "__main__":
+    config = get_config()
+    WIKIFILE = config['WIKIFILE']
+    CORPUS_OUTPUT = config['output']
     url = f"https://dumps.wikimedia.org/hewiki/latest/{WIKIFILE}"
     bz_temp_dump_path = pathlib.Path(__file__).parent.resolve() / Path(WIKIFILE)
     download(url, bz_temp_dump_path)

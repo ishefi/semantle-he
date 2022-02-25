@@ -1,14 +1,16 @@
 import json
-
 from gensim.models import Word2Vec
 import numpy as np
 
-from research.config import CUTOFF_RANK
-from research.config import MODEL_PATH
-from research.config import VECTORS_PATH
-from research.config import DUMP_PATH
+from research import get_config
 
 if __name__ == "__main__":
+    config = get_config()
+    CUTOFF_RANK = config['CUTOFF_RANK']
+    MODEL_PATH = config['MODEL_PATH']
+    VECTORS_PATH = config['VECTORS_PATH']
+    DUMP_PATH = config['DUMP_PATH']
+
     model = Word2Vec.load(MODEL_PATH)
     sorted_indices = np.argsort(-model.wv.expandos['count'])
     top_indices = sorted_indices[:CUTOFF_RANK]

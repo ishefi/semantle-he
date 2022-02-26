@@ -92,3 +92,24 @@ th#chronoOrder, th#alphaOrder, th#similarityOrder, input#give-up-btn, input#gues
 footer {
     margin-top: 200px;
 }
+
+.review {
+    margin: 0;
+}
+
+.review__quote {
+    font-size: medium;
+}
+
+.review__quote::before {
+    content: '\201C';
+}
+
+.review__quote::after {
+    content: '\201D';
+}
+
+.review__reviewer {
+    margin-right: 20px;
+    font-size: small;
+}

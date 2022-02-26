@@ -9,10 +9,10 @@ const cache = {};
 //        return `I got Semantle ${puzzleNumber} on my first guess!`;
 //    }
 
-    txt = 'פתרתי את סמנטעל #' + puzzleNumber + ' ב' + guesses.length + ' ניחושים!';
+    txt = 'פתרתי את סמנטעל #' + puzzleNumber + ' ב־' + guesses.length + ' ניחושים!';
     txt += '\nhttps://semantle-he.herokuapp.com\n';
     let shareGuesses = guesses.slice();
-    shareGuesses.sort(function(a, b){return -(a[0]-b[0])});
+    shareGuesses.sort(function(a, b){return b[0]-a[0]});
     shareGuesses = shareGuesses.slice(0, 6);
     let greens = 0;
     let whites = 0;
@@ -122,7 +122,7 @@ let Semantle = (function() {
         let inner = `<tr>
         <th>#</th>
         <th>ניחוש</th>
-        <th>קרבה</th>
+        <th>ציון קרבה</th>
         <th>מתחמם?</th></tr>`;
         /* This is dumb: first we find the most-recent word, and put
            it at the top.  Then we do the rest. */
@@ -203,6 +203,7 @@ let Semantle = (function() {
         const winState = storage.getItem("winState");
         if (winState != null) {
             guesses = JSON.parse(storage.getItem("guesses"));
+            guesses.sort(function(a, b){return b[0]-a[0]});
             for (let guess of guesses) {
                 guessed.add(guess[1]);
             }

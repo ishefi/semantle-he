@@ -88,6 +88,7 @@ class CacheSecretLogic:
         self.redis = redis
         if dt is None:
             dt = datetime.utcnow().date()
+        self.date_ = dt
         self.date = str(dt)
         self.vector_logic = VectorLogic(self.mongo, dt=dt)
         self.secret = secret
@@ -97,13 +98,14 @@ class CacheSecretLogic:
     def secret_cache_key(self):
         return self._secret_cache_key.format(self.secret, self.date)
 
-    def set_secret(self, dry=False):
-        if self.vector_logic.secret_logic.get_secret() is not None:
-            raise ValueError("There is already a secret for this date")
+    def set_secret(self, dry=False, force=False):
+        if not force:
+            if self.vector_logic.secret_logic.get_secret() is not None:
+                raise ValueError("There is already a secret for this date")
 
-        wv = self.mongo.find_one({'word': self.secret})
-        if wv.get('secret_date') is not None:
-            raise ValueError("This word was a secret in the past")
+            wv = self.mongo.find_one({'word': self.secret})
+            if wv.get('secret_date') is not None:
+                raise ValueError("This word was a secret in the past")
 
         target_vec = self.vector_logic.get_vector(self.secret)
 
@@ -119,8 +121,9 @@ class CacheSecretLogic:
             self.do_populate()
 
     def do_populate(self):
+        expiration = self.date_ - datetime.utcnow().date()  + timedelta(days=4)
         self.redis.rpush(self.secret_cache_key, *self.cache)
-        self.redis.expire(self.secret_cache_key, timedelta(hours=96))
+        self.redis.expire(self.secret_cache_key, expiration)
         self.vector_logic.secret_logic.set_secret(self.secret)
 
     @property

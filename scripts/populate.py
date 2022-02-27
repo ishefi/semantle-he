@@ -18,7 +18,7 @@ def main():
     model = word2vec.KeyedVectors.load(args.input).wv
     words = model.key_to_index.keys()
     mongo = get_mongo()
-    collection = mongo.word2vec
+    collection = mongo
     to_insert = []
     for i, word in enumerate(words):
         vec = model[word].tobytes()

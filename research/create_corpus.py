@@ -35,16 +35,15 @@ if __name__ == "__main__":
     WIKIFILE = config['WIKIFILE']
     CORPUS_OUTPUT = config['CORPUS_OUTPUT']
     url = f"https://dumps.wikimedia.org/hewiki/latest/{WIKIFILE}"
-    bz_temp_dump_path = pathlib.Path(__file__).parent.resolve() / Path(WIKIFILE)
-    download(url, bz_temp_dump_path)
 
+    base_path= pathlib.Path(__file__).parent.resolve()
+
+    bz_temp_dump_path = base_path / Path(WIKIFILE)
+    download(url, bz_temp_dump_path)
     wiki = WikiCorpus(datapath(str(bz_temp_dump_path)), dictionary={})
-    corpus_output = Path(CORPUS_OUTPUT)
+    corpus_output = base_path / Path(CORPUS_OUTPUT)
     print("Starting to create wiki corpus")
-    pbar = tqdm(desc="saving articles", unit='articles')
     with corpus_output.open('wb') as output:
-        for i, text in enumerate(wiki.get_texts(), start=1):
+        for i, text in tqdm(enumerate(wiki.get_texts(), start=1),desc="saving articles", unit='articles', mininterval=5) :
             article = " ".join(text)
             output.write(f"{article}\n".encode('utf-8'))
-            if i % 1000 == 0:
-                pbar.update(i)

@@ -82,6 +82,8 @@ class VectorLogic:
 
 class CacheSecretLogic:
     _secret_cache_key = 'hs:{}:{}'
+    _cache_dict = {}
+    MAX_CACHE = 50
 
     def __init__(self, mongo, redis, secret, dt):
         self.mongo = mongo
@@ -92,7 +94,6 @@ class CacheSecretLogic:
         self.date = str(dt)
         self.vector_logic = VectorLogic(self.mongo, dt=dt)
         self.secret = secret
-        self._cache = None
 
     @property
     def secret_cache_key(self):
@@ -116,7 +117,7 @@ class CacheSecretLogic:
             if len(nearest) > 1000:
                 heapq.heappop(nearest)
         nearest.sort()
-        self._cache = [w[1] for w in nearest]
+        CacheSecretLogic._cache_dict[self.date] = [w[1] for w in nearest]
         if not dry:
             self.do_populate()
 
@@ -128,9 +129,11 @@ class CacheSecretLogic:
 
     @property
     def cache(self):
-        if self._cache is None:
-            self._cache = self.redis.lrange(self.secret_cache_key, 0, -1)
-        return self._cache
+        if CacheSecretLogic._cache_dict.get(self.date) is None:
+                if len(CacheSecretLogic._cache_dict) > CacheSecretLogic.MAX_CACHE:
+                    CacheSecretLogic._cache_dict.clear()
+                CacheSecretLogic._cache_dict[self.date] = self.redis.lrange(self.secret_cache_key, 0, -1)
+        return CacheSecretLogic._cache_dict[self.date]
 
     def get_cache_score(self, word):
         try:

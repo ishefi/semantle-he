@@ -3,3 +3,4 @@ redis~=4.1.4
 numpy~=1.22.2
 gensim~=4.1.2
 pymongo[srv]
+newrelic

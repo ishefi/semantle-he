@@ -167,6 +167,12 @@ let Semantle = (function() {
     async function init() {
     $('#form')[0].addEventListener('submit', async function(event) {
             event.preventDefault();
+
+            // replace with api call to get vectors
+            var vectors = getVectors();
+            // (or store some in local storage, and only get guess vector. don't care)
+
+            createGraph(vectors);
             $('#guess').focus();
             $('#error')[0].textContent = "";
             let guess = $('#guess')[0].value.trim().replace("!", "").replace("*", "");

@@ -5,7 +5,6 @@ import heapq
 import struct
 from typing import TYPE_CHECKING
 
-import gensim.models.keyedvectors as word2vec
 from pymongo.collection import Collection
 
 from common.consts import VEC_SIZE
@@ -157,6 +156,7 @@ class CacheSecretLogic:
 class CacheSecretLogicGensim(CacheSecretLogic):
     def __init__(self, model_path, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        import gensim.models.keyedvectors as word2vec
         self.model = word2vec.KeyedVectors.load(model_path).wv
         self.words = self.model.key_to_index.keys()
 

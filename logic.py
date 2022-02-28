@@ -77,9 +77,9 @@ class VectorLogic:
         return self.calc_similarity(secret_vector, word_vector)
 
     def calc_similarity(self, vec1, vec2):
-        similarity = dot(vec1, vec2) / (norm(vec1) * norm(vec2))  # [-1, 1]
-        scaled = round((similarity + 1) * 50, 2)  # scaled to [0, 100]
-        return scaled
+        return round(abs(
+            dot(vec1, vec2) / (norm(vec1) * norm(vec2))
+        ) * 100, 2)
 
     def iterate_all(self):
         for wv in self.mongo.find():

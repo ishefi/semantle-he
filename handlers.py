@@ -15,6 +15,7 @@ def get_handlers():
         (r"/?", IndexHandler),
         (r"/yesterday-top-1000/?", YesterdayClosestHandler),
         (r"/api/distance/?", DistanceHandler),
+        (r"/secrets/?", AllSecretsHandler),
     ]
 
 
@@ -92,5 +93,17 @@ class YesterdayClosestHandler(BaseHandler):
         self.render(
             'static/closest1000.html',
             yesterday=sorted(yesterday_sims.items(), key=lambda ws: ws[1], reverse=1),
+        )
+
+class AllSecretsHandler(BaseHandler):
+    def get(self):
+        secrets = self.logic.secret_logic.get_all_secrets()
+        api_key = self.get_argument('api_key', None)
+        if api_key != self.application.api_key:
+            raise tornado.web.HTTPError(403)
+
+        self.render(
+            'static/all_secrets.html',
+            secrets=sorted(secrets, key=lambda ws: ws[1], reverse=1),
         )
 

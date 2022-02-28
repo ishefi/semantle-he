@@ -7,6 +7,12 @@ body, input {
     font-weight:200;
 }
 
+body {
+    margin: 0 auto;
+    max-width: 800px;
+    padding: 1em;
+}
+
 #guess-wrapper {
     display: flex;
     margin: 20px 0;
@@ -112,4 +118,96 @@ footer {
 .review__reviewer {
     margin-right: 20px;
     font-size: small;
+}
+
+body.rules-open {
+    overflow: hidden;
+}
+
+body.rules-open #rules-underlay {
+    display: block;
+}
+
+#rules-button {
+    border: 2px solid black;
+    border-radius: 50%;
+    height: 2em;
+    font-weight: bold;
+    width: 2em;
+    align: left;
+}
+
+#rules-underlay {
+    background: rgba(0,0,0,.5);
+    bottom: 0;
+    display: none;
+    left: 0;
+    position: fixed;
+    right: 0;
+    top: 0;
+}
+
+#rules {
+    background: white;
+    left: 2em;
+    margin-bottom: 2em;
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 40em;
+    overflow: hidden;
+    position: fixed;
+    right: 2em;
+    top: 2em;
+    z-index: 1;
+}
+
+#rules-close {
+    border: none;
+    font-size: 2em;
+    height: 1em;
+    line-height: 1em;
+    left: .5em;
+    position: absolute;
+    top: .5em;
+    width: 1em;
+    z-index: 2;
+}
+
+#rules-content {
+    max-height: calc(100vh - 4em);
+    padding: 2em;
+    overflow: auto;
+}
+
+#rules-heading {
+    margin-top: 0;
+}
+
+#rules-content > *:last-child {
+    margin-bottom: 0;
+}
+
+
+@media only screen and (max-width: 640px) {
+    body, input {
+        font-size: 14px;
+    }
+
+    #guess-wrapper {
+        flex-grow: 1;
+    }
+
+    table {
+        width: 100%;
+    }
+
+    th {
+        padding-left: .5em;
+    }
+}
+
+header {
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
 }

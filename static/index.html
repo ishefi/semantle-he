@@ -5,8 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>סמנטעל</title>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script src="https://cdn.statically.io/gh/zenorocha/clipboard.js/v2.0.10/dist/clipboard.min.js"></script>
-    <script src="js/semantle.js"></script>
     <link rel="stylesheet" href="css/style.css">
 
 <!-- Global site tag (gtag.js) - Google Analytics -->
@@ -22,7 +20,10 @@
 
 </head>
 <body dir='rtl'>
+<header>
 <h1>סמנטעל</h1>
+<button aria-label="Rules" id="rules-button">?</button>
+</header>
     <figure>
         <blockquote class="review" cite="https://twitter.com/amsterdamski2/status/1497636216996515841">
             <p class="review__quote">זה חרא מהביל ואני שונא את זה. זה אנטי כיף</p>
@@ -32,37 +33,44 @@
             <cite>Twitter</cite>
         </figcaption>
     </figure>
-    <h3>נחשו את המילה הסודית</h3>
-    <p>
-        אפשר לנחש מילה או ביטוי קצר.
-        המילה הסודית יכולה להיות בכל אורך, אבל תהיה מילה בודדת (ולא ביטוי).
-        </p>
-<p>
-        המשחק יגיד כמה המילה קרובה סמנטית למילה הסודית.
-        קרבה לא באה לידי ביטוי באיות אלא במשמעות.
-        ״משמעות״ או ״קרבה סמנטית״ נמדדת באמצעות
-        <a target="_blank" href="https://he.wikipedia.org/wiki/Word2vec">Word2Vec</a>.
-        או במילים פשוטות יותר: שתי מילים הן יותר קרובות סמנטית
-        ככל שיותר סביר להשתמש בשתיהן בקונטקסט דומה
-        .(ספציפית בויקיפדיה, כי זה הקורפוס שהמודל אומן עליו)
+    <div id="rules-underlay">
+      <div id="rules" aria-labelledby="rules-heading" aria-modal="true">
+        <button id="rules-close" aria-label="Close">&times;</button>
+        <div id="rules-content">
+            <h3 id="rules-heading">נחשו את המילה הסודית</h3>
+            <p>
+            אפשר לנחש מילה או ביטוי קצר.
+            המילה הסודית יכולה להיות בכל אורך, אבל תהיה מילה בודדת (ולא ביטוי).
+            </p>
+            <p>
+                המשחק יגיד כמה המילה קרובה סמנטית למילה הסודית.
+                קרבה לא באה לידי ביטוי באיות אלא במשמעות.
+                ״משמעות״ או ״קרבה סמנטית״ נמדדת באמצעות
+                <a target="_blank" href="https://he.wikipedia.org/wiki/Word2vec">Word2Vec</a>.
+                או במילים פשוטות יותר: שתי מילים הן יותר קרובות סמנטית
+                ככל שיותר סביר להשתמש בשתיהן בקונטקסט דומה
+                .(ספציפית בויקיפדיה, כי זה הקורפוס שהמודל אומן עליו)
 
-        הציון לקרבה הסמנטית הוא בין 0-100, כש־0 זה ממש רחוק ו־100 זאת המילה הסודית בעצמה.
-    </p>
-    <p>
-        המילה הסודית יכולה להיות כל
-        <a target="_blank" href="https://he.wikipedia.org/wiki/%D7%97%D7%9C%D7%A7%D7%99_%D7%94%D7%93%D7%99%D7%91%D7%A8">חלק דיבר</a>,
-        אבל תמיד תהיה מילה בודדת.
-    </p>
-    <p>
-        המשחק יגיד כמה הניחוש שלך קרוב למילה הסודית
-        ויציין אם המילה אחת מ1000 המילים הכי קרובות למילה הסודית.
-    </p>
-    <p>
+                הציון לקרבה הסמנטית הוא בין 0-100, כש־0 זה ממש רחוק ו־100 זאת המילה הסודית בעצמה.
+            </p>
+            <p>
+                המילה הסודית יכולה להיות כל
+                <a target="_blank" href="https://he.wikipedia.org/wiki/%D7%97%D7%9C%D7%A7%D7%99_%D7%94%D7%93%D7%99%D7%91%D7%A8">חלק דיבר</a>,
+                אבל תמיד תהיה מילה בודדת.
+            </p>
+            <p>
+                המשחק יגיד כמה הניחוש שלך קרוב למילה הסודית
+                ויציין אם המילה אחת מ1000 המילים הכי קרובות למילה הסודית.
+            </p>
+            <p>
         בניגוד ל־<a target="_blank" href="https://www.nytimes.com/games/wordle/index.html">Wordle</a>,
         בדרך כלל צריך יותר מ6 ניחושים.
         יותר בכיוון של כמה עשרות. ויש מילה חדשה כל יום.
 
     </p>
+        </div>
+      </div>
+    </div>
 
 <p>
     {% if yesterday %}
@@ -148,6 +156,10 @@
     <div align="left">Made by <a target="_blank" href="https://twitter.com/shefi89">Itamar Shefi</a> 2022. Word2Vec data from Wikipedia.
     Based on David Turner's <a target="_blank" href="https://semantle.novalis.org/">Semantle</a></div>
 
+<footer>
+    <script src="https://cdn.statically.io/gh/zenorocha/clipboard.js/v2.0.10/dist/clipboard.min.js"></script>
+    <script src="js/semantle.js"></script>
+</footer>
 
 
 </html>

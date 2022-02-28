@@ -5,20 +5,20 @@ function createGraph(vectors){
     opt.epsilon = 10; // epsilon is learning rate (10 = default)
     opt.perplexity = 30; // roughly how many neighbors each point influences (30 = default)
     opt.dim = 2; // dimensionality of the embedding (2 = default)
+    num_iters = 1000; //default for sklearn
 
     var tsne = new tsnejs.tSNE(opt); // create a tSNE instance
 
     // initialize data. Here we have 3 points and some example pairwise dissimilarities
     tsne.initDataRaw(vectors);
 
-    for(var k = 0; k < 500; k++) {
+    for(var k = 0; k < num_iters; k++) {
       tsne.step(); // every time you call this, solution gets better
     }
     var data = tsne.getSolution();
-    //data = [[-0.7909950384823939,-10.040894920569862],[9.091167597184828,4.335425662691733],[-8.300172558702434,5.7054692578781285]]
 
-    xdomain = [-20, 20];
-    ydomain = [-20, 20];
+    xdomain = [-20, 20]; // this should be derived from data somehow
+    ydomain = [-20, 20]; // this should be derived from data somehow
 
     // set the dimensions and margins of the graph
     var margin = {top: 10, right: 30, bottom: 30, left: 60},

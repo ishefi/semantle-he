@@ -5,6 +5,7 @@ import heapq
 import struct
 from typing import TYPE_CHECKING
 
+import gensim.models.keyedvectors as word2vec
 from pymongo.collection import Collection
 
 from common.consts import VEC_SIZE
@@ -39,6 +40,10 @@ class SecretLogic:
             {'$set': {'secret_date': str(self.date)}}
 
         )
+
+    def get_all_secrets(self):
+        secrets = self.mongo.find({'secret_date': {'$exists': True, '$ne': None}})
+        return ((secret['word'], secret['secret_date']) for secret in secrets)
 
 
 class VectorLogic:
@@ -75,7 +80,7 @@ class VectorLogic:
             dot(vec1, vec2) / (norm(vec1) * norm(vec2))
         ) * 100, 2)
 
-    def iterate_all(self) -> [Word2Vec]:
+    def iterate_all(self):
         for wv in self.mongo.find():
             yield wv['word'], self._unpack_vector(wv['vec'])
 
@@ -99,6 +104,12 @@ class CacheSecretLogic:
     def secret_cache_key(self):
         return self._secret_cache_key.format(self.secret, self.date)
 
+    def _get_secret_vector(self):
+        return self.vector_logic.get_vector(self.secret)
+
+    def _iterate_all_wv(self):
+        return self.vector_logic.iterate_all()
+
     def set_secret(self, dry=False, force=False):
         if not force:
             if self.vector_logic.secret_logic.get_secret() is not None:
@@ -108,16 +119,16 @@ class CacheSecretLogic:
             if wv.get('secret_date') is not None:
                 raise ValueError("This word was a secret in the past")
 
-        target_vec = self.vector_logic.get_vector(self.secret)
+        secret_vec = self._get_secret_vector()
 
         nearest = []
-        for word, vec in self.vector_logic.iterate_all():
-            s = self.vector_logic.calc_similarity(vec, target_vec)
+        for word, vec in self._iterate_all_wv():
+            s = self.vector_logic.calc_similarity(vec, secret_vec)
             heapq.heappush(nearest, (s, word))
             if len(nearest) > 1000:
                 heapq.heappop(nearest)
         nearest.sort()
-        CacheSecretLogic._cache_dict[self.date] = [w[1] for w in nearest]
+        self._cache_dict[self.date] = [w[1] for w in nearest]
         if not dry:
             self.do_populate()
 
@@ -129,14 +140,29 @@ class CacheSecretLogic:
 
     @property
     def cache(self):
-        if CacheSecretLogic._cache_dict.get(self.date) is None:
-                if len(CacheSecretLogic._cache_dict) > CacheSecretLogic.MAX_CACHE:
-                    CacheSecretLogic._cache_dict.clear()
-                CacheSecretLogic._cache_dict[self.date] = self.redis.lrange(self.secret_cache_key, 0, -1)
-        return CacheSecretLogic._cache_dict[self.date]
+        cache = self._cache_dict.get(self.date)
+        if cache is None or len(cache) < 1000:
+                if len(self._cache_dict) > self.MAX_CACHE:
+                    self._cache_dict.clear()
+                self._cache_dict[self.date] = self.redis.lrange(self.secret_cache_key, 0, -1)
+        return self._cache_dict[self.date]
 
     def get_cache_score(self, word):
         try:
             return self.cache.index(word) + 1
         except ValueError:
             return -1
+
+
+class CacheSecretLogicGensim(CacheSecretLogic):
+    def __init__(self, model_path, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.model = word2vec.KeyedVectors.load(model_path).wv
+        self.words = self.model.key_to_index.keys()
+
+    def _get_secret_vector(self):
+        return self.model[self.secret]
+
+    def _iterate_all_wv(self):
+        for word in self.words:
+            yield word, self.model[word]

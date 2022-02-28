@@ -5,12 +5,18 @@ import tornado.httpserver
 import tornado.ioloop
 import tornado.web
 
+from common import config
 from common.logger import logger
 import handlers
 
 
 class WebApp(tornado.web.Application):
     PATH = os.path.dirname(os.path.realpath(__file__))
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.api_key = config.api_key
+
 
 
 static_handlers = [

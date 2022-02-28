@@ -14,6 +14,7 @@ from numpy import dot
 from numpy.linalg import norm
 
 from datetime import datetime
+
 if TYPE_CHECKING:
     from typing import Optional
     from datetime import date
@@ -76,9 +77,9 @@ class VectorLogic:
         return self.calc_similarity(secret_vector, word_vector)
 
     def calc_similarity(self, vec1, vec2):
-        return round(abs(
-            dot(vec1, vec2) / (norm(vec1) * norm(vec2))
-        ) * 100, 2)
+        similarity = dot(vec1, vec2) / (norm(vec1) * norm(vec2))  # [-1, 1]
+        scaled = round((similarity + 1) * 50, 2)  # scaled to [0, 100]
+        return scaled
 
     def iterate_all(self):
         for wv in self.mongo.find():
@@ -133,7 +134,7 @@ class CacheSecretLogic:
             self.do_populate()
 
     def do_populate(self):
-        expiration = self.date_ - datetime.utcnow().date()  + timedelta(days=4)
+        expiration = self.date_ - datetime.utcnow().date() + timedelta(days=4)
         self.redis.rpush(self.secret_cache_key, *self.cache)
         self.redis.expire(self.secret_cache_key, expiration)
         self.vector_logic.secret_logic.set_secret(self.secret)
@@ -142,9 +143,9 @@ class CacheSecretLogic:
     def cache(self):
         cache = self._cache_dict.get(self.date)
         if cache is None or len(cache) < 1000:
-                if len(self._cache_dict) > self.MAX_CACHE:
-                    self._cache_dict.clear()
-                self._cache_dict[self.date] = self.redis.lrange(self.secret_cache_key, 0, -1)
+            if len(self._cache_dict) > self.MAX_CACHE:
+                self._cache_dict.clear()
+            self._cache_dict[self.date] = self.redis.lrange(self.secret_cache_key, 0, -1)
         return self._cache_dict[self.date]
 
     def get_cache_score(self, word):

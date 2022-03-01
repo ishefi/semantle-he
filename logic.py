@@ -46,9 +46,8 @@ class SecretLogic:
 
 
 class VectorLogic:
-    def __init__(self, mongo, dt):
+    def __init__(self, mongo, dt=None):
         self.mongo: Collection = mongo
-        self.date_str = str(dt)
         self.secret_logic = SecretLogic(self.mongo, dt=dt)
 
     def get_vector(self, word: str):
@@ -69,24 +68,11 @@ class VectorLogic:
         }
 
     def get_similarity(self, word: str) -> float:
-        secret_vector, word_vector = self._get_secret_and_word_w2v(word)
+        word_vector = self.get_vector(word)
         if word_vector is None:
             return -1.0
+        secret_vector = self.get_vector(self.secret_logic.get_secret())
         return self.calc_similarity(secret_vector, word_vector)
-
-    def _get_secret_and_word_w2v(self, word):
-        secret_vec = None
-        word_vec = None
-        for wv in self.mongo.find(
-                {'$or': [{'word': word}, {'secret_date': self.date_str}]}
-        ):
-            if wv.get('secret_date') == self.date_str:
-                secret_vec = self._unpack_vector(wv['vec'])
-                if wv['word'] == word:
-                    word_vec = secret_vec
-            else:
-                word_vec = self._unpack_vector(wv['vec'])
-        return secret_vec, word_vec
 
     def calc_similarity(self, vec1, vec2):
         return round(abs(

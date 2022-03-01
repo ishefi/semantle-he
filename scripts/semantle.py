@@ -16,14 +16,14 @@ def main():
     inp = None
     mongo = get_mongo()
     redis = get_redis()
-    date = datetime.utcnow().date()
-    logic = VectorLogic(mongo, date)
+    logic = VectorLogic(mongo)
     secret = logic.secret_logic.get_secret()
+    date = datetime.utcnow().date()
     cache_logic = CacheSecretLogic(mongo, redis, secret=secret, dt=date)
     while inp != 'exit':
         if datetime.utcnow().date() != date:
             date = datetime.utcnow().date()
-            logic = VectorLogic(mongo, date)
+            logic = VectorLogic(mongo)
             secret = logic.secret_logic.get_secret()
             cache_logic = CacheSecretLogic(mongo, redis, secret=secret, dt=date)
         inp = input('>')

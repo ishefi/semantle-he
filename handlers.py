@@ -24,9 +24,9 @@ class BaseHandler(tornado.web.RequestHandler):
         super().__init__(*args, **kwargs)
         self.mongo = get_mongo()
         self.redis = get_redis()
-        date = datetime.utcnow().date()
-        self.logic = VectorLogic(self.mongo, dt=date)
+        self.logic = VectorLogic(self.mongo)
         secret = self.logic.secret_logic.get_secret()
+        date = datetime.utcnow().date()
         self.cache_logic = CacheSecretLogic(self.mongo, self.redis, secret=secret, dt=date)
 
     def reply(self, content):

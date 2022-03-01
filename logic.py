@@ -81,7 +81,7 @@ class VectorLogic:
         word_vector = self.get_vector(word)
         if word_vector is None:
             return -1.0
-        secret_vector = self.get_vector(self.secret_logic.get_secret())
+        secret_vector = self.get_secret_vector()
         return self.calc_similarity(secret_vector, word_vector)
 
     def calc_similarity(self, vec1, vec2):

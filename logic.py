@@ -108,7 +108,14 @@ class CacheSecretLogic:
         self.date_ = dt
         self.date = str(dt)
         self.vector_logic = VectorLogic(self.mongo, dt=dt)
-        self.secret = secret
+
+        self._secret = secret
+
+    @property
+    def secret(self):
+        if self._secret is None:
+            self._secret = SecretLogic(self.mongo, dt=self.date_)
+        return self._secret
 
     @property
     def secret_cache_key(self):

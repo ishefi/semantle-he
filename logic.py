@@ -55,7 +55,7 @@ class VectorLogic:
         self.secret_logic = SecretLogic(self.mongo, dt=dt)
 
     def get_vector(self, word: str):
-        w2v = self.mongo.find_one({'word': word}).hint('word_1')
+        w2v = self.mongo.find_one({'word': word})
         if w2v is None:
             return None
         else:
@@ -132,7 +132,7 @@ class CacheSecretLogic:
             if self.vector_logic.secret_logic.get_secret() is not None:
                 raise ValueError("There is already a secret for this date")
 
-            wv = self.mongo.find_one({'word': self.secret}).hint('word_1')
+            wv = self.mongo.find_one({'word': self.secret})
             if wv.get('secret_date') is not None:
                 raise ValueError("This word was a secret in the past")
 

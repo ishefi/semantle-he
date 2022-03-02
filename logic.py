@@ -5,7 +5,6 @@ import heapq
 import struct
 from typing import TYPE_CHECKING
 
-import gensim.models.keyedvectors as word2vec
 from pymongo.collection import Collection
 
 from common.consts import VEC_SIZE
@@ -48,8 +47,11 @@ class SecretLogic:
 
 
 class VectorLogic:
-    def __init__(self, mongo, dt=None):
+    _secret_cache = {}
+
+    def __init__(self, mongo, dt):
         self.mongo: Collection = mongo
+        self.date = str(dt)
         self.secret_logic = SecretLogic(self.mongo, dt=dt)
 
     def get_vector(self, word: str):
@@ -63,17 +65,24 @@ class VectorLogic:
         return struct.unpack(VEC_SIZE, raw_vec)
 
     def get_similarities(self, words: [str]) -> [float]:
-        secret_vector = self.get_vector(self.secret_logic.get_secret())
+        secret_vector = self.get_secret_vector()
         return {
             wv['word']: self.calc_similarity(secret_vector, self._unpack_vector(wv['vec']))
             for wv in self.mongo.find({'word': {'$in': words}})
         }
 
+    def get_secret_vector(self):
+        if self._secret_cache.get(self.date) is None:
+            self._secret_cache[self.date] = self.get_vector(
+                self.secret_logic.get_secret()
+            )
+        return self._secret_cache[self.date]
+
     def get_similarity(self, word: str) -> float:
         word_vector = self.get_vector(word)
         if word_vector is None:
             return -1.0
-        secret_vector = self.get_vector(self.secret_logic.get_secret())
+        secret_vector = self.get_secret_vector()
         return self.calc_similarity(secret_vector, word_vector)
 
     def calc_similarity(self, vec1, vec2):
@@ -158,6 +167,7 @@ class CacheSecretLogic:
 class CacheSecretLogicGensim(CacheSecretLogic):
     def __init__(self, model_path, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        import gensim.models.keyedvectors as word2vec
         self.model = word2vec.KeyedVectors.load(model_path).wv
         self.words = self.model.key_to_index.keys()
 

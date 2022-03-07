@@ -85,9 +85,7 @@ class VectorLogic:
         return self.calc_similarity(secret_vector, word_vector)
 
     def calc_similarity(self, vec1, vec2):
-        return round(abs(
-            dot(vec1, vec2) / (norm(vec1) * norm(vec2))
-        ) * 100, 2)
+        return round(dot(vec1, vec2) / (norm(vec1) * norm(vec2)) * 100, 2)
 
     def iterate_all(self):
         for wv in self.mongo.find():

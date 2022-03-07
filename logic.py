@@ -140,7 +140,7 @@ class CacheSecretLogic:
             self.do_populate()
 
     def do_populate(self):
-        expiration = self.date_ - datetime.utcnow().date()  + timedelta(days=4)
+        expiration = self.date_ - datetime.utcnow().date() + timedelta(days=4)
         self.redis.rpush(self.secret_cache_key, *self.cache)
         self.redis.expire(self.secret_cache_key, expiration)
         self.vector_logic.secret_logic.set_secret(self.secret)

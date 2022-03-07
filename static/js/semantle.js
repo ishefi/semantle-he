@@ -1,6 +1,8 @@
 const cache = {};
+let darkModeMql = window.matchMedia('(prefers-color-scheme: dark)');
+let darkMode = false;
 
-       function solveStory(guesses, puzzleNumber) {
+function solveStory(guesses, puzzleNumber) {
 //    if (guess_count == 0) {
 //        return `I gave up on Semantle ${puzzleNumber} without even guessing once.`;
 //    }
@@ -88,16 +90,18 @@ let Semantle = (function() {
         } else {
             cls = "close";
             percentileText = `<span style="text-align:right; width:5em; display:inline-block;">${percentile}/1000</span>&nbsp;`;
-            progress = ` <span style="display:inline-block;width:10em; background-color:#eeeeee;">
-<span style="background-color:#008000; width:${percentile/10}%; display:inline-block">&nbsp;</span>
+            progress = ` <span class="progress-container">
+<span class="progress-bar" style="width:${percentile/10}%">&nbsp;</span>
 </span>`;
         }
     }
     let color;
     if (oldGuess === guess) {
-        color = '#cc00cc';
+        color = '#c0c';
+    } else if (darkMode) {
+        color = '#fafafa';
     } else {
-        color = '#000000';
+        color = '#000';
     }
     return `<tr><td>${guessNumber}</td>
     <td style="color:${color}" onclick="select('${oldGuess}', secretVec);">${oldGuess}</td>
@@ -106,6 +110,21 @@ let Semantle = (function() {
 </td></tr>`;
 
 }
+
+    function checkMedia() {
+        const storagePrefersDarkColorScheme = storage.getItem("prefersDarkColorScheme");
+        if (storagePrefersDarkColorScheme === 'true' || storagePrefersDarkColorScheme === 'false') {
+            darkMode = storagePrefersDarkColorScheme === 'true';
+        } else {
+            darkMode = darkModeMql.matches;
+            darkModeMql.onchange = (e) => {
+                darkMode = e.matches;
+                toggleDarkMode(darkMode)
+                updateGuesses();
+            }
+        }
+        toggleDarkMode(darkMode);
+    }
 
     function saveGame(guessCount, winState) {
         // If we are in a tab still open from yesterday, we're done here.
@@ -123,6 +142,7 @@ let Semantle = (function() {
         }
 
         $("#rules-button")[0].addEventListener('click', openRules);
+        $("#settings-button")[0].addEventListener('click', openSettings);
 
         [$("#rules-underlay"), $("#rules-close")].forEach((el) => {
             el[0].addEventListener('click', () => {
@@ -138,6 +158,10 @@ let Semantle = (function() {
     function openRules() {
         document.body.classList.add('rules-open');
         storage.setItem("readRules", true);
+    }
+    function openSettings() {
+        document.body.classList.add('dialog-open', 'settings-open');
+        $("#settings-close")[0].focus();
     }
 
     function updateGuesses(guess) {
@@ -162,6 +186,44 @@ let Semantle = (function() {
             }
         }
         $('#guesses')[0].innerHTML = inner;
+    }
+
+    function toggleDarkMode(on) {
+        document.body.classList[on ? 'add' : 'remove']('dark');
+        const darkModeCheckbox = $("#dark-mode")[0];
+        // this runs before the DOM is ready, so we need to check
+        if (darkModeCheckbox) {
+            darkModeCheckbox.checked = on;
+        }
+    }
+
+
+    document.querySelectorAll(".dialog-underlay, .dialog-close, #capitalized-link").forEach((el) => {
+            el.addEventListener('click', () => {
+                document.body.classList.remove('dialog-open', 'rules-open', 'settings-open');
+            });
+        });
+
+    document.querySelectorAll(".dialog").forEach((el) => {
+            el.addEventListener("click", (event) => {
+                // prevents click from propagating to the underlay, which closes the rules
+                event.stopPropagation();
+            });
+        });
+
+    $("#dark-mode")[0].addEventListener('click', function(event) {
+        storage.setItem("prefersDarkColorScheme", event.target.checked);
+        darkModeMql.onchange = null;
+        darkMode = event.target.checked;
+        toggleDarkMode(darkMode);
+        updateGuesses();
+    });
+
+    toggleDarkMode(darkMode);
+
+    if (storage.getItem("prefersDarkColorScheme") === null) {
+        $("#dark-mode")[0].checked = false;
+        $("#dark-mode")[0].indeterminate = true;
     }
 
     async function init() {
@@ -298,8 +360,13 @@ Stats (since we started recording, on day 23): <br/>
     }
 
         return {
-        init: init
+        init: init,
+        checkMedia: checkMedia
     };
 })();
+
+// do this when the file loads instead of waiting for DOM to be ready to avoid
+// a flash of unstyled content
+Semantle.checkMedia();
 
 window.addEventListener('load', async () => { Semantle.init() });

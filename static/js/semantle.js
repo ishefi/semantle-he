@@ -61,6 +61,8 @@ let Semantle = (function() {
     let guessed = new Set();
     let firstGuess = true;
     let guesses = [];
+    let guessesByID = [];
+    let progress_view = false;
     let guessCount = 0;
     let gameOver = false;
     const handleStats = false;
@@ -184,14 +186,14 @@ let Semantle = (function() {
         $("#settings-close")[0].focus();
     }
 
-    function updateGuesses(guess) {
-        let inner = `<tr>
-        <th>#</th>
-        <th>ניחוש</th>
-        <th>קרבה</th>
-        <th>מתחמם?</th></tr>`;
-        /* This is dumb: first we find the most-recent word, and put
-           it at the top.  Then we do the rest. */
+    function toggleProgressView(value) {
+        progress_view = !progress_view
+        updateGuesses()
+    }
+    
+    function showGuesses(){
+        let inner = ''
+        let guess = guesses[guesses.length - 1][1]
         for (let entry of guesses) {
             let [similarity, oldGuess, guessNumber, percentile, egg] = entry;
             if (oldGuess == guess) {
@@ -205,6 +207,38 @@ let Semantle = (function() {
                 inner += guessRow(similarity, oldGuess, percentile, guessNumber, guess, egg);
             }
         }
+        return inner
+    }
+    
+    function showProgress(){
+        
+        let highest_simlirity = Number.MIN_SAFE_INTEGER
+        let inner = ''
+        for (let entry of guessesByID) {
+            let [similarity, oldGuess, guessNumber, percentile, egg] = entry;
+            if (similarity < highest_simlirity) {
+                continue
+            }
+            highest_simlirity = similarity
+            inner += guessRow(similarity, oldGuess, percentile, guessNumber, guess, egg);
+        }
+        return inner
+    }
+
+    function updateGuesses() {
+        let inner = `<tr>
+        <th>#</th>
+        <th>ניחוש</th>
+        <th>קרבה</th>
+        <th>מתחמם?</th></tr>`;
+        if (!progress_view){
+            inner += showGuesses()
+        }
+        else{
+            inner += showProgress()
+        }
+        /* This is dumb: first we find the most-recent word, and put
+           it at the top.  Then we do the rest. */
         $('#guesses')[0].innerHTML = inner;
     }
 
@@ -224,6 +258,7 @@ let Semantle = (function() {
 
         $("#rules-button")[0].addEventListener('click', openRules);
         $("#settings-button")[0].addEventListener('click', openSettings);
+        $("#progress-button")[0].addEventListener('click', toggleProgressView);
 
         [$("#rules-underlay"), $("#rules-close")].forEach((el) => {
             el[0].addEventListener('click', () => {
@@ -301,6 +336,7 @@ let Semantle = (function() {
 
                 const newEntry = [similarity, guess, guessCount, distance, egg];
                 guesses.push(newEntry);
+                guessesByID.push(newEntry);
                 if (distance == 1000){
                     endGame(true, true);
                 }
@@ -311,7 +347,7 @@ let Semantle = (function() {
             }
 
 
-            updateGuesses(guess);
+            updateGuesses();
 
             firstGuess = false;
 //            if (guess.toLowerCase() === secret && !gameOver) {

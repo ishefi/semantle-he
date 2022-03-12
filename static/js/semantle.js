@@ -137,24 +137,6 @@ let Semantle = (function() {
 
     };
 
-            if (!storage.getItem("readRules")) {
-            openRules();
-        }
-
-        $("#rules-button")[0].addEventListener('click', openRules);
-        $("#settings-button")[0].addEventListener('click', openSettings);
-
-        [$("#rules-underlay"), $("#rules-close")].forEach((el) => {
-            el[0].addEventListener('click', () => {
-                document.body.classList.remove('rules-open');
-            });
-        });
-
-        $("#rules")[0].addEventListener("click", (event) => {
-            // prevents click from propagating to the underlay, which closes the rules
-            event.stopPropagation();
-        });
-
     function openRules() {
         document.body.classList.add('rules-open');
         storage.setItem("readRules", true);
@@ -197,37 +179,89 @@ let Semantle = (function() {
         }
     }
 
+    function includeHTML() {
+  var z, i, elmnt, file, xhttp;
+  /* Loop through a collection of all HTML elements: */
+  z = document.getElementsByTagName("*");
+  for (i = 0; i < z.length; i++) {
+    elmnt = z[i];
+    /*search for elements with a certain atrribute:*/
+    file = elmnt.getAttribute("w3-include-html");
+    if (file) {
+      /* Make an HTTP request using the attribute value as the file name: */
+      xhttp = new XMLHttpRequest();
+      xhttp.onreadystatechange = function() {
+        if (this.readyState == 4) {
+          if (this.status == 200) {elmnt.innerHTML = this.responseText;}
+          if (this.status == 404) {elmnt.innerHTML = "Page not found.";}
+          /* Remove the attribute, and call this function once more: */
+          elmnt.removeAttribute("w3-include-html");
+          includeHTML();
+        }
+      }
+      xhttp.open("GET", file, true);
+      xhttp.send();
+      /* Exit the function: */
+      return;
+    }
+  }
+}
 
-    document.querySelectorAll(".dialog-underlay, .dialog-close, #capitalized-link").forEach((el) => {
+    includeHTML();
+
+    async function init() {
+        if (!storage.getItem("readRules")) {
+            openRules();
+        }
+
+        $("#rules-button")[0].addEventListener('click', openRules);
+        $("#settings-button")[0].addEventListener('click', openSettings);
+
+        [$("#rules-underlay"), $("#rules-close")].forEach((el) => {
+            el[0].addEventListener('click', () => {
+                document.body.classList.remove('rules-open');
+            });
+        });
+
+        $("#rules")[0].addEventListener("click", (event) => {
+            // prevents click from propagating to the underlay, which closes the rules
+            event.stopPropagation();
+        });
+
+
+
+        document.querySelectorAll(".dialog-underlay, .dialog-close, #capitalized-link").forEach((el) => {
             el.addEventListener('click', () => {
                 document.body.classList.remove('dialog-open', 'rules-open', 'settings-open');
             });
         });
 
-    document.querySelectorAll(".dialog").forEach((el) => {
-            el.addEventListener("click", (event) => {
-                // prevents click from propagating to the underlay, which closes the rules
-                event.stopPropagation();
+        document.querySelectorAll(".dialog").forEach((el) => {
+                el.addEventListener("click", (event) => {
+                    // prevents click from propagating to the underlay, which closes the rules
+                    event.stopPropagation();
+                });
             });
+
+        $("#dark-mode")[0].addEventListener('click', function(event) {
+            storage.setItem("prefersDarkColorScheme", event.target.checked);
+            darkModeMql.onchange = null;
+            darkMode = event.target.checked;
+            toggleDarkMode(darkMode);
+            updateGuesses();
         });
 
-    $("#dark-mode")[0].addEventListener('click', function(event) {
-        storage.setItem("prefersDarkColorScheme", event.target.checked);
-        darkModeMql.onchange = null;
-        darkMode = event.target.checked;
         toggleDarkMode(darkMode);
-        updateGuesses();
-    });
 
-    toggleDarkMode(darkMode);
+        if (storage.getItem("prefersDarkColorScheme") === null) {
+            $("#dark-mode")[0].checked = false;
+            $("#dark-mode")[0].indeterminate = true;
+        }
 
-    if (storage.getItem("prefersDarkColorScheme") === null) {
-        $("#dark-mode")[0].checked = false;
-        $("#dark-mode")[0].indeterminate = true;
-    }
+        let form = $('#form')[0];
+        if (form === undefined) return;
 
-    async function init() {
-    $('#form')[0].addEventListener('submit', async function(event) {
+        $('#form')[0].addEventListener('submit', async function(event) {
             event.preventDefault();
             $('#guess').focus();
             $('#error')[0].textContent = "";
@@ -361,7 +395,7 @@ Stats (since we started recording, on day 23): <br/>
 
         return {
         init: init,
-        checkMedia: checkMedia
+        checkMedia: checkMedia,
     };
 })();
 

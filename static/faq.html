@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="css/style.css">
+    <title>סמנטעל: שאלות נפוצות</title>
+
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-PP8J7V4T0X"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-PP8J7V4T0X');
+</script>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2098371592785764" crossorigin="anonymous"></script>
+</head>
+<body dir='rtl'>
+
+<header>
+<h1>שאלות נפוצות</h1>
+<div w3-include-html="menu.html"></div>
+</header>
+    <a href="/">חזרה</a>
+    <p> ש: למה ״ציון הקרבה״ נראה לא אינטואטיבי?</p>
+    <p> ת: הסיבה העיקרית שאני יכול לחשוב עליה היא
+      שלניחוש שלך או למילה הסודית יש כמה משמעויות, והמשמעות שעלתה בדעתך פחות נפוצה מהאחרות.
+          למשל, כשבדקתי את המשחק ניסיתי אותו עם המילה ״שלום״,
+          ורוב ה1000 המילים הקרובות היו שמות משפחה - בגלל ש״שלום״ נפוץ בעיקר כשם משפחה
+          בויקיפדיה העברית. חוץ מזה, הדאטה לא מושלם. בכל זאת, ויקיפדיה.
+    </p>
+    <p> ש: למה אפשר לשחק רק פעם ביום? </p>
+    <p> ת: ככה. </p>
+
+    <p> ש: פעם ״והשוקו״ הייתה מילה, לאן היא נעלמה? </p>
+    <p> ת: ביצירת המודל הנוכחי של סמנטעל השתמשנו ב
+        <a href="https://github.com/amir-zeldes/HebPipe" target="_blank">HebPipe</a>
+        בשביל לנקות את הדאטה לפני האימון של Word2Vec - מה שאומר שמילים כמו ״והשוקו״
+        הגיעו למודל כשהן מפורקות ל״ו ה שוקו״. בגלל זה יותר כיף לשחק עכשיו ממה שהיה בימים
+        הראשונים של המשחק.
+    </p>
+
+    <p> ש: אז עכשיו הכל מושלם? </p>
+    <p>
+         ת: ברור שלא. למשל, המילה הראשונה בסמנטעל, ״שולחן״, כבר לא קיימת במודל - כנראה
+        בגלל שהשיטה הקודמת הפכה אותה ל״ש ו לחן״. חוץ מזה, החבילה שטוענת את הדאטה
+        מויקיפדיה מנקה סימנים שאנחנו לא רוצים שהיא תנקה כמו למשל ', מה שאומר שמבחינת
+        המודל מילים כמו ״גלי״, ״ג'לי״ הן אותה מילה. אנחנו עובדים על זה.
+    </p>
+
+    <p> ש: איך זה עובד? </p>
+    <p> ת: <a target="_blank" href="https://reshetech.co.il/machine-learning-tutorials/gensim-and-word2vec">הנה מאמר על Word2Vec.</a>.
+    <p> ש: באיזה דאטה השתמשת?</p>
+    <p> ת: <a target="_blank" href="https://dumps.wikimedia.org/hewiki/latest/">ויקיפדיה </a></p>
+{% if yesterday %}
+    <p> ש: מה המילה של אתמול? </p>
+    <p> ת: {{yesterday[-1]}} </p>
+    <p> ש: מה המילים הכי קרובות למילה אתמול? </p>
+    <p>ת: {{', '.join(yesterday[:-1][::-1])}}. <a href="/yesterday-top-1000">עוד?</a></p>
+{% end %}
+    <p> ת: קוד מקור?</p>
+    <p> ת: <a target="_blank" href="https://github.com/ishefi/semantle-he.git">בטח.</a></p>
+    <p> ת: יש לי רעיון ממש טוב לשיפור של סמנטעל, מה לעשות? </p>
+    <p> ת: אפשר לפתוח issue בקישור שבתשובה הקודמת. אם אני אוהב את הרעיון אפשר לממש אותו
+        בעצמך או לחכות שמישהי אחרת תעשה את זה!
+    </p>
+    <p> ש: אפשר להתלונן על ציון קרבה של מילים? </p>
+    <p> ת: כן, אבל אני כנראה אתעלם ממך. זאת המדיניות של דיויד טרנר שיצר את המשחק המקורי ואני זורם איתו. </p>
+
+
+    <a href="/">חזרה</a>
+<footer>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="js/semantle.js"></script>
+</footer>
+</body>
+</html>

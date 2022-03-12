@@ -257,6 +257,13 @@ header {
     width: 10em;
 }
 
+a {
+    text-decoration: none;
+}
+
+.implicita {
+    color: #000;
+}
 
 /* Dark mode */
 body.dark {
@@ -283,4 +290,8 @@ body.dark .dialog-close {
 
 body.dark .progress-container {
     background: #333;
+}
+
+body.dark .implicita {
+    color: #FFF;
 }

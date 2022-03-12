@@ -19,15 +19,22 @@ def parse_config_file(config, path):
 parse_config_file(globals(), os.path.join(BASE, 'semantle.cfg'))
 
 thismodule = sys.modules[__name__]
-top_up_config = {
-    'redis': 'REDISTOGO_URL',   # TODO: generic
-    'api_key': 'API_KEY',
-    'mongo': 'MONGODB',
-    'model_v2_date': 'MODEL_V2_DATE',
-}
 
-for var, key in top_up_config.items():
-    try:
-        setattr(thismodule, var, os.environ[key])
-    except KeyError:
-        print('Could not configure %s: %s' % (var, key))
+
+def get_top_ups(conf):
+    top_ups = ""
+    for key, value in conf.items():
+        if key.startswith('hs_top_up_'):
+            kkey = key.replace('hs_top_up_', '')
+            try:
+                top_ups += "%s = %r\n" % (kkey, os.environ[value])
+            except KeyError:
+                print('Could not configure %s: %s' % (key, value))
+    return top_ups
+
+
+if config := os.environ.get("HS_CONFIG"):
+    exec(config, globals())
+    top_ups = get_top_ups(globals())
+    exec(top_ups, globals())
+

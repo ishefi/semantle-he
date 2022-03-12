@@ -86,8 +86,18 @@ def get_random_word(mongo):
         secrets = mongo.aggregate([{'$sample': {'size': 100}}])
         for doc in secrets:
             secret = doc['word']
-            if input(f'I chose {secret[::-1]}. Ok? [Ny] > ') in ('y', 'Y'):
-                return secret
+            if best_secret := get_best_secret(secret):
+                return best_secret
+
+
+def get_best_secret(secret):
+    inp = input(f'I chose {secret[::-1]}. Ok? [Ny] > ')
+    if inp in 'nN':
+        return ''
+    if inp in ('y', 'Y'):
+        return secret
+    else:
+        return get_best_secret(inp)
 
 
 if __name__ == '__main__':

@@ -30,7 +30,7 @@ def main():
         help="Secret to set. If not provided, chooses a random word from Wikipedia.",
     )
     parser.add_argument(
-        '-d', '--date', metavar='DATE', type=valid_date, help="Date of secret. If not provided today's date is used"
+        '-d', '--date', metavar='DATE', type=valid_date, help="Date of secret. If not provided, first date w/o secret is used"
     )
     parser.add_argument(
         '--force', action='store_true', help="Allow rewriting dates or reusing secrets. Use with caution!"
@@ -47,16 +47,32 @@ def main():
     mongo = get_mongo()
     redis = get_redis()
 
+    if args.date:
+        date = args.date
+    else:
+        date = get_date(mongo)
     if args.secret:
         secret = args.secret
     else:
         secret = get_random_word(mongo)
-    date = args.date
-    do_populate(mongo, redis, args.model, secret, date, args.force)
-    if args.iterative:
+    while True:
+        do_populate(mongo, redis, args.model, secret, date, args.force)
+        if not args.iterative:
+            break
         date += timedelta(days=1)
         print(f"Now doing {date}")
-        do_populate(mongo, redis, args.model, get_random_word(mongo), date, args.force)
+        secret = get_random_word(mongo)
+
+
+
+def get_date(mongo):
+    cursor = mongo.find({"secret_date": {"$exists": 1}})
+    cursor = cursor.sort("secret_date", -1)
+    latest = cursor.next()
+    date_str = latest["secret_date"]
+    dt = valid_date(date_str) + timedelta(days=1)
+    print(f"Now doing {dt}")
+    return dt
 
 
 def do_populate(mongo, redis, model, secret, date, force):

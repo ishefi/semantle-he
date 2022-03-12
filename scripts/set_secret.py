@@ -1,8 +1,8 @@
 from argparse import ArgumentParser
 from argparse import ArgumentTypeError
 from datetime import datetime
+from datetime import timedelta
 import os
-import random
 import sys
 
 base = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
@@ -38,6 +38,9 @@ def main():
     parser.add_argument(
         '-m', '--model', help="Path to a gensim w2v model. If not provided, will use w2v data stored in mongodb."
     )
+    parser.add_argument(
+        '-i', '--iterative', action='store_true', help="If provided, run in an iterative mode, starting the given date"
+    )
 
     args = parser.parse_args()
 
@@ -48,7 +51,12 @@ def main():
         secret = args.secret
     else:
         secret = get_random_word(mongo)
-    do_populate(mongo, redis, args.model, secret, args.date, args.force)
+    date = args.date
+    do_populate(mongo, redis, args.model, secret, date, args.force)
+    if args.iterative:
+        date += timedelta(days=1)
+        print(f"Now doing {date}")
+        do_populate(mongo, redis, args.model, get_random_word(mongo), date, args.force)
 
 
 def do_populate(mongo, redis, model, secret, date, force):
@@ -57,8 +65,8 @@ def do_populate(mongo, redis, model, secret, date, force):
     else:
         logic = CacheSecretLogic(mongo, redis, secret, date)
     logic.set_secret(dry=True, force=force)
-    cache = logic.cache[::-1]
-    print(cache)
+    cache = [w[::-1] for w in logic.cache[::-1]]
+    print(cache[0])
     for rng in (range(i, i+10) for i in [1, 50, 100, 300, 550, 750]):
         for i in rng:
             w = cache[i]
@@ -67,10 +75,10 @@ def do_populate(mongo, redis, model, secret, date, force):
     if pop in ('y', 'Y'):
         logic.do_populate()
         print("Done!")
-        exit(0)
+        return True
     else:
         secret = get_random_word(mongo)
-        do_populate(mongo, redis, model, secret, date, force)
+        return do_populate(mongo, redis, model, secret, date, force)
 
 
 def get_random_word(mongo):

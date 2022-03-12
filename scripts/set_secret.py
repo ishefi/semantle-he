@@ -66,11 +66,12 @@ def do_populate(mongo, redis, model, secret, date, force):
         logic = CacheSecretLogic(mongo, redis, secret, date)
     logic.set_secret(dry=True, force=force)
     cache = [w[::-1] for w in logic.cache[::-1]]
+    print(' ,'.join(cache))
     print(cache[0])
     for rng in (range(i, i+10) for i in [1, 50, 100, 300, 550, 750]):
         for i in rng:
             w = cache[i]
-            print(f"{i}: {w[::-1]}")
+            print(f"{i}: {w}")
     pop = input("Populate?\n")
     if pop in ('y', 'Y'):
         logic.do_populate()

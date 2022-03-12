@@ -51,6 +51,7 @@ body {
 
 th {
     padding-left: 3em;
+    text-align: right;
 }
 
 th#chronoOrder, th#alphaOrder, th#similarityOrder, input#give-up-btn, input#guess-btn, input#lower{
@@ -66,7 +67,7 @@ th#chronoOrder, th#alphaOrder, th#similarityOrder, input#give-up-btn, input#gues
 }
 
 .close {
-    text-align: left;
+    text-align: right;
 }
 
 /*"Unusual word found!  This word is not in the list of \"normal\" words that we use for the top-1000 list, but it is still similar!";*/
@@ -199,24 +200,6 @@ body.dialog-open {
     margin-top: 0;
 }
 
-@media only screen and (max-width: 640px) {
-    body, input {
-        font-size: 14px;
-    }
-
-    #guess-wrapper {
-        flex-grow: 1;
-    }
-
-    table {
-        width: 100%;
-    }
-
-    th {
-        padding-left: .5em;
-    }
-}
-
 header {
     align-items: center;
     display: flex;
@@ -255,6 +238,7 @@ header {
 .progress-container {
     background-color: #eeeeee;
     width: 10em;
+    text-align: left;
 }
 
 a {
@@ -264,6 +248,26 @@ a {
 .implicita {
     color: #000;
 }
+
+
+@media only screen and (max-width: 640px) {
+    body, input {
+        font-size: 14px;
+    }
+
+    #guess-wrapper {
+        flex-grow: 1;
+    }
+
+    table {
+        width: 100%;
+    }
+
+    th {
+        padding-left: .5em;
+    }
+}
+
 
 /* Dark mode */
 body.dark {

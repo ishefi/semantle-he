@@ -6,6 +6,7 @@ import tornado.web
 from common.session import get_mongo
 from common.session import get_redis
 from logic import CacheSecretLogic
+from logic import EasterEggLogic
 from logic import VectorLogic
 
 
@@ -69,15 +70,20 @@ class DistanceHandler(BaseHandler):
     def get(self):
         word = self.get_argument('word')
         word = word.replace("'", "")
-        sim = self.logic.get_similarity(word)
-        cache_score = self.cache_logic.get_cache_score(word)
-
-        self.reply(
-            {
+        if egg := EasterEggLogic.get_easter_egg(word):
+            reply = {
+                "similarity": 99.99,
+                "distance": -1,
+                "egg": egg
+            }
+        else:
+            sim = self.logic.get_similarity(word)
+            cache_score = self.cache_logic.get_cache_score(word)
+            reply = {
                 "similarity": sim,
                 "distance": cache_score,
             }
-        )
+        self.reply(reply)
 
 
 class YesterdayClosestHandler(BaseHandler):

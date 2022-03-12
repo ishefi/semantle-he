@@ -20,10 +20,15 @@ function solveStory(guesses, puzzleNumber) {
     let whites = 0;
     let squares = 5;
     shareGuesses.forEach(guess => {
-        [similarity, old_guess, guess_number, percentile] = guess;
+        [similarity, old_guess, guess_number, percentile, egg] = guess;
         greens = Math.max(Math.floor(squares * percentile / 1000), 0);
         whites = squares - greens;
-        txt += '🟩'.repeat(greens) + '⬜'.repeat(whites) + ' ';
+        if (egg) {
+            txt += '✨'.repeat(squares);
+        }
+        else {
+            txt += '🟩'.repeat(greens) + '⬜'.repeat(whites) + ' ';
+        }
         txt += ' ' + guess_number;
         if (greens != 0) {
             txt += ' (' + percentile + '/1000)';
@@ -110,10 +115,13 @@ let Semantle = (function() {
         }
     }
 
-    function guessRow(similarity, oldGuess, percentile, guessNumber, guess) {
+    function guessRow(similarity, oldGuess, percentile, guessNumber, guess, egg) {
     let percentileText = "(רחוק)";
     let progress = "";
     let cls = "";
+    if (egg) {
+        percentileText = egg;
+    }
     if (percentile > 0) {
         if (percentile == 1000) {
             percentileText = "מצאת!";
@@ -185,16 +193,16 @@ let Semantle = (function() {
         /* This is dumb: first we find the most-recent word, and put
            it at the top.  Then we do the rest. */
         for (let entry of guesses) {
-            let [similarity, oldGuess, guessNumber, percentile] = entry;
+            let [similarity, oldGuess, guessNumber, percentile, egg] = entry;
             if (oldGuess == guess) {
-                inner += guessRow(similarity, oldGuess, percentile, guessNumber, guess);
+                inner += guessRow(similarity, oldGuess, percentile, guessNumber, guess, egg);
             }
         }
         inner += "<tr><td colspan=4><hr></td></tr>";
         for (let entry of guesses) {
-            let [similarity, oldGuess, guessNumber, percentile] = entry;
+            let [similarity, oldGuess, guessNumber, percentile, egg] = entry;
             if (oldGuess != guess) {
-                inner += guessRow(similarity, oldGuess, percentile, guessNumber);
+                inner += guessRow(similarity, oldGuess, percentile, guessNumber, guess, egg);
             }
         }
         $('#guesses')[0].innerHTML = inner;
@@ -282,6 +290,8 @@ let Semantle = (function() {
 
             const distance = guessData.distance;
 
+            let egg = guessData.egg;
+
             cache[guess] = guessData;
 
             let similarity = guessData.similarity;
@@ -289,7 +299,7 @@ let Semantle = (function() {
                 guessCount += 1;
                 guessed.add(guess);
 
-                const newEntry = [similarity, guess, guessCount, distance];
+                const newEntry = [similarity, guess, guessCount, distance, egg];
                 guesses.push(newEntry);
                 if (distance == 1000){
                     endGame(true, true);

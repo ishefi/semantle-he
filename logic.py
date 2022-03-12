@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 
 from pymongo.collection import Collection
 
+from common import config
 from common.consts import VEC_SIZE
 
 from numpy import dot
@@ -175,3 +176,11 @@ class CacheSecretLogicGensim(CacheSecretLogic):
     def _iterate_all_wv(self):
         for word in self.words:
             yield word, self.model[word]
+
+
+class EasterEggLogic:
+    EASTER_EGGS = config.easter_eggs
+
+    @staticmethod
+    def get_easter_egg(phrase):
+        return EasterEggLogic.EASTER_EGGS.get(phrase)

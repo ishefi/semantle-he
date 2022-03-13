@@ -9,6 +9,3 @@ tqdm
 gensim~=4.1.2
 notebook
 ipywidgets
-# git+ssh://git@github.com/amir-zeldes/HebPipe.git@dev#egg=hebpipe
-# conllu == 4.4.1
-# diaparser == 1.1.2

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 from datetime import timedelta
 import heapq
 import struct
@@ -10,10 +11,8 @@ from pymongo.collection import Collection
 from common import config
 from common.consts import VEC_SIZE
 
-from numpy import dot
-from numpy.linalg import norm
-
 from datetime import datetime
+
 if TYPE_CHECKING:
     from typing import Optional
     from datetime import date
@@ -85,8 +84,11 @@ class VectorLogic:
         secret_vector = self.get_secret_vector()
         return self.calc_similarity(secret_vector, word_vector)
 
+    def _dot(self, x: tuple, y: tuple):
+        return sum(xn * yn for xn, yn in zip(x, y))
+
     def calc_similarity(self, vec1, vec2):
-        return round(dot(vec1, vec2) / (norm(vec1) * norm(vec2)) * 100, 2)
+        return round(self._dot(vec1, vec2) / (math.hypot(*vec1) * math.hypot(*vec1)) * 100, 2)
 
     def iterate_all(self):
         for wv in self.mongo.find():
@@ -151,9 +153,9 @@ class CacheSecretLogic:
     def cache(self):
         cache = self._cache_dict.get(self.date)
         if cache is None or len(cache) < 1000:
-                if len(self._cache_dict) > self.MAX_CACHE:
-                    self._cache_dict.clear()
-                self._cache_dict[self.date] = self.redis.lrange(self.secret_cache_key, 0, -1)
+            if len(self._cache_dict) > self.MAX_CACHE:
+                self._cache_dict.clear()
+            self._cache_dict[self.date] = self.redis.lrange(self.secret_cache_key, 0, -1)
         return self._cache_dict[self.date]
 
     def get_cache_score(self, word):

@@ -51,6 +51,7 @@ body {
 
 th {
     padding-left: 3em;
+    text-align: right;
 }
 
 th#chronoOrder, th#alphaOrder, th#similarityOrder, input#give-up-btn, input#guess-btn, input#lower{
@@ -66,7 +67,7 @@ th#chronoOrder, th#alphaOrder, th#similarityOrder, input#give-up-btn, input#gues
 }
 
 .close {
-    text-align: left;
+    text-align: right;
 }
 
 /*"Unusual word found!  This word is not in the list of \"normal\" words that we use for the top-1000 list, but it is still similar!";*/
@@ -128,6 +129,10 @@ body.rules-open #rules-underlay {
     display: block;
 }
 
+body.settings-open #settings-underlay {
+    display: block;
+}
+
 #rules-button {
     border: 2px solid black;
     border-radius: 50%;
@@ -137,7 +142,7 @@ body.rules-open #rules-underlay {
     align: left;
 }
 
-#rules-underlay {
+.dialog-underlay {
     background: rgba(0,0,0,.5);
     bottom: 0;
     display: none;
@@ -147,7 +152,11 @@ body.rules-open #rules-underlay {
     top: 0;
 }
 
-#rules {
+body.dialog-open {
+    overflow: hidden;
+}
+
+.dialog {
     background: white;
     left: 2em;
     margin-bottom: 2em;
@@ -161,9 +170,9 @@ body.rules-open #rules-underlay {
     z-index: 1;
 }
 
-#rules-close {
-    border: none;
-    font-size: 2em;
+.dialog-close {
+    color: black;
+    font-size: 1.5em;
     height: 1em;
     line-height: 1em;
     left: .5em;
@@ -173,18 +182,71 @@ body.rules-open #rules-underlay {
     z-index: 2;
 }
 
-#rules-content {
+.dialog-content {
     max-height: calc(100vh - 4em);
     padding: 2em;
     overflow: auto;
+}
+
+.dialog-content > *:first-child {
+    margin-top: 0;
+}
+
+.dialog-content > *:last-child {
+    margin-bottom: 0;
 }
 
 #rules-heading {
     margin-top: 0;
 }
 
-#rules-content > *:last-child {
-    margin-bottom: 0;
+header {
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+}
+
+#menu {
+    display: flex;
+    column-gap: .5em;
+}
+
+#menu button,
+.dialog-close {
+    background: transparent;
+    border: none;
+    padding: 0;
+}
+
+#menu button svg {
+    height: 1.5em;
+    width: 1.5em;
+}
+
+.percentile,
+.progress-container,
+.progress-bar {
+    display: inline-block;
+    background-color:#008000;
+}
+
+.percentile {
+    text-align: right;
+    width: 5em;
+}
+
+.progress-container {
+    background-color: #eeeeee;
+    width: 10em;
+    text-align: left;
+}
+
+a {
+    text-decoration: none;
+}
+
+.implicita {
+    color: #000;
 }
 
 
@@ -206,8 +268,34 @@ body.rules-open #rules-underlay {
     }
 }
 
-header {
-    align-items: center;
-    display: flex;
-    justify-content: space-between;
+
+/* Dark mode */
+body.dark {
+    background: #111;
+    color: #fafafa;
+    color-scheme: dark;
+}
+
+body.dark a {
+    color: #9af;
+}
+
+body.dark #menu button {
+    color: #fafafa;
+}
+
+body.dark .dialog {
+    background: #333;
+}
+
+body.dark .dialog-close {
+    color: #fafafa;
+}
+
+body.dark .progress-container {
+    background: #333;
+}
+
+body.dark .implicita {
+    color: #FFF;
 }

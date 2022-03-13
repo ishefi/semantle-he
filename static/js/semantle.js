@@ -1,6 +1,8 @@
 const cache = {};
+let darkModeMql = window.matchMedia('(prefers-color-scheme: dark)');
+let darkMode = false;
 
-       function solveStory(guesses, puzzleNumber) {
+function solveStory(guesses, puzzleNumber) {
 //    if (guess_count == 0) {
 //        return `I gave up on Semantle ${puzzleNumber} without even guessing once.`;
 //    }
@@ -18,10 +20,15 @@ const cache = {};
     let whites = 0;
     let squares = 5;
     shareGuesses.forEach(guess => {
-        [similarity, old_guess, guess_number, percentile] = guess;
+        [similarity, old_guess, guess_number, percentile, egg] = guess;
         greens = Math.max(Math.floor(squares * percentile / 1000), 0);
         whites = squares - greens;
-        txt += '🟩'.repeat(greens) + '⬜'.repeat(whites) + ' ';
+        if (egg) {
+            txt += '✨'.repeat(squares);
+        }
+        else {
+            txt += '🟩'.repeat(greens) + '⬜'.repeat(whites) + ' ';
+        }
         txt += ' ' + guess_number;
         if (greens != 0) {
             txt += ' (' + percentile + '/1000)';
@@ -65,6 +72,36 @@ let Semantle = (function() {
     const initialDay = 19044;
     const puzzleNumber = today + 1 - initialDay;
 
+    function includeHTML() {
+  var z, i, elmnt, file, xhttp;
+  /* Loop through a collection of all HTML elements: */
+  z = document.getElementsByTagName("*");
+  for (i = 0; i < z.length; i++) {
+    elmnt = z[i];
+    /*search for elements with a certain atrribute:*/
+    file = elmnt.getAttribute("w3-include-html");
+    if (file) {
+      /* Make an HTTP request using the attribute value as the file name: */
+      xhttp = new XMLHttpRequest();
+      xhttp.onreadystatechange = function() {
+        if (this.readyState == 4) {
+          if (this.status == 200) {elmnt.innerHTML = this.responseText;}
+          if (this.status == 404) {elmnt.innerHTML = "Page not found.";}
+          /* Remove the attribute, and call this function once more: */
+          elmnt.removeAttribute("w3-include-html");
+          includeHTML();
+        }
+      }
+      xhttp.open("GET", file, true);
+      xhttp.send();
+      /* Exit the function: */
+      return;
+    }
+  }
+}
+
+    includeHTML();
+
     async function getSim(word) {
         if (cache.hasOwnProperty(word)) {
             return cache[word];
@@ -78,26 +115,31 @@ let Semantle = (function() {
         }
     }
 
-    function guessRow(similarity, oldGuess, percentile, guessNumber, guess) {
+    function guessRow(similarity, oldGuess, percentile, guessNumber, guess, egg) {
     let percentileText = "(רחוק)";
     let progress = "";
     let cls = "";
+    if (egg) {
+        percentileText = egg;
+    }
     if (percentile > 0) {
         if (percentile == 1000) {
             percentileText = "מצאת!";
         } else {
             cls = "close";
             percentileText = `<span style="text-align:right; width:5em; display:inline-block;">${percentile}/1000</span>&nbsp;`;
-            progress = ` <span style="display:inline-block;width:10em; background-color:#eeeeee;">
-<span style="background-color:#008000; width:${percentile/10}%; display:inline-block">&nbsp;</span>
+            progress = ` <span class="progress-container">
+<span class="progress-bar" style="width:${percentile/10}%">&nbsp;</span>
 </span>`;
         }
     }
     let color;
     if (oldGuess === guess) {
-        color = '#cc00cc';
+        color = '#c0c';
+    } else if (darkMode) {
+        color = '#fafafa';
     } else {
-        color = '#000000';
+        color = '#000';
     }
     return `<tr><td>${guessNumber}</td>
     <td style="color:${color}" onclick="select('${oldGuess}', secretVec);">${oldGuess}</td>
@@ -106,6 +148,21 @@ let Semantle = (function() {
 </td></tr>`;
 
 }
+
+    function checkMedia() {
+        const storagePrefersDarkColorScheme = storage.getItem("prefersDarkColorScheme");
+        if (storagePrefersDarkColorScheme === 'true' || storagePrefersDarkColorScheme === 'false') {
+            darkMode = storagePrefersDarkColorScheme === 'true';
+        } else {
+            darkMode = darkModeMql.matches;
+            darkModeMql.onchange = (e) => {
+                darkMode = e.matches;
+                toggleDarkMode(darkMode)
+                updateGuesses();
+            }
+        }
+        toggleDarkMode(darkMode);
+    }
 
     function saveGame(guessCount, winState) {
         // If we are in a tab still open from yesterday, we're done here.
@@ -118,11 +175,55 @@ let Semantle = (function() {
 
     };
 
-            if (!storage.getItem("readRules")) {
+    function openRules() {
+        document.body.classList.add('rules-open');
+        storage.setItem("readRules", true);
+    }
+    function openSettings() {
+        document.body.classList.add('dialog-open', 'settings-open');
+        $("#settings-close")[0].focus();
+    }
+
+    function updateGuesses(guess) {
+        let inner = `<tr>
+        <th>#</th>
+        <th>ניחוש</th>
+        <th>קרבה</th>
+        <th>מתחמם?</th></tr>`;
+        /* This is dumb: first we find the most-recent word, and put
+           it at the top.  Then we do the rest. */
+        for (let entry of guesses) {
+            let [similarity, oldGuess, guessNumber, percentile, egg] = entry;
+            if (oldGuess == guess) {
+                inner += guessRow(similarity, oldGuess, percentile, guessNumber, guess, egg);
+            }
+        }
+        inner += "<tr><td colspan=4><hr></td></tr>";
+        for (let entry of guesses) {
+            let [similarity, oldGuess, guessNumber, percentile, egg] = entry;
+            if (oldGuess != guess) {
+                inner += guessRow(similarity, oldGuess, percentile, guessNumber, guess, egg);
+            }
+        }
+        $('#guesses')[0].innerHTML = inner;
+    }
+
+    function toggleDarkMode(on) {
+        document.body.classList[on ? 'add' : 'remove']('dark');
+        const darkModeCheckbox = $("#dark-mode")[0];
+        // this runs before the DOM is ready, so we need to check
+        if (darkModeCheckbox) {
+            darkModeCheckbox.checked = on;
+        }
+    }
+
+    async function init() {
+        if (!storage.getItem("readRules")) {
             openRules();
         }
 
         $("#rules-button")[0].addEventListener('click', openRules);
+        $("#settings-button")[0].addEventListener('click', openSettings);
 
         [$("#rules-underlay"), $("#rules-close")].forEach((el) => {
             el[0].addEventListener('click', () => {
@@ -135,44 +236,41 @@ let Semantle = (function() {
             event.stopPropagation();
         });
 
-    function openRules() {
-        document.body.classList.add('rules-open');
-        storage.setItem("readRules", true);
-    }
 
-    function updateGuesses(guess) {
-        let inner = `<tr>
-        <th>#</th>
-        <th>ניחוש</th>
-        <th>קרבה</th>
-        <th>מתחמם?</th></tr>`;
-        /* This is dumb: first we find the most-recent word, and put
-           it at the top.  Then we do the rest. */
-        for (let entry of guesses) {
-            let [similarity, oldGuess, guessNumber, percentile] = entry;
-            if (oldGuess == guess) {
-                inner += guessRow(similarity, oldGuess, percentile, guessNumber, guess);
-            }
-        }
-        inner += "<tr><td colspan=4><hr></td></tr>";
-        for (let entry of guesses) {
-            let [similarity, oldGuess, guessNumber, percentile] = entry;
-            if (oldGuess != guess) {
-                inner += guessRow(similarity, oldGuess, percentile, guessNumber);
-            }
-        }
-        $('#guesses')[0].innerHTML = inner;
-    }
 
-    async function init() {
-    $('#form')[0].addEventListener('submit', async function(event) {
+        document.querySelectorAll(".dialog-underlay, .dialog-close, #capitalized-link").forEach((el) => {
+            el.addEventListener('click', () => {
+                document.body.classList.remove('dialog-open', 'rules-open', 'settings-open');
+            });
+        });
+
+        document.querySelectorAll(".dialog").forEach((el) => {
+                el.addEventListener("click", (event) => {
+                    // prevents click from propagating to the underlay, which closes the rules
+                    event.stopPropagation();
+                });
+            });
+
+        $("#dark-mode")[0].addEventListener('click', function(event) {
+            storage.setItem("prefersDarkColorScheme", event.target.checked);
+            darkModeMql.onchange = null;
+            darkMode = event.target.checked;
+            toggleDarkMode(darkMode);
+            updateGuesses();
+        });
+
+        toggleDarkMode(darkMode);
+
+        if (storage.getItem("prefersDarkColorScheme") === null) {
+            $("#dark-mode")[0].checked = false;
+            $("#dark-mode")[0].indeterminate = true;
+        }
+
+        let form = $('#form')[0];
+        if (form === undefined) return;
+
+        $('#form')[0].addEventListener('submit', async function(event) {
             event.preventDefault();
-
-            // replace with api call to get vectors
-            var vectors = getVectors();
-            // (or store some in local storage, and only get guess vector. don't care)
-
-            createGraph(vectors);
             $('#guess').focus();
             $('#error')[0].textContent = "";
             let guess = $('#guess')[0].value.trim().replace("!", "").replace("*", "");
@@ -192,6 +290,8 @@ let Semantle = (function() {
 
             const distance = guessData.distance;
 
+            let egg = guessData.egg;
+
             cache[guess] = guessData;
 
             let similarity = guessData.similarity;
@@ -199,7 +299,7 @@ let Semantle = (function() {
                 guessCount += 1;
                 guessed.add(guess);
 
-                const newEntry = [similarity, guess, guessCount, distance];
+                const newEntry = [similarity, guess, guessCount, distance, egg];
                 guesses.push(newEntry);
                 if (distance == 1000){
                     endGame(true, true);
@@ -304,8 +404,25 @@ Stats (since we started recording, on day 23): <br/>
     }
 
         return {
-        init: init
+        init: init,
+        checkMedia: checkMedia,
     };
 })();
 
-window.addEventListener('load', async () => { Semantle.init() });
+// do this when the file loads instead of waiting for DOM to be ready to avoid
+// a flash of unstyled content
+Semantle.checkMedia();
+
+const observer = new MutationObserver((mutations, obs) => {
+  let includees = document.querySelectorAll('[w3-include-html]');
+  if (includees.length == 0) {
+    Semantle.init();
+    obs.disconnect();
+    return;
+  }
+});
+
+observer.observe(document, {
+  childList: true,
+  subtree: true
+});

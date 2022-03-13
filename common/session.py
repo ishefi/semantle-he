@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from pymongo import MongoClient
 from redis.client import Redis
 
@@ -6,7 +8,8 @@ from common import config
 
 
 def get_mongo():
-    return MongoClient(config.mongo).Semantle.word2vec
+    mongdb = MongoClient(config.mongo).Semantle
+    return mongdb.word2vec2
 
 
 def get_redis():

@@ -1,6 +1,7 @@
 from argparse import ArgumentParser
 from argparse import ArgumentTypeError
 from datetime import datetime
+from datetime import timedelta
 import os
 import sys
 
@@ -22,9 +23,14 @@ def valid_date(date_str):
 
 def main():
     parser = ArgumentParser("Set SematleHe secret for any date")
-    parser.add_argument('secret', metavar='SECRET', help="Secret to set")
     parser.add_argument(
-        '-d', '--date', metavar='DATE', type=valid_date, help="Date of secret. If not provided today's date is used"
+        '-s',
+        '--secret',
+        metavar='SECRET',
+        help="Secret to set. If not provided, chooses a random word from Wikipedia.",
+    )
+    parser.add_argument(
+        '-d', '--date', metavar='DATE', type=valid_date, help="Date of secret. If not provided, first date w/o secret is used"
     )
     parser.add_argument(
         '--force', action='store_true', help="Allow rewriting dates or reusing secrets. Use with caution!"
@@ -32,26 +38,83 @@ def main():
     parser.add_argument(
         '-m', '--model', help="Path to a gensim w2v model. If not provided, will use w2v data stored in mongodb."
     )
+    parser.add_argument(
+        '-i', '--iterative', action='store_true', help="If provided, run in an iterative mode, starting the given date"
+    )
 
     args = parser.parse_args()
 
     mongo = get_mongo()
     redis = get_redis()
 
-    if args.model:
-        logic = CacheSecretLogicGensim(args.model, mongo, redis, args.secret, args.date)
+    if args.date:
+        date = args.date
     else:
-        logic = CacheSecretLogic(mongo, redis, args.secret, args.date)
-    logic.set_secret(dry=True, force=args.force)
-    cache = logic.cache[::-1]
-    print(cache)
+        date = get_date(mongo)
+    if args.secret:
+        secret = args.secret
+    else:
+        secret = get_random_word(mongo)
+    while True:
+        do_populate(mongo, redis, args.model, secret, date, args.force)
+        if not args.iterative:
+            break
+        date += timedelta(days=1)
+        print(f"Now doing {date}")
+        secret = get_random_word(mongo)
+
+
+
+def get_date(mongo):
+    cursor = mongo.find({"secret_date": {"$exists": 1}})
+    cursor = cursor.sort("secret_date", -1)
+    latest = cursor.next()
+    date_str = latest["secret_date"]
+    dt = valid_date(date_str) + timedelta(days=1)
+    print(f"Now doing {dt}")
+    return dt
+
+
+def do_populate(mongo, redis, model, secret, date, force):
+    if model:
+        logic = CacheSecretLogicGensim(model, mongo, redis, secret, date)
+    else:
+        logic = CacheSecretLogic(mongo, redis, secret, date)
+    logic.set_secret(dry=True, force=force)
+    cache = [w[::-1] for w in logic.cache[::-1]]
+    print(' ,'.join(cache))
+    print(cache[0])
     for rng in (range(i, i+10) for i in [1, 50, 100, 300, 550, 750]):
         for i in rng:
             w = cache[i]
-            print(f"{i}: {w[::-1]}")
+            print(f"{i}: {w}")
     pop = input("Populate?\n")
     if pop in ('y', 'Y'):
         logic.do_populate()
+        print("Done!")
+        return True
+    else:
+        secret = get_random_word(mongo)
+        return do_populate(mongo, redis, model, secret, date, force)
+
+
+def get_random_word(mongo):
+    while True:
+        secrets = mongo.aggregate([{'$sample': {'size': 100}}])
+        for doc in secrets:
+            secret = doc['word']
+            if best_secret := get_best_secret(secret):
+                return best_secret
+
+
+def get_best_secret(secret):
+    inp = input(f'I chose {secret[::-1]}. Ok? [Ny] > ')
+    if inp in 'nN':
+        return ''
+    if inp in ('y', 'Y'):
+        return secret
+    else:
+        return get_best_secret(inp)
 
 
 if __name__ == '__main__':

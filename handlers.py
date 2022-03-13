@@ -6,7 +6,7 @@ import tornado.web
 from common.session import get_mongo
 from common.session import get_redis
 from logic import CacheSecretLogic
-from logic import SecretLogic
+from logic import EasterEggLogic
 from logic import VectorLogic
 
 
@@ -16,18 +16,23 @@ def get_handlers():
         (r"/yesterday-top-1000/?", YesterdayClosestHandler),
         (r"/api/distance/?", DistanceHandler),
         (r"/secrets/?", AllSecretsHandler),
+        (r"/faq/?", FaqHandler),
     ]
 
 
 class BaseHandler(tornado.web.RequestHandler):
+    DELTA = timedelta()
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.mongo = get_mongo()
         self.redis = get_redis()
-        date = datetime.utcnow().date()
-        self.logic = VectorLogic(self.mongo, date)
+        self.date = datetime.utcnow().date() - self.DELTA
+        self.logic = VectorLogic(self.mongo, self.date)
         secret = self.logic.secret_logic.get_secret()
-        self.cache_logic = CacheSecretLogic(self.mongo, self.redis, secret=secret, dt=date)
+        self.cache_logic = CacheSecretLogic(
+            self.mongo, self.redis, secret=secret, dt=self.date
+        )
 
     def reply(self, content):
         content = json.dumps(content)
@@ -45,21 +50,19 @@ class IndexHandler(BaseHandler):
         closest1 = self.logic.get_similarity(cache[-2])
         closest10 = self.logic.get_similarity(cache[-12])
         closest1000 = self.logic.get_similarity(cache[0])
+        number = (self.date - self.FIRST_DATE).days + 1
 
-        todate = datetime.utcnow().date()
-        yesterdate = todate - timedelta(days=1)
-        yesterday_secret = SecretLogic(self.mongo, yesterdate).get_secret()
-        yesterday_cache = CacheSecretLogic(
-            self.mongo, self.redis, secret=yesterday_secret, dt=yesterdate,
-        ).cache
-        number = (todate - self.FIRST_DATE).days + 1
+        yestersecret = VectorLogic(
+            self.mongo, self.date - timedelta(days=1)
+        ).secret_logic.get_secret()
+
         self.render(
             'static/index.html',
             number=number,
             closest1=closest1,
             closest10=closest10,
             closest1000=closest1000,
-            yesterday=yesterday_cache[-11:],
+            yesterdays_secret=yestersecret,
         )
 
 
@@ -67,33 +70,32 @@ class DistanceHandler(BaseHandler):
     def get(self):
         word = self.get_argument('word')
         word = word.replace("'", "")
-        sim = self.logic.get_similarity(word)
-        cache_score = self.cache_logic.get_cache_score(word)
-
-        self.reply(
-            {
+        if egg := EasterEggLogic.get_easter_egg(word):
+            reply = {
+                "similarity": 99.99,
+                "distance": -1,
+                "egg": egg
+            }
+        else:
+            sim = self.logic.get_similarity(word)
+            cache_score = self.cache_logic.get_cache_score(word)
+            reply = {
                 "similarity": sim,
                 "distance": cache_score,
             }
-        )
+        self.reply(reply)
 
 
 class YesterdayClosestHandler(BaseHandler):
+    DELTA = timedelta(days=1)
+
     def get(self):
-        todate = datetime.utcnow().date()
-        yesterdate = todate - timedelta(days=1)
-        logic = VectorLogic(self.mongo, dt=yesterdate)
-        yesterday_secret = logic.secret_logic.get_secret()
-        yesterday_cache = CacheSecretLogic(
-            self.mongo, self.redis, secret=yesterday_secret, dt=yesterdate,
-        ).cache
-
-        yesterday_sims = logic.get_similarities(yesterday_cache)
-
+        yesterday_sims = self.logic.get_similarities(self.cache_logic.cache)
         self.render(
             'static/closest1000.html',
             yesterday=sorted(yesterday_sims.items(), key=lambda ws: ws[1], reverse=1),
         )
+
 
 class AllSecretsHandler(BaseHandler):
     def get(self):
@@ -107,3 +109,12 @@ class AllSecretsHandler(BaseHandler):
             secrets=sorted(secrets, key=lambda ws: ws[1], reverse=1),
         )
 
+
+class FaqHandler(BaseHandler):
+    DELTA = timedelta(days=1)
+
+    def get(self):
+        self.render(
+            'static/faq.html',
+            yesterday=self.cache_logic.cache[-11:],
+        )

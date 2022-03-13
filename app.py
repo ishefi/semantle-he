@@ -41,7 +41,7 @@ static_handlers = [
         {"path": WebApp.PATH + "/static/js"},
     ),
     (
-        r"/(favicon.ico)",
+        r"/(favicon.ico|menu.html)",
         tornado.web.StaticFileHandler,
         {"path": WebApp.PATH + "/static/"},
     ),

@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>סמנטעל</title>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <link rel="stylesheet" href="css/style.css">
 
 <!-- Global site tag (gtag.js) - Google Analytics -->
@@ -17,12 +16,11 @@
   gtag('config', 'G-PP8J7V4T0X');
 </script>
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2098371592785764" crossorigin="anonymous"></script>
-
 </head>
 <body dir='rtl'>
 <header>
 <h1>סמנטעל</h1>
-<button aria-label="Rules" id="rules-button">?</button>
+<div w3-include-html="menu.html"></div>
 </header>
     <figure>
         <blockquote class="review" cite="https://twitter.com/amsterdamski2/status/1497636216996515841">
@@ -33,61 +31,26 @@
             <cite>Twitter</cite>
         </figcaption>
     </figure>
-    <div id="rules-underlay">
-      <div id="rules" aria-labelledby="rules-heading" aria-modal="true">
-        <button id="rules-close" aria-label="Close">&times;</button>
-        <div id="rules-content">
-            <h3 id="rules-heading">נחשו את המילה הסודית</h3>
-            <p>
-            אפשר לנחש מילה או ביטוי קצר.
-            המילה הסודית יכולה להיות בכל אורך, אבל תהיה מילה בודדת (ולא ביטוי).
-            </p>
-            <p>
-                המשחק יגיד כמה המילה קרובה סמנטית למילה הסודית.
-                קרבה לא באה לידי ביטוי באיות אלא במשמעות.
-                ״משמעות״ או ״קרבה סמנטית״ נמדדת באמצעות
-                <a target="_blank" href="https://he.wikipedia.org/wiki/Word2vec">Word2Vec</a>.
-                או במילים פשוטות יותר: שתי מילים הן יותר קרובות סמנטית
-                ככל שיותר סביר להשתמש בשתיהן בקונטקסט דומה
-                .(ספציפית בויקיפדיה, כי זה הקורפוס שהמודל אומן עליו)
-
-                הציון לקרבה הסמנטית הוא בין 0-100, כש־0 זה ממש רחוק ו־100 זאת המילה הסודית בעצמה.
-            </p>
-            <p>
-                המילה הסודית יכולה להיות כל
-                <a target="_blank" href="https://he.wikipedia.org/wiki/%D7%97%D7%9C%D7%A7%D7%99_%D7%94%D7%93%D7%99%D7%91%D7%A8">חלק דיבר</a>,
-                אבל תמיד תהיה מילה בודדת.
-            </p>
-            <p>
-                המשחק יגיד כמה הניחוש שלך קרוב למילה הסודית
-                ויציין אם המילה אחת מ1000 המילים הכי קרובות למילה הסודית.
-            </p>
-            <p>
-        בניגוד ל־<a target="_blank" href="https://www.nytimes.com/games/wordle/index.html">Wordle</a>,
-        בדרך כלל צריך יותר מ6 ניחושים.
-        יותר בכיוון של כמה עשרות. ויש מילה חדשה כל יום.
-
-    </p>
-        </div>
-      </div>
-    </div>
 
 <p>
-    {% if yesterday %}
-     המילה של אתמול הייתה <b>{{yesterday[-1]}}</b>.
+    {% if yesterdays_secret %}
+    המילה של אתמול הייתה
+    <a href="/yesterday-top-1000" class="implicita">
+        <b>{{yesterdays_secret}}</b>
+    </a>.
     {% end %}
     היום, חידה מספר <b id="puzzleNumber">{{number}}</b>,
-    ציון הקרבה של המילה הכי קרובה למילה הסודית היום הוא
+    ציון הקרבה של המילה הכי קרובה (999/1000) למילה הסודית היום הוא
     <b>{{closest1}}</b>,
-    ציון הקרבה של המילה העשירית הכי קרובה הוא
+    ציון הקרבה של המילה העשירית הכי קרובה (990/1000) הוא
     {{closest10}}
-    וציון הקרבה של המילה האלף הכי קרובה הוא
+    וציון הקרבה של המילה האלף הכי קרובה (1/1000) הוא
     {{closest1000}}.
 </p>
 
 <div id="error" style="color:#ff0000"></div>
     <form id="form" autocorrect="off" autocapitalize="none"
-          autocomplete="off" style="width: 50%">
+          autocomplete="off" style="display: flex; max-width: 330px;">
     <br/>
     <div id="guess-wrapper">
     <input placeholder="ניחוש" autocorrect="off" autocapitalize="none"
@@ -104,67 +67,29 @@
 
     <table id="guesses">
     </table>
-    <div id="scatter"></div>
-</body>
-
 
     <br>
     <br>
-    <br>
-    <br>
-    <br>
-    <br>
-    <br>
-    <br>
 
-<h3>שאלות נפוצות</h3>
+<div align="center"> אהבת את סמנטעל?
+    <a href="https://ko-fi.com/ishefi" target="_blank" style="text-decoration: none;">אפשר לקנות לי ☕!</a>
+    <br><br>
+    Made by <a target="_blank" href="https://twitter.com/shefi89">Itamar Shefi</a> 2022. Word2Vec data from Wikipedia.
+    Based on David Turner's <a target="_blank" href="https://semantle.novalis.org/">Semantle</a>
+</div>
 
-    <p> ש: למה ״ציון הקרבה״ נראה לא אינטואטיבי?</p>
-    <p> ת: הסיבה העיקרית שאני יכול לחשוב עליה היא
-      שלניחוש שלך או למילה הסודית יש כמה משמעויות, והמשמעות שעלתה בדעתך פחות נפוצה מהאחרות.
-          למשל, כשבדקתי את המשחק ניסיתי אותו עם המילה ״שלום״,
-          ורוב ה1000 המילים הקרובות היו שמות משפחה - בגלל ש״שלום״ נפוץ בעיקר כשם משפחה
-          בויקיפדיה העברית. חוץ מזה, הדאטה לא מושלם. בכל זאת, ויקיפדיה.
-    </p>
-    <p> ש: למה אפשר לשחק רק פעם ביום? </p>
-    <p> ת: ככה. </p>
-
-<p> ש: למה ״והשוקו״ זאת מילה? </p>
-    <p> ת: כי ככה עברית כתובה עובדת, אז ככה הדאטה נראה.
-        לא עשיתי שום עיבוד לדאטה מלבד אימון של מודל Word2Vec, אז כל מה שמופיע בויקיפדיה
-        העברית (כולל מילים באנגלית) יופיע גם כאן.
-    </p>
-
-    <p> ש: איך זה עובד? </p>
-    <p> ת: <a target="_blank" href="https://reshetech.co.il/machine-learning-tutorials/gensim-and-word2vec">הנה מאמר על Word2Vec.</a>.
-    <p> ש: באיזה דאטה השתמשת?</p>
-    <p> ת: <a target="_blank" href="https://dumps.wikimedia.org/hewiki/latest/">ויקיפדיה </a></p>
-{% if yesterday %}
-    <p> ש: מה המילה של אתמול? </p>
-    <p> ת: {{yesterday[-1]}} </p>
-    <p> ש: מה המילים הכי קרובות למילה אתמול? </p>
-    <p>ת: {{', '.join(yesterday[:-1][::-1])}}. <a href="/yesterday-top-1000">עוד?</a></p>
-<p> ש: מה זה המילים הקרובות המעפנות האלה? ברור ש״ו{{yesterday[-1]}}״, ״ה{{yesterday[-1]}}״, ״ל{{yesterday[-1]}}״ יהיו קרובות </p>
-    <p>ת: אלה הtokens שמופיעים בויקיפדיה העברית. לא עשיתי שום תהליך טוקניזציה או למטיזציה לפני, אז יוצא שהטוקנים האלה מופיעים באותו קונטקסט כמו המילה הסודית. מה לעשות, הדאטה לא מושלם. </p>
-{% end %}
-    <p> ת: קוד מקור?</p>
-    <p> ת: <a target="_blank" href="https://github.com/ishefi/semantle-he.git">בטח.</a></p>
-    <p> ש: אפשר להתלונן על ציון קרבה של מילים? </p>
-    <p> ת: כן, אבל אני כנראה אתעלם ממך. זאת המדיניות של דיויד טרנר שיצר את המשחק המקורי ואני זורם איתו. </p>
-
-
-    <div align="left">Made by <a target="_blank" href="https://twitter.com/shefi89">Itamar Shefi</a> 2022. Word2Vec data from Wikipedia.
-    Based on David Turner's <a target="_blank" href="https://semantle.novalis.org/">Semantle</a></div>
+<template id="x-icon">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+      <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+    </svg>
+  </template>
 
 <footer>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.6.0/d3.min.js">" </script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdn.statically.io/gh/zenorocha/clipboard.js/v2.0.10/dist/clipboard.min.js"></script>
-    <script src="js/tsne.js"></script>
-    <script src="js/temp.js"></script>
     <script src="js/semantle.js"></script>
-    <script src="js/graph.js"></script>
-
 </footer>
 
+</body>
 
 </html>

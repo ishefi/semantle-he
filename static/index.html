@@ -37,8 +37,7 @@
     {% if yesterdays_secret %}
     המילה של אתמול הייתה
     <a href="/yesterday-top-1000" class="implicita">
-        <b>{{yesterdays_secret}}</b>
-    </a>.
+        <b>{{yesterdays_secret}}</b></a>.
     {% end %}
     היום, חידה מספר <b id="puzzleNumber">{{number}}</b>,
     ציון הקרבה של המילה הכי קרובה (999/1000) למילה הסודית היום הוא
@@ -63,6 +62,7 @@
     </div>
     </form>
     <div id="response"></div>
+    <p><b id="timer" hidden></b></p>
     <div style="display:none">
       <input type="text" id="share" />
     </div>

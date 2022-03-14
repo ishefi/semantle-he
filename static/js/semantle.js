@@ -73,6 +73,8 @@ let Semantle = (function() {
     const today = Math.floor(now / 86400000);
     const initialDay = 19044;
     const puzzleNumber = today + 1 - initialDay;
+    const tomorrow = new Date();
+    tomorrow.setUTCHours(24, 0, 0, 0);
 
     function includeHTML() {
   var z, i, elmnt, file, xhttp;
@@ -387,7 +389,26 @@ let Semantle = (function() {
                 endGame(winState);
             }
         }
-        }
+            var x = setInterval(function() {
+                // Find the distance between now and the count down date
+                var distance = tomorrow.getTime() - Date.now();
+                if (distance < 0) {
+                    window.location.reload();
+                    return;
+                }
+
+                // Time calculations for days, hours, minutes and seconds
+                var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                var seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                // Output the result in an element with id="demo"
+                document.getElementById("timer").innerHTML = "הסמנטעל הבא בעוד " +
+                hours + ":" + minutes.toString().padStart(2, '0') + ":" + seconds.toString().padStart(2, '0');
+
+                // If the count down is over, write some text
+            }, 1000);
+        } // end init
 
         function endGame(won, countStats) {
         let stats;
@@ -413,6 +434,7 @@ let Semantle = (function() {
         }
 
         gameOver = true;
+        document.getElementById("timer").hidden = false;
         let response;
         if (won) {
             response = `<p><b>

@@ -186,14 +186,20 @@ let Semantle = (function() {
         $("#settings-close")[0].focus();
     }
 
-    function toggleProgressView(value) {
-        progress_view = !progress_view
-        updateGuesses()
+    function toggleProgressView(event) {
+        var element = event.target;
+        if (element.className.includes("progress-button")){
+            progress_view = !progress_view
+            updateGuesses()
+        }
     }
     
     function showGuesses(){
         let inner = ''
-        let guess = guesses[guesses.length - 1][1]
+        if (guessesByID.length == 0){
+            return inner;
+        }
+        let guess = guessesByID[guessesByID.length - 1][1]
         for (let entry of guesses) {
             let [similarity, oldGuess, guessNumber, percentile, egg] = entry;
             if (oldGuess == guess) {
@@ -211,34 +217,37 @@ let Semantle = (function() {
     }
     
     function showProgress(){
-        
         let highest_simlirity = Number.MIN_SAFE_INTEGER
-        let inner = ''
+        let gusses = [];
         for (let entry of guessesByID) {
             let [similarity, oldGuess, guessNumber, percentile, egg] = entry;
             if (similarity < highest_simlirity) {
                 continue
             }
             highest_simlirity = similarity
-            inner += guessRow(similarity, oldGuess, percentile, guessNumber, guess, egg);
+            gusses.push(guessRow(similarity, oldGuess, percentile, guessNumber, guess, egg));
         }
-        return inner
+        return gusses.reverse().join("")
     }
 
     function updateGuesses() {
-        let inner = `<tr>
+        let header = `<tr>
         <th>#</th>
         <th>ניחוש</th>
         <th>קרבה</th>
-        <th>מתחמם?</th></tr>`;
+        <th>מתחמם?</th>
+        <th><button class="btn progress-button"><i class="fa fa-sort progress-button"></i></button></th>
+        </tr>`;
+        let inner = '';
         if (!progress_view){
             inner += showGuesses()
         }
         else{
             inner += showProgress()
         }
-        /* This is dumb: first we find the most-recent word, and put
-           it at the top.  Then we do the rest. */
+        if (inner != ''){
+            inner = header + inner;
+        }
         $('#guesses')[0].innerHTML = inner;
     }
 
@@ -258,7 +267,8 @@ let Semantle = (function() {
 
         $("#rules-button")[0].addEventListener('click', openRules);
         $("#settings-button")[0].addEventListener('click', openSettings);
-        $("#progress-button")[0].addEventListener('click', toggleProgressView);
+        $("#guesses")[0].addEventListener('click', toggleProgressView);
+        
 
         [$("#rules-underlay"), $("#rules-close")].forEach((el) => {
             el[0].addEventListener('click', () => {

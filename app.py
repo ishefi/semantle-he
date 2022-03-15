@@ -7,6 +7,8 @@ import tornado.web
 
 from common import config
 from common.logger import logger
+from common.session import get_mongo
+from common.session import get_redis
 import handlers
 
 
@@ -57,6 +59,8 @@ if __name__ == "__main__":
     num_processes = int(os.environ.get("NUM_PROCESSES", 1))
     http_server.bind(port)
     http_server.start(num_processes)
+    app.mongo = get_mongo()
+    app.redis = get_redis()
 
     while True:
         logger.warning("Running app on port %d", port)

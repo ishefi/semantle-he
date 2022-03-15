@@ -3,8 +3,8 @@ from datetime import timedelta
 import json
 import tornado.web
 
-from common.session import get_mongo
-from common.session import get_redis
+# from common.session import get_mongo
+# from common.session import get_redis
 from logic import CacheSecretLogic
 from logic import EasterEggLogic
 from logic import VectorLogic
@@ -25,8 +25,8 @@ class BaseHandler(tornado.web.RequestHandler):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.mongo = get_mongo()
-        self.redis = get_redis()
+        self.mongo = self.application.mongo
+        self.redis = self.application.redis
         self.date = datetime.utcnow().date() - self.DELTA
         self.logic = VectorLogic(self.mongo, self.date)
         secret = self.logic.secret_logic.get_secret()

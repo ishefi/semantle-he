@@ -1,7 +1,5 @@
-from datetime import datetime
-
-from pymongo import MongoClient
-from redis.client import Redis
+from motor import MotorClient as MongoClient
+from aioredis.client import Redis
 
 
 from common import config

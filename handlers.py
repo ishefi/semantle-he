@@ -34,29 +34,29 @@ class BaseHandler(tornado.web.RequestHandler):
             self.mongo, self.redis, secret=secret, dt=self.date
         )
 
-    def reply(self, content):
+    async def reply(self, content):
         content = json.dumps(content)
         self.set_header("Content-Type", "application/json")
         self.set_header("Content-Length", len(content))
         self.write(content)
-        self.finish()
+        await self.finish()
 
 
 class IndexHandler(BaseHandler):
     FIRST_DATE = datetime(2022, 2, 21).date()
 
-    def get(self):
-        cache = self.cache_logic.cache
-        closest1 = self.logic.get_similarity(cache[-2])
-        closest10 = self.logic.get_similarity(cache[-12])
-        closest1000 = self.logic.get_similarity(cache[0])
+    async def get(self):
+        cache = await self.cache_logic.cache
+        closest1 = await self.logic.get_similarity(cache[-2])
+        closest10 = await self.logic.get_similarity(cache[-12])
+        closest1000 = await self.logic.get_similarity(cache[0])
         number = (self.date - self.FIRST_DATE).days + 1
 
-        yestersecret = VectorLogic(
+        yestersecret = await VectorLogic(
             self.mongo, self.date - timedelta(days=1)
         ).secret_logic.get_secret()
 
-        self.render(
+        await self.render(
             'static/index.html',
             number=number,
             closest1=closest1,
@@ -67,7 +67,7 @@ class IndexHandler(BaseHandler):
 
 
 class DistanceHandler(BaseHandler):
-    def get(self):
+    async def get(self):
         word = self.get_argument('word')
         word = word.replace("'", "")
         if egg := EasterEggLogic.get_easter_egg(word):
@@ -77,34 +77,35 @@ class DistanceHandler(BaseHandler):
                 "egg": egg
             }
         else:
-            sim = self.logic.get_similarity(word)
-            cache_score = self.cache_logic.get_cache_score(word)
+            sim = await self.logic.get_similarity(word)
+            cache_score = await self.cache_logic.get_cache_score(word)
             reply = {
                 "similarity": sim,
                 "distance": cache_score,
             }
-        self.reply(reply)
+        await self.reply(reply)
 
 
 class YesterdayClosestHandler(BaseHandler):
     DELTA = timedelta(days=1)
 
-    def get(self):
-        yesterday_sims = self.logic.get_similarities(self.cache_logic.cache)
-        self.render(
+    async def get(self):
+        cache = await self.cache_logic.cache
+        yesterday_sims = await self.logic.get_similarities(cache)
+        await self.render(
             'static/closest1000.html',
             yesterday=sorted(yesterday_sims.items(), key=lambda ws: ws[1], reverse=1),
         )
 
 
 class AllSecretsHandler(BaseHandler):
-    def get(self):
-        secrets = self.logic.secret_logic.get_all_secrets()
+    async def get(self):
+        secrets = await self.logic.secret_logic.get_all_secrets()
         api_key = self.get_argument('api_key', None)
         if api_key != self.application.api_key:
             raise tornado.web.HTTPError(403)
 
-        self.render(
+        await self.render(
             'static/all_secrets.html',
             secrets=sorted(secrets, key=lambda ws: ws[1], reverse=1),
         )
@@ -113,8 +114,9 @@ class AllSecretsHandler(BaseHandler):
 class FaqHandler(BaseHandler):
     DELTA = timedelta(days=1)
 
-    def get(self):
-        self.render(
+    async def get(self):
+        cache = await self.cache_logic.cache
+        await self.render(
             'static/faq.html',
-            yesterday=self.cache_logic.cache[-11:],
+            yesterday=cache[-11:],
         )

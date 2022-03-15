@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from datetime import timedelta
 import heapq
+import inspect
 import struct
 from typing import TYPE_CHECKING
 
-from pymongo.collection import Collection
 
 from common import config
 from common.consts import VEC_SIZE
@@ -27,35 +27,35 @@ class SecretLogic:
         self.date = dt
         self.mongo = mongo
 
-    def get_secret(self):
-        wv = self.mongo.find_one({'secret_date': str(self.date)})
+    async def get_secret(self):
+        wv = await self.mongo.find_one({'secret_date': str(self.date)})
         if wv:
             return wv['word']
         else:
             return None
 
-    def set_secret(self, secret):
-        self.mongo.update_one(
+    async def set_secret(self, secret):
+        await self.mongo.update_one(
             {'word': secret},
             {'$set': {'secret_date': str(self.date)}}
 
         )
 
-    def get_all_secrets(self):
+    async def get_all_secrets(self):
         secrets = self.mongo.find({'secret_date': {'$exists': True, '$ne': None}})
-        return ((secret['word'], secret['secret_date']) for secret in secrets)
+        return ((secret['word'], secret['secret_date']) for secret in await secrets.to_list(None))
 
 
 class VectorLogic:
     _secret_cache = {}
 
     def __init__(self, mongo, dt):
-        self.mongo: Collection = mongo
+        self.mongo = mongo
         self.date = str(dt)
         self.secret_logic = SecretLogic(self.mongo, dt=dt)
 
-    def get_vector(self, word: str):
-        w2v = self.mongo.find_one({'word': word})
+    async def get_vector(self, word: str):
+        w2v = await self.mongo.find_one({'word': word})
         if w2v is None:
             return None
         else:
@@ -64,37 +64,38 @@ class VectorLogic:
     def _unpack_vector(self, raw_vec):
         return struct.unpack(VEC_SIZE, raw_vec)
 
-    def get_similarities(self, words: [str]) -> [float]:
-        secret_vector = self.get_secret_vector()
+    async def get_similarities(self, words: [str]) -> [float]:
+        secret_vector = await self.get_secret_vector()
+        wvs = self.mongo.find({'word': {'$in': words}})
         return {
-            wv['word']: self.calc_similarity(secret_vector, self._unpack_vector(wv['vec']))
-            for wv in self.mongo.find({'word': {'$in': words}})
+            wv['word']: await self.calc_similarity(secret_vector, self._unpack_vector(wv['vec']))
+            for wv in await wvs.to_list(None)
         }
 
-    def get_secret_vector(self):
+    async def get_secret_vector(self):
         if self._secret_cache.get(self.date) is None:
-            self._secret_cache[self.date] = self.get_vector(
-                self.secret_logic.get_secret()
+            self._secret_cache[self.date] = await self.get_vector(
+                await self.secret_logic.get_secret()
             )
         return self._secret_cache[self.date]
 
-    def get_similarity(self, word: str) -> float:
-        word_vector = self.get_vector(word)
+    async def get_similarity(self, word: str) -> float:
+        word_vector = await self.get_vector(word)
         if word_vector is None:
             return -1.0
-        secret_vector = self.get_secret_vector()
-        return self.calc_similarity(secret_vector, word_vector)
+        secret_vector = await self.get_secret_vector()
+        return await self.calc_similarity(secret_vector, word_vector)
 
-    def calc_similarity(self, vec1, vec2):
+    async def calc_similarity(self, vec1, vec2):
         return round(dot(vec1, vec2) / (norm(vec1) * norm(vec2)) * 100, 2)
 
-    def iterate_all(self):
-        for wv in self.mongo.find():
+    async def iterate_all(self):
+        for wv in await self.mongo.find().to_list(None):
             yield wv['word'], self._unpack_vector(wv['vec'])
 
 
 class CacheSecretLogic:
-    _secret_cache_key = 'hs:{}:{}'
+    _secret_cache_key_fmt = 'hs:{}:{}'
     _cache_dict = {}
     MAX_CACHE = 50
 
@@ -107,10 +108,15 @@ class CacheSecretLogic:
         self.date = str(dt)
         self.vector_logic = VectorLogic(self.mongo, dt=dt)
         self.secret = secret
+        self._secret_cache_key = None
 
     @property
-    def secret_cache_key(self):
-        return self._secret_cache_key.format(self.secret, self.date)
+    async def secret_cache_key(self):
+        if self._secret_cache_key is None:
+            if inspect.iscoroutine(self.secret):
+                self.secret = await self.secret
+            self._secret_cache_key = self._secret_cache_key_fmt.format(self.secret, self.date)
+        return self._secret_cache_key
 
     def _get_secret_vector(self):
         return self.vector_logic.get_vector(self.secret)
@@ -118,12 +124,12 @@ class CacheSecretLogic:
     def _iterate_all_wv(self):
         return self.vector_logic.iterate_all()
 
-    def set_secret(self, dry=False, force=False):
+    async def set_secret(self, dry=False, force=False):
         if not force:
-            if self.vector_logic.secret_logic.get_secret() is not None:
+            if await self.vector_logic.secret_logic.get_secret() is not None:
                 raise ValueError("There is already a secret for this date")
 
-            wv = self.mongo.find_one({'word': self.secret})
+            wv = await self.mongo.find_one({'word': self.secret})
             if wv.get('secret_date') is not None:
                 raise ValueError("This word was a secret in the past")
 
@@ -138,27 +144,27 @@ class CacheSecretLogic:
         nearest.sort()
         self._cache_dict[self.date] = [w[1] for w in nearest]
         if not dry:
-            self.do_populate()
+            await self.do_populate()
 
-    def do_populate(self):
+    async def do_populate(self):
         expiration = self.date_ - datetime.utcnow().date() + timedelta(days=4)
-        self.redis.delete(self.secret_cache_key)
-        self.redis.rpush(self.secret_cache_key, *self.cache)
-        self.redis.expire(self.secret_cache_key, expiration)
-        self.vector_logic.secret_logic.set_secret(self.secret)
+        await self.redis.delete(await self.secret_cache_key)
+        await self.redis.rpush(await self.secret_cache_key, *await self.cache)
+        await self.redis.expire(await self.secret_cache_key, expiration)
+        await self.vector_logic.secret_logic.set_secret(self.secret)
 
     @property
-    def cache(self):
+    async def cache(self):
         cache = self._cache_dict.get(self.date)
         if cache is None or len(cache) < 1000:
-                if len(self._cache_dict) > self.MAX_CACHE:
-                    self._cache_dict.clear()
-                self._cache_dict[self.date] = self.redis.lrange(self.secret_cache_key, 0, -1)
+            if len(self._cache_dict) > self.MAX_CACHE:
+                self._cache_dict.clear()
+            self._cache_dict[self.date] = await self.redis.lrange(await self.secret_cache_key, 0, -1)
         return self._cache_dict[self.date]
 
-    def get_cache_score(self, word):
+    async def get_cache_score(self, word):
         try:
-            return self.cache.index(word) + 1
+            return (await self.cache).index(word) + 1
         except ValueError:
             return -1
 

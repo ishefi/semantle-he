@@ -64,7 +64,6 @@ def main():
         secret = get_random_word(mongo)
 
 
-
 def get_date(mongo):
     cursor = mongo.find({"secret_date": {"$exists": 1}})
     cursor = cursor.sort("secret_date", -1)
@@ -75,13 +74,13 @@ def get_date(mongo):
     return dt
 
 
-def do_populate(mongo, redis, model, secret, date, force):
+async def do_populate(mongo, redis, model, secret, date, force):
     if model:
         logic = CacheSecretLogicGensim(model, mongo, redis, secret, date)
     else:
         logic = CacheSecretLogic(mongo, redis, secret, date)
-    logic.set_secret(dry=True, force=force)
-    cache = [w[::-1] for w in logic.cache[::-1]]
+    await logic.set_secret(dry=True, force=force)
+    cache = [w[::-1] for w in await logic.cache[::-1]]
     print(' ,'.join(cache))
     print(cache[0])
     for rng in (range(i, i+10) for i in [1, 50, 100, 300, 550, 750]):
@@ -90,7 +89,7 @@ def do_populate(mongo, redis, model, secret, date, force):
             print(f"{i}: {w}")
     pop = input("Populate?\n")
     if pop in ('y', 'Y'):
-        logic.do_populate()
+        await logic.do_populate()
         print("Done!")
         return True
     else:

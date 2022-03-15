@@ -1,4 +1,5 @@
 tornado==6.1
 numpy~=1.22.2
+pymongo[srv]
 motor~=2.5.1
 aioredis~=2.0.1

@@ -4,7 +4,7 @@ body, input {
     -webkit-font-smoothing: subpixel-antialiased;
     font-family:-apple-system-font, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
     text-rendering: optimizeLegibility;
-    font-weight:200;
+    font-weight:300;
 }
 
 body {

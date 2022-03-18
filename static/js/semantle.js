@@ -143,6 +143,7 @@ let Semantle = (function() {
     } else {
         color = '#000';
     }
+    if (similarity === null) return '';
     return `<tr><td>${guessNumber}</td>
     <td style="color:${color}" onclick="select('${oldGuess}', secretVec);">${oldGuess}</td>
     <td align="right" dir="ltr">${similarity.toFixed(2)}</td>

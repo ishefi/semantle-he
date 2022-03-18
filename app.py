@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from datetime import datetime
 import os
 
 import tornado.httpserver
@@ -61,6 +62,12 @@ if __name__ == "__main__":
     http_server.start(num_processes)
     app.mongo = get_mongo()
     app.redis = get_redis()
+    try:
+        date = datetime.strptime(os.environ.get("GAME_DATE", ""), '%Y-%m-%d').date()
+        delta = (datetime.utcnow().date() - date).days
+    except ValueError:
+        delta = 0
+    app.days_delta = delta
 
     while True:
         logger.warning("Running app on port %d", port)

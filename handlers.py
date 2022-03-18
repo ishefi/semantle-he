@@ -21,7 +21,8 @@ def get_handlers():
 
 
 class BaseHandler(tornado.web.RequestHandler):
-    DELTA = timedelta()
+    _DELTA = None
+    _SECRET_CACHE = {}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -33,6 +34,12 @@ class BaseHandler(tornado.web.RequestHandler):
         self.cache_logic = CacheSecretLogic(
             self.mongo, self.redis, secret=secret, dt=self.date
         )
+
+    @property
+    def DELTA(self):
+        if self._DELTA is None:
+            self._DELTA = timedelta(days=self.application.days_delta)
+        return self._DELTA
 
     async def reply(self, content):
         content = json.dumps(content)
@@ -87,8 +94,6 @@ class DistanceHandler(BaseHandler):
 
 
 class YesterdayClosestHandler(BaseHandler):
-    DELTA = timedelta(days=1)
-
     async def get(self):
         cache = await self.cache_logic.cache
         yesterday_sims = await self.logic.get_similarities(cache)
@@ -97,6 +102,9 @@ class YesterdayClosestHandler(BaseHandler):
             yesterday=sorted(yesterday_sims.items(), key=lambda ws: ws[1], reverse=1),
         )
 
+    @property
+    def DELTA(self):
+        return self.DELTA + timedelta(days=1)
 
 class AllSecretsHandler(BaseHandler):
     async def get(self):

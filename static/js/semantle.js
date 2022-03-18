@@ -145,7 +145,7 @@ let Semantle = (function() {
     }
     return `<tr><td>${guessNumber}</td>
     <td style="color:${color}" onclick="select('${oldGuess}', secretVec);">${oldGuess}</td>
-    <td>${similarity.toFixed(2)}</td>
+    <td align="right" dir="ltr">${similarity.toFixed(2)}</td>
     <td class="${cls}">${percentileText}${progress}
 </td></tr>`;
 
@@ -283,7 +283,7 @@ let Semantle = (function() {
             $('#guess')[0].value = "";
 
             const guessData = await getSim(guess);
-            if (guessData.similarity < 0) {
+            if (guessData.similarity === null) {
                 $('#error')[0].textContent = `אני לא מכיר את המילה ${guess}.`;
                 return false;
             }

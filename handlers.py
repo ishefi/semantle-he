@@ -104,7 +104,7 @@ class YesterdayClosestHandler(BaseHandler):
 
     @property
     def DELTA(self):
-        return self.DELTA + timedelta(days=1)
+        return super().DELTA + timedelta(days=1)
 
 class AllSecretsHandler(BaseHandler):
     async def get(self):

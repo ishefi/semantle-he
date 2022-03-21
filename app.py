@@ -19,6 +19,8 @@ class WebApp(tornado.web.Application):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.api_key = config.api_key
+        self.main_quote = config.quotes[0]
+        self.quotes = config.quotes[1:]
 
 
 

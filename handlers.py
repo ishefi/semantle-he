@@ -1,10 +1,10 @@
 from datetime import datetime
 from datetime import timedelta
 import json
+import random
+
 import tornado.web
 
-# from common.session import get_mongo
-# from common.session import get_redis
 from logic import CacheSecretLogic
 from logic import EasterEggLogic
 from logic import VectorLogic
@@ -63,6 +63,11 @@ class IndexHandler(BaseHandler):
             self.mongo, self.date - timedelta(days=1)
         ).secret_logic.get_secret()
 
+        if random.random() >= 0.5:
+            quote = self.application.main_quote
+        else:
+            quote = random.choice(self.application.quotes)
+
         await self.render(
             'static/index.html',
             number=number,
@@ -70,6 +75,7 @@ class IndexHandler(BaseHandler):
             closest10=closest10,
             closest1000=closest1000,
             yesterdays_secret=yestersecret,
+            quote=quote,
         )
 
 

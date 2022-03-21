@@ -14,16 +14,16 @@ def parse_args():
     args = parser.parse_args()
     return args
 
-def get_paths(input_folder:str, output:str):
+
+def get_paths(input_folder: str, output: str):
     folder = get_absolute_path(input_folder)
-    if not folder.is_dir():
-        raise ArgumentError(None, message="--folder must be a valid folder")
+    assert folder.is_dir(), "folder must be a valid folder"
     output = get_absolute_path(output)
-    if output.exists():
-        raise ArgumentError(None, message="--output must not be an existing file")
+    assert not output.exists(), "output must not be an existing file"
     return folder, output
 
-def process_files(input_folder:Path, output:Path):
+
+def process_files(input_folder: Path, output: Path):
     files = list(input_folder.glob('**/*'))
     with output.open('wb+') as f2:
         for fname in tqdm(files, desc='processing files', total=len(files), unit='file'):

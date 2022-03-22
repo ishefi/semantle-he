@@ -48,6 +48,16 @@ body {
     padding-top:18px;
 }
 
+#response {
+    background-color: #e6eaff;
+    border: 1px solid #716f6f;
+    padding-right: 20px;
+    padding-left: 5px;
+}
+
+#response p {
+    font-style: italic;
+}
 
 th {
     padding-left: 3em;
@@ -298,4 +308,9 @@ body.dark .progress-container {
 
 body.dark .implicita {
     color: #FFF;
+}
+
+body.dark #response {
+    background-color: #282e4f;
+    border: 1px solid #eeeeee;
 }

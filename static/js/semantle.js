@@ -72,7 +72,7 @@ let Semantle = (function() {
     const initialDay = 19044;
     const puzzleNumber = today + 1 - initialDay;
     const tomorrow = new Date();
-    tomorrow.setUTCHours(24, 0, 0, 0);
+    tomorrow.setHours(24, 0, 0, 0);
 
     function includeHTML() {
   var z, i, elmnt, file, xhttp;

@@ -398,6 +398,11 @@ let Semantle = (function() {
             אפשר להמשיך לנסות להכניס מילים ולראות את הקרבה שלהן,
             וגם <a href="javascript:share();">לשתף</a>
             ולחזור לשחק מחר.
+            </b>
+            <br>
+            </p>
+            <p align="left">
+             (ואם ממש בא לך, <a href="https://ko-fi.com/ishefi" target="_blank" style="text-decoration: none;">אפשר גם לקנות לי ☕</a>)
              </p>`
         } else {
         // right now we do not allow giving up

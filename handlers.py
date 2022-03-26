@@ -76,6 +76,7 @@ class IndexHandler(BaseHandler):
             closest1000=closest1000,
             yesterdays_secret=yestersecret,
             quote=quote,
+            js_version=self.application.js_version,
         )
 
 
@@ -106,6 +107,7 @@ class YesterdayClosestHandler(BaseHandler):
         await self.render(
             'static/closest1000.html',
             yesterday=sorted(yesterday_sims.items(), key=lambda ws: ws[1], reverse=1),
+            js_version=self.application.js_version,
         )
 
     @property
@@ -122,6 +124,7 @@ class AllSecretsHandler(BaseHandler):
         await self.render(
             'static/all_secrets.html',
             secrets=sorted(secrets, key=lambda ws: ws[1], reverse=1),
+            js_version=self.application.js_version,
         )
 
 
@@ -133,4 +136,5 @@ class FaqHandler(BaseHandler):
         await self.render(
             'static/faq.html',
             yesterday=cache[-11:],
+            js_version=self.application.js_version,
         )

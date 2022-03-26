@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from datetime import datetime
 import os
+import uuid
 
 import tornado.httpserver
 import tornado.ioloop
@@ -21,7 +22,7 @@ class WebApp(tornado.web.Application):
         self.api_key = config.api_key
         self.main_quote = config.quotes[0]
         self.quotes = config.quotes[1:]
-
+        self.js_version = uuid.uuid4().hex[:6]
 
 
 static_handlers = [

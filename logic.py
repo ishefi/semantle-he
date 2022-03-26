@@ -136,7 +136,7 @@ class CacheSecretLogic:
         secret_vec = self._get_secret_vector()
 
         nearest = []
-        for word, vec in self._iterate_all_wv():
+        async for word, vec in self._iterate_all_wv():
             s = self.vector_logic.calc_similarity(vec, secret_vec)
             heapq.heappush(nearest, (s, word))
             if len(nearest) > 1000:

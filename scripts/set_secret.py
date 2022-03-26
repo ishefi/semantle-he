@@ -1,5 +1,6 @@
 from argparse import ArgumentParser
 from argparse import ArgumentTypeError
+import asyncio
 from datetime import datetime
 from datetime import timedelta
 import os
@@ -21,7 +22,7 @@ def valid_date(date_str):
         raise ArgumentTypeError("Bad date: should be of the format YYYY-mm-dd")
 
 
-def main():
+async def main():
     parser = ArgumentParser("Set SematleHe secret for any date")
     parser.add_argument(
         '-s',
@@ -50,24 +51,24 @@ def main():
     if args.date:
         date = args.date
     else:
-        date = get_date(mongo)
+        date = await get_date(mongo)
     if args.secret:
         secret = args.secret
     else:
-        secret = get_random_word(mongo)
+        secret = await get_random_word(mongo)
     while True:
-        do_populate(mongo, redis, args.model, secret, date, args.force)
+        await do_populate(mongo, redis, args.model, secret, date, args.force)
         if not args.iterative:
             break
         date += timedelta(days=1)
         print(f"Now doing {date}")
-        secret = get_random_word(mongo)
+        secret = await get_random_word(mongo)
 
 
-def get_date(mongo):
+async def get_date(mongo):
     cursor = mongo.find({"secret_date": {"$exists": 1}})
     cursor = cursor.sort("secret_date", -1)
-    latest = cursor.next()
+    latest = await cursor.next()
     date_str = latest["secret_date"]
     dt = valid_date(date_str) + timedelta(days=1)
     print(f"Now doing {dt}")
@@ -93,14 +94,14 @@ async def do_populate(mongo, redis, model, secret, date, force):
         print("Done!")
         return True
     else:
-        secret = get_random_word(mongo)
+        secret = await get_random_word(mongo)
         return do_populate(mongo, redis, model, secret, date, force)
 
 
-def get_random_word(mongo):
+async def get_random_word(mongo):
     while True:
         secrets = mongo.aggregate([{'$sample': {'size': 100}}])
-        for doc in secrets:
+        async for doc in secrets:
             secret = doc['word']
             if best_secret := get_best_secret(secret):
                 return best_secret
@@ -117,4 +118,4 @@ def get_best_secret(secret):
 
 
 if __name__ == '__main__':
-    main()
+    asyncio.run(main())

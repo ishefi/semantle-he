@@ -3,6 +3,8 @@ from datetime import timedelta
 import json
 import random
 import tornado.web
+
+from common.logger import logger
 from logic import CacheSecretLogic
 from logic import EasterEggLogic
 from logic import VectorLogic
@@ -52,7 +54,7 @@ class BaseHandler(tornado.web.RequestHandler):
         ip_address = self.request.headers.get("X-Real-IP") or \
                      self.request.headers.get("X-Forwarded-For") or \
                      self.request.remote_ip
-        print(ip_address)
+        logger(f"ip_address {ip_address}")
 
         #if self.request_is_limited(key=ip_address, limit=self.application.limit, period=self.application.period):
         #    raise tornado.web.HTTPError(429)

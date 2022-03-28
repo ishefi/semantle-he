@@ -81,7 +81,7 @@ async def do_populate(mongo, redis, model, secret, date, force):
     else:
         logic = CacheSecretLogic(mongo, redis, secret, date)
     await logic.set_secret(dry=True, force=force)
-    cache = [w[::-1] for w in await logic.cache[::-1]]
+    cache = [w[::-1] for w in (await logic.cache)[::-1]]
     print(' ,'.join(cache))
     print(cache[0])
     for rng in (range(i, i+10) for i in [1, 50, 100, 300, 550, 750]):
@@ -95,7 +95,7 @@ async def do_populate(mongo, redis, model, secret, date, force):
         return True
     else:
         secret = await get_random_word(mongo)
-        return do_populate(mongo, redis, model, secret, date, force)
+        return await do_populate(mongo, redis, model, secret, date, force)
 
 
 async def get_random_word(mongo):

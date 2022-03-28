@@ -118,8 +118,8 @@ class CacheSecretLogic:
             self._secret_cache_key = self._secret_cache_key_fmt.format(self.secret, self.date)
         return self._secret_cache_key
 
-    def _get_secret_vector(self):
-        return self.vector_logic.get_vector(self.secret)
+    async def _get_secret_vector(self):
+        return await self.vector_logic.get_vector(self.secret)
 
     def _iterate_all_wv(self):
         return self.vector_logic.iterate_all()
@@ -133,7 +133,7 @@ class CacheSecretLogic:
             if wv.get('secret_date') is not None:
                 raise ValueError("This word was a secret in the past")
 
-        secret_vec = self._get_secret_vector()
+        secret_vec = await self._get_secret_vector()
 
         nearest = []
         async for word, vec in self._iterate_all_wv():

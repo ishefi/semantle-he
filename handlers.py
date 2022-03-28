@@ -50,9 +50,13 @@ class BaseHandler(tornado.web.RequestHandler):
         await self.finish()
 
     def prepare(self):
-        ip_address = self.request.remote_ip
-        if self.request_is_limited(key=ip_address, limit=self.application.limit, period=self.application.period):
-            raise tornado.web.HTTPError(429)
+        ip_address = self.request.headers.get("X-Real-IP") or \
+                     self.request.headers.get("X-Forwarded-For") or \
+                     self.request.remote_ip
+        print(ip_address)
+
+        #if self.request_is_limited(key=ip_address, limit=self.application.limit, period=self.application.period):
+        #    raise tornado.web.HTTPError(429)
 
     def _expire_requests(self, now: datetime, period: timedelta, usage, key):
         """ remove all requests before expiration time"""

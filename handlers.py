@@ -25,7 +25,7 @@ def get_handlers():
 class BaseHandler(tornado.web.RequestHandler):
     _DELTA = None
     _SECRET_CACHE = {}
-    _CURRENT_TIMEFRAME = [0]
+    CURRENT_TIMEFRAME = 0
     _USAGE = defaultdict(int)
 
     def __init__(self, *args, **kwargs):
@@ -63,13 +63,13 @@ class BaseHandler(tornado.web.RequestHandler):
     def request_is_limited(self, key: str):
         now = int(time.time())
         current = now - now % self.application.period
-        if self._CURRENT_TIMEFRAME[0] != current:
-            self._USAGE.clear()
-            self._CURRENT_TIMEFRAME[0] = current
-        if self._USAGE[key] > self.application.limit:
-            return True
+        if self.CURRENT_TIMEFRAME != current:
+            self.CURRENT_TIMEFRAME = current
+            for ip, usage in self._USAGE.items():
+                if usage > self.application.limit * 0.75:
+                    self._USAGE[ip] = usage // 2
         self._USAGE[key] += 1
-        return False
+        return self._USAGE[key] > self.application.limit
 
 
 class IndexHandler(BaseHandler):

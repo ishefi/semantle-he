@@ -65,7 +65,7 @@ if __name__ == "__main__":
     app.mongo = get_mongo()
     app.redis = get_redis()
     app.limit = int(os.environ.get("LIMIT", 10))
-    app.period = timedelta(seconds=int(os.environ.get("PERIOD", 20)))
+    app.period = int(os.environ.get("PERIOD", 20))
     try:
         date = datetime.strptime(os.environ.get("GAME_DATE", ""), '%Y-%m-%d').date()
         delta = (datetime.utcnow().date() - date).days

@@ -2,9 +2,10 @@ from datetime import datetime
 from datetime import timedelta
 import json
 import random
+import time
+
 import tornado.web
 
-from common.logger import logger
 from logic import CacheSecretLogic
 from logic import EasterEggLogic
 from logic import VectorLogic
@@ -24,6 +25,8 @@ def get_handlers():
 class BaseHandler(tornado.web.RequestHandler):
     _DELTA = None
     _SECRET_CACHE = {}
+    _CURRENT_TIMEFRAME = [0]
+    _USAGE = defaultdict(int)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -35,7 +38,6 @@ class BaseHandler(tornado.web.RequestHandler):
         self.cache_logic = CacheSecretLogic(
             self.mongo, self.redis, secret=secret, dt=self.date
         )
-        self.usage = defaultdict(list)
 
     @property
     def DELTA(self):
@@ -54,28 +56,19 @@ class BaseHandler(tornado.web.RequestHandler):
         ip_address = self.request.headers.get("X-Real-IP") or \
                      self.request.headers.get("X-Forwarded-For") or \
                      self.request.remote_ip
-        logger.warning("ip_address %s", ip_address)
 
-        #if self.request_is_limited(key=ip_address, limit=self.application.limit, period=self.application.period):
-        #    raise tornado.web.HTTPError(429)
+        if self.request_is_limited(key=ip_address):
+            raise tornado.web.HTTPError(429)
 
-    def _expire_requests(self, now: datetime, period: timedelta, usage, key):
-        """ remove all requests before expiration time"""
-        expiration_time = now - period
-        i = 0
-        for i, usage in enumerate(usage[key]):
-            if usage > expiration_time:
-                break
-        if i > 0:
-            self.usage[key] = self.usage[key][i:]
-
-    def request_is_limited(self, key: str, limit: int, period: timedelta):
-        now = datetime.utcnow()
-        self._expire_requests(now, period, self.usage, key)
-        limit_reached = len(self.usage[key]) > limit
-        if limit_reached:
+    def request_is_limited(self, key: str):
+        now = int(time.time())
+        current = now - now % self.application.period
+        if self._CURRENT_TIMEFRAME[0] != current:
+            self._USAGE.clear()
+            self._CURRENT_TIMEFRAME[0] = current
+        if self._USAGE[key] > self.application.limit:
             return True
-        self.usage[key].append(now)
+        self._USAGE[key] += 1
         return False
 
 

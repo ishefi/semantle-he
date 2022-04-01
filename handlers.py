@@ -54,7 +54,7 @@ class BaseHandler(tornado.web.RequestHandler):
         ip_address = self.request.headers.get("X-Real-IP") or \
                      self.request.headers.get("X-Forwarded-For") or \
                      self.request.remote_ip
-        logger(f"ip_address {ip_address}")
+        logger.warning("ip_address %s", ip_address)
 
         #if self.request_is_limited(key=ip_address, limit=self.application.limit, period=self.application.period):
         #    raise tornado.web.HTTPError(429)

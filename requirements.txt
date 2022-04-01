@@ -1,5 +1,4 @@
 tornado==6.1
-numpy~=1.22.2
 pymongo[srv]
 newrelic
 motor~=2.5.1

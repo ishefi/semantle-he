@@ -68,6 +68,8 @@ class BaseHandler(tornado.web.RequestHandler):
             for ip, usage in self._USAGE.items():
                 if usage > self.application.limit * 0.75:
                     self._USAGE[ip] = usage // 2
+                else:
+                    self._USAGE[ip] = 0
         self._USAGE[key] += 1
         return self._USAGE[key] > self.application.limit
 

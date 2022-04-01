@@ -2,12 +2,13 @@ from datetime import datetime
 from datetime import timedelta
 import json
 import random
-
 import tornado.web
 
+from common.logger import logger
 from logic import CacheSecretLogic
 from logic import EasterEggLogic
 from logic import VectorLogic
+from collections import defaultdict
 
 
 def get_handlers():
@@ -34,6 +35,7 @@ class BaseHandler(tornado.web.RequestHandler):
         self.cache_logic = CacheSecretLogic(
             self.mongo, self.redis, secret=secret, dt=self.date
         )
+        self.usage = defaultdict(list)
 
     @property
     def DELTA(self):
@@ -47,6 +49,34 @@ class BaseHandler(tornado.web.RequestHandler):
         self.set_header("Content-Length", len(content))
         self.write(content)
         await self.finish()
+
+    def prepare(self):
+        ip_address = self.request.headers.get("X-Real-IP") or \
+                     self.request.headers.get("X-Forwarded-For") or \
+                     self.request.remote_ip
+        logger(f"ip_address {ip_address}")
+
+        #if self.request_is_limited(key=ip_address, limit=self.application.limit, period=self.application.period):
+        #    raise tornado.web.HTTPError(429)
+
+    def _expire_requests(self, now: datetime, period: timedelta, usage, key):
+        """ remove all requests before expiration time"""
+        expiration_time = now - period
+        i = 0
+        for i, usage in enumerate(usage[key]):
+            if usage > expiration_time:
+                break
+        if i > 0:
+            self.usage[key] = self.usage[key][i:]
+
+    def request_is_limited(self, key: str, limit: int, period: timedelta):
+        now = datetime.utcnow()
+        self._expire_requests(now, period, self.usage, key)
+        limit_reached = len(self.usage[key]) > limit
+        if limit_reached:
+            return True
+        self.usage[key].append(now)
+        return False
 
 
 class IndexHandler(BaseHandler):
@@ -113,6 +143,7 @@ class YesterdayClosestHandler(BaseHandler):
     @property
     def DELTA(self):
         return super().DELTA + timedelta(days=1)
+
 
 class AllSecretsHandler(BaseHandler):
     async def get(self):

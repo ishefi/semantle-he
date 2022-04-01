@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 import uuid
 
@@ -53,7 +53,6 @@ static_handlers = [
     ),
 ]
 
-
 if __name__ == "__main__":
     handlers = handlers.get_handlers()
     handlers.extend(static_handlers)
@@ -65,6 +64,8 @@ if __name__ == "__main__":
     http_server.start(num_processes)
     app.mongo = get_mongo()
     app.redis = get_redis()
+    app.limit = int(os.environ.get("LIMIT", 10))
+    app.period = timedelta(seconds=int(os.environ.get("PERIOD", 20)))
     try:
         date = datetime.strptime(os.environ.get("GAME_DATE", ""), '%Y-%m-%d').date()
         delta = (datetime.utcnow().date() - date).days

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 from datetime import timedelta
 import heapq
 import inspect
@@ -9,9 +10,6 @@ from typing import TYPE_CHECKING
 
 from common import config
 from common.consts import VEC_SIZE
-
-from numpy import dot
-from numpy.linalg import norm
 
 from datetime import datetime
 if TYPE_CHECKING:
@@ -86,8 +84,11 @@ class VectorLogic:
         secret_vector = await self.get_secret_vector()
         return await self.calc_similarity(secret_vector, word_vector)
 
+    def _dot(self, x: tuple, y: tuple):
+        return sum(xn * yn for xn, yn in zip(x, y))
+
     async def calc_similarity(self, vec1, vec2):
-        return round(dot(vec1, vec2) / (norm(vec1) * norm(vec2)) * 100, 2)
+        return round(self._dot(vec1, vec2) / (math.hypot(*vec1) * math.hypot(*vec1)) * 100, 2)
 
     async def iterate_all(self):
         for wv in await self.mongo.find().to_list(None):

@@ -19,6 +19,7 @@ def get_handlers():
         (r"/api/distance/?", DistanceHandler),
         (r"/secrets/?", AllSecretsHandler),
         (r"/faq/?", FaqHandler),
+        (r"/videos/?", VideoHandler),
     ]
 
 
@@ -44,6 +45,13 @@ class BaseHandler(tornado.web.RequestHandler):
         if self._DELTA is None:
             self._DELTA = timedelta(days=self.application.days_delta)
         return self._DELTA
+
+    def render(self, *args, **kwargs):
+        super(BaseHandler, self).render(
+            js_version=self.application.js_version,
+            *args,
+            **kwargs,
+        )
 
     async def reply(self, content):
         content = json.dumps(content)
@@ -101,7 +109,6 @@ class IndexHandler(BaseHandler):
             closest1000=closest1000,
             yesterdays_secret=yestersecret,
             quote=quote,
-            js_version=self.application.js_version,
         )
 
 
@@ -132,7 +139,6 @@ class YesterdayClosestHandler(BaseHandler):
         await self.render(
             'static/closest1000.html',
             yesterday=sorted(yesterday_sims.items(), key=lambda ws: ws[1], reverse=1),
-            js_version=self.application.js_version,
         )
 
     @property
@@ -150,7 +156,6 @@ class AllSecretsHandler(BaseHandler):
         await self.render(
             'static/all_secrets.html',
             secrets=sorted(secrets, key=lambda ws: ws[1], reverse=1),
-            js_version=self.application.js_version,
         )
 
 
@@ -162,5 +167,12 @@ class FaqHandler(BaseHandler):
         await self.render(
             'static/faq.html',
             yesterday=cache[-11:],
-            js_version=self.application.js_version,
+        )
+
+
+class VideoHandler(BaseHandler):
+    async def get(self):
+        await self.render(
+            'static/videos.html',
+            videos=self.application.videos,
         )

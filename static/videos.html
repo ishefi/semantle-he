@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="css/style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>סמנטעל: כולנו סמנטעל</title>
+
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-PP8J7V4T0X"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-PP8J7V4T0X');
+</script>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2098371592785764" crossorigin="anonymous"></script>
+<script id="3bears" src="https://www.3bears.ai/static/js/3bears.js" code="d01a8d801f184336b80611e05a1f8323"></script>
+</head>
+<body dir='rtl'>
+
+<header>
+<h1>כולנו סמנטעל</h1>
+<div w3-include-html="menu.html"></div>
+</header>
+    <a href="/">חזרה</a>
+<br><br>
+<div align="center">
+    {% for video in videos %}
+    <div class="embed-container">
+<iframe width="600" height="315" src="https://www.youtube.com/embed/{{video}}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+    </div>
+    <br>
+    {% end %}
+<br>
+</div>
+    <a href="/">חזרה</a>
+<footer>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="js/semantle.js?version={{js_version}}"></script>
+</footer>
+</body>
+</html>

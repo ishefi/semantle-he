@@ -66,6 +66,7 @@ if __name__ == "__main__":
     app.redis = get_redis()
     app.limit = int(os.environ.get("LIMIT", 10))
     app.period = int(os.environ.get("PERIOD", 20))
+    app.videos = config.videos
     try:
         date = datetime.strptime(os.environ.get("GAME_DATE", ""), '%Y-%m-%d').date()
         delta = (datetime.utcnow().date() - date).days

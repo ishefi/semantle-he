@@ -2,15 +2,20 @@ body, input {
     font-size: 17px;
     line-height: 27px;
     -webkit-font-smoothing: subpixel-antialiased;
-    font-family:-apple-system-font, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+    font-family:-apple-system, BlinkMacSystemFont, avenir next, avenir, segoe ui, helvetica neue, helvetica, Ubuntu, roboto, noto, arial, sans-serif;
     text-rendering: optimizeLegibility;
-    font-weight:200;
+    font-weight:300;
 }
 
 body {
     margin: 0 auto;
     max-width: 800px;
     padding: 1em;
+}
+
+h1 {
+    color: #11a452;
+    letter-spacing: 2px;
 }
 
 #guess-wrapper {
@@ -48,6 +53,22 @@ body {
     padding-top:18px;
 }
 
+#response {
+    background-color: #eef1f9;
+    padding-right: 15px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    padding-left: 10px;
+}
+
+#timer {
+    background-color: #eef1f9;
+    padding: 8px;
+}
+
+#response p {
+    font-style: italic;
+}
 
 th {
     padding-left: 3em;
@@ -56,6 +77,9 @@ th {
 
 th#chronoOrder, th#alphaOrder, th#similarityOrder, input#give-up-btn, input#guess-btn, input#lower{
     cursor: pointer;
+    background-color: #11a452;
+    color: white;
+    border: none;
 }
 
 .gaveup {
@@ -227,7 +251,7 @@ header {
 .progress-container,
 .progress-bar {
     display: inline-block;
-    background-color:#008000;
+    background-color:#11a452;
 }
 
 .percentile {
@@ -243,6 +267,11 @@ header {
 
 a {
     text-decoration: none;
+    color: #1d6fc6;
+}
+
+hr {
+    border: 2px solid #11a452;
 }
 
 .implicita {
@@ -286,7 +315,7 @@ a {
 
 /* Dark mode */
 body.dark {
-    background: #111;
+    background: #171717;
     color: #fafafa;
     color-scheme: dark;
 }
@@ -313,4 +342,14 @@ body.dark .progress-container {
 
 body.dark .implicita {
     color: #FFF;
+}
+
+body.dark #response {
+    background-color: #282e4f;
+    padding: 5px;
+}
+
+body.dark #timer {
+    padding: 8px;
+    background-color: #282e4f;
 }

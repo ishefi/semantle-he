@@ -20,7 +20,9 @@ def get_date(delta: timedelta):
     return datetime.utcnow().date() - delta
 
 
-def get_logics(app: FastAPI, delta: timedelta):
+def get_logics(app: FastAPI, delta: timedelta = None):
+    if delta is None:
+        delta = app.state.days_delta
     date = get_date(delta)
     logic = VectorLogic(app.state.mongo, date)
     secret = logic.secret_logic.get_secret()
@@ -43,22 +45,21 @@ async def health():
 
 @router.get("/", response_class=HTMLResponse)
 async def index(request: Request):
-    delta = request.app.state.days_delta
-    logic, cache_logic = get_logics(app=request.app, delta=delta)
+    logic, cache_logic = get_logics(app=request.app)
     cache = await cache_logic.cache
     closest1 = await logic.get_similarity(cache[-2])
     closest10 = await logic.get_similarity(cache[-12])
     closest1000 = await logic.get_similarity(cache[0])
 
-    date = get_date(delta=delta)
+    date = get_date(delta=request.app.state.days_delta)
     number = (date - FIRST_DATE).days + 1
 
     yestersecret = await VectorLogic(
-        request.app.state.mongo, date - timedelta(days=1)
+        mongo=request.app.state.mongo, dt=date - timedelta(days=1)
     ).secret_logic.get_secret()
 
     quotes = request.app.state.quotes
-    quote = random.choices(quotes, weights=[0.5] + [0.5 / (len(quotes)-1)] * (len(quotes)-1))[0]
+    quote = random.choices(quotes, weights=[0.5] + [0.5 / (len(quotes) - 1)] * (len(quotes) - 1))[0]
 
     return templates.TemplateResponse(
         'index.html',
@@ -81,7 +82,7 @@ async def get(word: str, request: Request) -> DistanceResponse:
                                  egg=egg)
 
     else:
-        logic, cache_logic = get_logics(app=request.app, delta=request.app.state.days_delta)
+        logic, cache_logic = get_logics(app=request.app)
         sim = await logic.get_similarity(word)
         cache_score = await cache_logic.get_cache_score(word)
         reply = DistanceResponse(
@@ -104,7 +105,7 @@ async def yesterday_top(request: Request):
 
 @router.get("/secrets/", response_class=HTMLResponse)
 async def secrets(request: Request, api_key: Optional[str] = None):
-    logic, _ = get_logics(app=request.app, delta=request.app.state.days_delta)
+    logic, _ = get_logics(app=request.app)
     secrets = await logic.secret_logic.get_all_secrets()
     if api_key != request.app.state.api_key:
         raise HTTPException(status_code=403)

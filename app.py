@@ -21,8 +21,7 @@ app.state.videos = config.videos
 app.state.current_timeframe = 0
 app.state.usage = defaultdict(int)
 app.state.api_key = config.api_key
-app.state.main_quote = config.quotes[0]
-app.state.quotes = config.quotes[1:]
+app.state.quotes = config.quotes
 app.state.js_version = uuid.uuid4().hex[:6]
 try:
     date = datetime.strptime(os.environ.get("GAME_DATE", ""), '%Y-%m-%d').date()
@@ -32,6 +31,7 @@ except ValueError:
 app.state.days_delta = timedelta(days=delta)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 app.include_router(router)
+
 
 def request_is_limited(key: str):
     now = int(time.time())

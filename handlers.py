@@ -57,20 +57,18 @@ async def index(request: Request):
         request.app.state.mongo, date - timedelta(days=1)
     ).secret_logic.get_secret()
 
-    if random.random() >= 0.5:
-        quote = request.app.state.main_quote
-    else:
-        quote = random.choice(request.app.state.quotes)
+    quotes = request.app.state.quotes
+    quote = random.choices(quotes, weights=[0.5] + [0.5 / (len(quotes)-1)] * (len(quotes)-1))[0]
 
     return templates.TemplateResponse(
         'index.html',
         context=dict(request=request,
-            number=number,
-            closest1=closest1,
-            closest10=closest10,
-            closest1000=closest1000,
-            yesterdays_secret=yestersecret,
-            quote=quote)
+                     number=number,
+                     closest1=closest1,
+                     closest10=closest10,
+                     closest1000=closest1000,
+                     yesterdays_secret=yestersecret,
+                     quote=quote)
     )
 
 

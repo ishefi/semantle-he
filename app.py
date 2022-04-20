@@ -42,7 +42,7 @@ def request_is_limited(key: str):
             if usage > app.state.limit * 0.75:
                 app.state.usage[ip] = usage // 2
             else:
-                del app.state.usage[ip]
+                app.state.usage[ip] = 0
     app.state.usage[key] += 1
     return app.state.usage[key] > app.state.limit
 

@@ -21,7 +21,7 @@
 <body dir='rtl'>
 <header>
 <h1>סמנטעל</h1>
-<div w3-include-html="menu.html"></div>
+<div w3-include-html="static/menu.html"></div>
 </header>
     <figure>
         <blockquote class="review" cite="{{quote[3]}}">
@@ -38,7 +38,7 @@
     המילה של אתמול הייתה
     <a href="/yesterday-top-1000" class="implicita">
         <b>{{yesterdays_secret}}</b></a>.
-    {% end %}
+    {% endif %}
     היום, חידה מספר <b id="puzzleNumber">{{number}}</b>,
     ציון הקרבה של המילה הכי קרובה (999/1000) למילה הסודית היום הוא
     <b>{{closest1}}</b>,

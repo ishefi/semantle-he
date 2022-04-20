@@ -22,7 +22,7 @@
 
 <header>
 <h1>שאלות נפוצות</h1>
-<div w3-include-html="menu.html"></div>
+<div w3-include-html="/templates/menu.html"></div>
 </header>
     <a href="/">חזרה</a>
     <p> ש: למה ״ציון הקרבה״ נראה לא אינטואטיבי?</p>
@@ -78,7 +78,7 @@
     <p> ת: {{yesterday[-1]}} </p>
     <p> ש: מה המילים הכי קרובות למילה אתמול? </p>
     <p>ת: {{', '.join(yesterday[:-1][::-1])}}. <a href="/yesterday-top-1000">עוד?</a></p>
-{% end %}
+{% endif %}
     <p> ת: קוד מקור?</p>
     <p> ת: <a target="_blank" href="https://github.com/ishefi/semantle-he.git">בטח.</a></p>
     <p> ש: יש לי רעיון ממש טוב לשיפור של סמנטעל, מה לעשות? </p>

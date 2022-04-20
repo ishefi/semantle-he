@@ -101,7 +101,7 @@ async def yesterday_top(request: Request):
     yesterday_sims = await logic.get_similarities(cache)
     return templates.TemplateResponse(
         'closest1000.html',
-        context=dict(request=request,yesterday=sorted(yesterday_sims.items(), key=lambda ws: ws[1], reverse=1)))
+        context=dict(request=request, yesterday=sorted(yesterday_sims.items(), key=lambda ws: ws[1], reverse=True)))
 
 
 @router.get("/secrets/", response_class=HTMLResponse)
@@ -113,7 +113,7 @@ async def secrets(request: Request, api_key: Optional[str] = None):
 
     return templates.TemplateResponse(
         'all_secrets.html',
-        context=dict(request=request,secrets=sorted(secrets, key=lambda ws: ws[1], reverse=True)),
+        context=dict(request=request, secrets=sorted(secrets, key=lambda ws: ws[1], reverse=True)),
     )
 
 
@@ -123,7 +123,7 @@ async def faq(request: Request):
     cache = await cache_logic.cache
     return templates.TemplateResponse(
         'faq.html',
-        context=dict(request=request,yesterday=cache[-11:])
+        context=dict(request=request, yesterday=cache[-11:])
     )
 
 

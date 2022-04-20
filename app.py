@@ -1,83 +1,56 @@
-#!/usr/bin/env python
-from datetime import datetime, timedelta
 import os
+import time
 import uuid
+from collections import defaultdict
+from datetime import datetime, timedelta
 
-import tornado.httpserver
-import tornado.ioloop
-import tornado.web
-
+from starlette.staticfiles import StaticFiles
 from common import config
-from common.logger import logger
-from common.session import get_mongo
-from common.session import get_redis
-import handlers
+from common.session import get_mongo, get_redis
+
+from fastapi import FastAPI, Request, HTTPException
+
+from handlers import router
+
+app = FastAPI()
+app.state.mongo = get_mongo()
+app.state.redis = get_redis()
+app.state.limit = int(os.environ.get("LIMIT", 10))
+app.state.period = int(os.environ.get("PERIOD", 20))
+app.state.videos = config.videos
+app.state.current_timeframe = 0
+app.state.usage = defaultdict(int)
+app.state.api_key = config.api_key
+app.state.main_quote = config.quotes[0]
+app.state.quotes = config.quotes[1:]
+app.state.js_version = uuid.uuid4().hex[:6]
+try:
+    date = datetime.strptime(os.environ.get("GAME_DATE", ""), '%Y-%m-%d').date()
+    delta = (datetime.utcnow().date() - date).days
+except ValueError:
+    delta = 0
+app.state.days_delta = timedelta(days=delta)
+app.mount("/static", StaticFiles(directory="static"), name="static")
+app.include_router(router)
+
+def request_is_limited(key: str):
+    now = int(time.time())
+    current = now - now % app.state.period
+    if app.state.current_timeframe != current:
+        app.state.current_timeframe = current
+        for ip, usage in app.state.usage.items():
+            if usage > app.state.limit * 0.75:
+                app.state.usage[ip] = usage // 2
+            else:
+                del app.state.usage[ip]
+    app.state.usage[key] += 1
+    return app.state.usage[key] > app.state.limit
 
 
-class WebApp(tornado.web.Application):
-    PATH = os.path.dirname(os.path.realpath(__file__))
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.api_key = config.api_key
-        self.main_quote = config.quotes[0]
-        self.quotes = config.quotes[1:]
-        self.js_version = uuid.uuid4().hex[:6]
-
-
-static_handlers = [
-    (
-        r"/css/(.*)",
-        tornado.web.StaticFileHandler,
-        {"path": WebApp.PATH + "/static/css"},
-    ),
-    (
-        r"/color/(.*)",
-        tornado.web.StaticFileHandler,
-        {"path": WebApp.PATH + "/static/color"},
-    ),
-    (
-        r"/font-awesome/(.*)",
-        tornado.web.StaticFileHandler,
-        {"path": WebApp.PATH + "/static/font-awesome"},
-    ),
-    (
-        r"/js/(.*)",
-        tornado.web.StaticFileHandler,
-        {"path": WebApp.PATH + "/static/js"},
-    ),
-    (
-        r"/(favicon.ico|menu.html)",
-        tornado.web.StaticFileHandler,
-        {"path": WebApp.PATH + "/static/"},
-    ),
-]
-
-if __name__ == "__main__":
-    handlers = handlers.get_handlers()
-    handlers.extend(static_handlers)
-    app = WebApp(handlers)
-    http_server = tornado.httpserver.HTTPServer(app)
-    port = int(os.environ["PORT"])
-    num_processes = int(os.environ.get("NUM_PROCESSES", 1))
-    http_server.bind(port)
-    http_server.start(num_processes)
-    app.mongo = get_mongo()
-    app.redis = get_redis()
-    app.limit = int(os.environ.get("LIMIT", 10))
-    app.period = int(os.environ.get("PERIOD", 20))
-    app.videos = config.videos
-    try:
-        date = datetime.strptime(os.environ.get("GAME_DATE", ""), '%Y-%m-%d').date()
-        delta = (datetime.utcnow().date() - date).days
-    except ValueError:
-        delta = 0
-    app.days_delta = delta
-
-    while True:
-        logger.warning("Running app on port %d", port)
-        try:
-            tornado.ioloop.IOLoop.current().start()
-        except Exception as ex:
-            logger.exception(ex)
-            pass
+@app.middleware("http")
+async def is_limited(request: Request, call_next):
+    ip_address = request.client.host
+    if request_is_limited(key=ip_address):
+        raise HTTPException(status_code=429, detail="Limited!")
+    response = await call_next(request)
+    return response

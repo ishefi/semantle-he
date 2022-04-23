@@ -25,74 +25,80 @@
 <div w3-include-html="menu.html"></div>
 </header>
     <a href="/">חזרה</a>
-    <p> ש: למה ״ציון הקרבה״ נראה לא אינטואטיבי?</p>
-    <p> ת: הסיבה העיקרית שאני יכול לחשוב עליה היא
+<br>
+    <button class="accordion">למה ״ציון הקרבה״ נראה לא אינטואטיבי?</button>
+    <div class="panel"><p>
+        <p>
+    הסיבה העיקרית שאני יכול לחשוב עליה היא
       שלניחוש שלך או למילה הסודית יש כמה משמעויות, והמשמעות שעלתה בדעתך פחות נפוצה מהאחרות.
           למשל, כשבדקתי את המשחק ניסיתי אותו עם המילה ״שלום״,
           ורוב ה1000 המילים הקרובות היו שמות משפחה - בגלל ש״שלום״ נפוץ בעיקר כשם משפחה
           בויקיפדיה העברית. חוץ מזה, הדאטה לא מושלם. בכל זאת, ויקיפדיה.
-    </p>
-    <p> ש: למה אפשר לשחק רק פעם ביום? </p>
-    <p> ת: ככה. </p>
-    <p> ש: מי בוחר את המילים? </p>
-    <p> ת: אני בוחר את המילים, בדרך כלל שבוע־שבועיים מראש. ניסיתי להגריל
-        מילים אבל יש עם זה שתי בעיות: (1) המון מילים שנמצאות בDB הן מילים לא אמיתיות
+    </p></div>
+    <button class="accordion"> למה אפשר לשחק רק פעם ביום? </button>
+    <div class="panel"><p> ככה. </p></div>
+<button class="accordion"> מי בוחר את המילים? </button>
+    <div class="panel"><p>
+        אני בוחר את המילים, בדרך כלל שבוע־שבועיים מראש. ניסיתי להגריל
+        מילים אבל יש עם זה שתי בעיו(1) המון מילים שנמצאות בDB הן מילים לא אמיתיות
         או מילים עם הטיה (״שולחנותיו״) ואני מעדיף לבחור מילים לא כאלה מסיבות ברורות
         (2) הרבה פעמים הקשרים שונים ממה שאינטואטיבי לנו, כמו הדוגמה של ״שלום״ למעלה.
         אני רוצה לבדוק שבאמת יש ב־1000 מילים הקרובות מילים שיעזרו להגיע לפתרון של החידה.
-    </p>
-    <p> ש: מתי המילה מתחלפת? </p>
-    <p> ת: 0:00
+    </p></div>
+    <button class="accordion"> מתי המילה מתחלפת? </button>
+    <div class="panel"><p> 0:00
         <a href="https://he.wikipedia.org/wiki/%D7%96%D7%9E%D7%9F_%D7%90%D7%95%D7%A0%D7%99%D7%91%D7%A8%D7%A1%D7%9C%D7%99_%D7%9E%D7%AA%D7%95%D7%90%D7%9D" target="_blank">
             UTC</a>,
         כלומר 2:00 בישראל (או 3:00 בשעון קיץ). הסיבה שזה לא ב0:00 בשעון ישראל כי אני לא
         רוצה שהחידה תתחלף באמצע למי שעדיין רוצה לשחק ב0:00.
-    </p>
+    </p></div>
 
-    <p> ש: פעם ״והשוקו״ הייתה מילה, לאן היא נעלמה? </p>
-    <p> ת: ביצירת המודל הנוכחי של סמנטעל השתמשנו ב
+    <button class="accordion"> פעם ״והשוקו״ הייתה מילה, לאן היא נעלמה? </button>
+    <div class="panel"><p>
+        ביצירת המודל הנוכחי של סמנטעל השתמשנו ב
         <a href="https://github.com/amir-zeldes/HebPipe" target="_blank">HebPipe</a>
         בשביל לנקות את הדאטה לפני האימון של Word2Vec - מה שאומר שמילים כמו ״והשוקו״
         הגיעו למודל כשהן מפורקות ל״ו+ה+שוקו״. בגלל זה יותר כיף לשחק עכשיו ממה שהיה בימים
         הראשונים של המשחק.
-    </p>
+    </p></div>
 
-    <p> ש: אז עכשיו הכל מושלם? </p>
-    <p>
-         ת: ברור שלא. למשל, החבילה שטוענת את הדאטה
+    <button class="accordion"> אז עכשיו הכל מושלם? </button>
+    <div class="panel"><p>
+         ברור שלא. למשל, החבילה שטוענת את הדאטה
         מויקיפדיה מנקה סימנים שאנחנו לא רוצים שהיא תנקה כמו למשל ', מה שאומר שמבחינת
         המודל מילים כמו ״גל״, ״ג'ל״ הן אותה מילה. אנחנו עובדים על זה.
-    </p>
+    </p></div>
 
-        <p> ש: איך מבטאית ״סמנטעל״? </p>
-    <p>
-        ת: איך שבא לך :)
-    </p>
+        <button class="accordion"> איך צריך לבטא ״סמנטעל״? </button>
+    <div class="panel"><p>
+        איך שבא לך :)
+    </p></div>
 
-    <p> ש: איך זה עובד? </p>
-    <p> ת: <a target="_blank" href="https://reshetech.co.il/machine-learning-tutorials/gensim-and-word2vec">הנה מאמר על Word2Vec.</a>
-    <p> ש: באיזה דאטה השתמשת?</p>
-    <p> ת: <a target="_blank" href="https://dumps.wikimedia.org/hewiki/latest/">ויקיפדיה </a></p>
+    <button class="accordion"> איך זה עובד? </button>
+<div class="panel"><p> <a target="_blank" href="https://reshetech.co.il/machine-learning-tutorials/gensim-and-word2vec">הנה מאמר על Word2Vec.</a></p></div>
+    <button class="accordion"> באיזה דאטה השתמשת?</button>
+    <div class="panel"><p> <a target="_blank" href="https://dumps.wikimedia.org/hewiki/latest/">ויקיפדיה </a></p></div>
 {% if yesterday %}
-    <p> ש: מה המילה של אתמול? </p>
-    <p> ת: {{yesterday[-1]}} </p>
-    <p> ש: מה המילים הכי קרובות למילה אתמול? </p>
-    <p>ת: {{', '.join(yesterday[:-1][::-1])}}. <a href="/yesterday-top-1000">עוד?</a></p>
+    <button class="accordion"> מה המילה של אתמול? </button>
+    <div class="panel"><p> {{yesterday[-1]}} </p></div>
+    <button class="accordion"> מה המילים הכי קרובות למילה אתמול? </button>
+    <div class="panel"><p>{{', '.join(yesterday[:-1][::-1])}}. <a href="/yesterday-top-1000">עוד?</a></p></div>
 {% end %}
-    <p> ת: קוד מקור?</p>
-    <p> ת: <a target="_blank" href="https://github.com/ishefi/semantle-he.git">בטח.</a></p>
-    <p> ש: יש לי רעיון ממש טוב לשיפור של סמנטעל, מה לעשות? </p>
-    <p> ת: אפשר לפתוח issue בקישור שבתשובה הקודמת. אם אני אוהב את הרעיון אפשר לממש אותו
+    <button class="accordion"> קוד מקור?</button>
+    <div class="panel"><p> <a target="_blank" href="https://github.com/ishefi/semantle-he.git">בטח.</a></p></div>
+    <button class="accordion"> יש לי רעיון ממש טוב לשיפור של סמנטעל, מה לעשות? </button>
+    <div class="panel"><p> אפשר לפתוח issue בקישור שבתשובה הקודמת. אם אני אוהב את הרעיון אפשר לממש אותו
         בעצמך או לחכות שמישהי אחרת תעשה את זה!
-    </p>
-    <p> ש: אפשר להתלונן על ציון קרבה של מילים? </p>
-    <p> ת: כן, אבל אני כנראה אתעלם ממך. זאת המדיניות של דיויד טרנר שיצר את המשחק המקורי ואני זורם איתו. </p>
+    </p></div>
+    <button class="accordion"> אפשר להתלונן על ציון קרבה של מילים? </button>
+    <div class="panel"><p> כן, אבל אני כנראה אתעלם ממך. זאת המדיניות של דיויד טרנר שיצר את המשחק המקורי ואני זורם איתו. </p></div>
 
 
     <a href="/">חזרה</a>
+</body>
 <footer>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="js/semantle.js?version={{js_version}}"></script>
 </footer>
-</body>
+
 </html>

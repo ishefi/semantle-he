@@ -47,7 +47,7 @@ class BaseHandler(tornado.web.RequestHandler):
         return self._DELTA
 
     def render(self, *args, **kwargs):
-        super(BaseHandler, self).render(
+        return super(BaseHandler, self).render(
             js_version=self.application.js_version,
             *args,
             **kwargs,

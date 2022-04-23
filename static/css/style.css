@@ -127,6 +127,7 @@ body.rules-open {
 
 body.rules-open #rules-underlay {
     display: block;
+    float: top;
 }
 
 body.settings-open #settings-underlay {
@@ -150,6 +151,7 @@ body.settings-open #settings-underlay {
     position: fixed;
     right: 0;
     top: 0;
+    z-index: 1;
 }
 
 body.dialog-open {
@@ -273,6 +275,7 @@ a {
 }
 
 .embed-container {
+    z-index: 0;
     position: relative;
      padding-bottom: 56.25%;
       height: 0;

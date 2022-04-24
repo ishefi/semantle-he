@@ -127,6 +127,7 @@ body.rules-open {
 
 body.rules-open #rules-underlay {
     display: block;
+    float: top;
 }
 
 body.settings-open #settings-underlay {
@@ -150,6 +151,7 @@ body.settings-open #settings-underlay {
     position: fixed;
     right: 0;
     top: 0;
+    z-index: 1;
 }
 
 body.dialog-open {
@@ -266,9 +268,14 @@ a {
     th {
         padding-left: .5em;
     }
+
+    .accordion {
+        font-size: 14px;
+    }
 }
 
 .embed-container {
+    z-index: 0;
     position: relative;
      padding-bottom: 56.25%;
       height: 0;
@@ -313,4 +320,77 @@ body.dark .progress-container {
 
 body.dark .implicita {
     color: #FFF;
+}
+
+body.dark .panel {
+    background: #334;
+}
+
+/*
+Accordion styling taken from
+https://www.w3schools.com/howto/howto_js_accordion.asp
+*/
+.accordion {
+  background-color: #eee;
+  color: #444;
+  cursor: pointer;
+  padding: 18px;
+  width: 100%;
+  text-align: right;
+  border: none;
+  outline: none;
+  font-size: 17px;
+  transition: 0.4s;
+  margin-top: 3px;
+}
+
+
+body.dark .accordion {
+  background-color: #666;
+  color: #eee;
+  cursor: pointer;
+  padding: 18px;
+  width: 100%;
+  text-align: right;
+  border: none;
+  outline: none;
+  font-size: 17px;
+  transition: 0.4s;
+  margin-top: 3px;
+}
+
+.active, .accordion:hover {
+  background-color: #ccc;
+}
+
+.panel {
+  padding: 0 18px;
+  background-color: #eeeeff;
+  display: none;
+  overflow: hidden;
+}
+
+.accordion:after {
+  content: '\02795'; /* Unicode character for "plus" sign (+) */
+  font-size: 17px;
+  color: #777;
+  float: left;
+  margin-right: 5px;
+}
+
+.active:after {
+  content: "\2796"; /* Unicode character for "minus" sign (-) */
+  font-size: 17px;
+}
+
+
+body.dark .accordion:after {
+  content: '\02795'; /* Unicode character for "plus" sign (+) */
+  color: #FFF;
+  margin-right: 5px;
+}
+
+body.dark .active:after {
+  content: "\2796"; /* Unicode character for "minus" sign (-) */
+  font-size: 17px;
 }

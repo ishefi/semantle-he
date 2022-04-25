@@ -33,7 +33,7 @@ def get_logics(app: FastAPI, delta: timedelta = None):
 
 
 class DistanceResponse(BaseModel):
-    similarity: float
+    similarity: Optional[float]
     distance: int
     egg: Optional[str] = None
 

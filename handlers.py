@@ -32,6 +32,15 @@ def get_logics(app: FastAPI, delta: timedelta = None):
     return logic, cache_logic
 
 
+def render(name: str, request, **kwargs):
+    kwargs['js_version'] = request.app.state.js_version
+    kwargs['request'] = request
+    return templates.TemplateResponse(
+        name,
+        context=kwargs
+    )
+
+
 class DistanceResponse(BaseModel):
     similarity: Optional[float]
     distance: int
@@ -61,15 +70,15 @@ async def index(request: Request):
     quotes = request.app.state.quotes
     quote = random.choices(quotes, weights=[0.5] + [0.5 / (len(quotes) - 1)] * (len(quotes) - 1))[0]
 
-    return templates.TemplateResponse(
-        'index.html',
-        context=dict(request=request,
-                     number=number,
-                     closest1=closest1,
-                     closest10=closest10,
-                     closest1000=closest1000,
-                     yesterdays_secret=yestersecret,
-                     quote=quote)
+    return render(
+        name='index.html',
+        request=request,
+        number=number,
+        closest1=closest1,
+        closest10=closest10,
+        closest1000=closest1000,
+        yesterdays_secret=yestersecret,
+        quote=quote
     )
 
 
@@ -98,9 +107,11 @@ async def yesterday_top(request: Request):
     logic, cache_logic = get_logics(app=request.app, delta=delta)
     cache = await cache_logic.cache
     yesterday_sims = await logic.get_similarities(cache)
-    return templates.TemplateResponse(
-        'closest1000.html',
-        context=dict(request=request, yesterday=sorted(yesterday_sims.items(), key=lambda ws: ws[1], reverse=True)))
+    return render(
+        name='closest1000.html',
+        request=request,
+        yesterday=sorted(yesterday_sims.items(), key=lambda ws: ws[1], reverse=True)
+    )
 
 
 @router.get("/secrets/", response_class=HTMLResponse)
@@ -110,9 +121,10 @@ async def secrets(request: Request, api_key: Optional[str] = None):
     if api_key != request.app.state.api_key:
         raise HTTPException(status_code=403)
 
-    return templates.TemplateResponse(
-        'all_secrets.html',
-        context=dict(request=request, secrets=sorted(secrets, key=lambda ws: ws[1], reverse=True)),
+    return render(
+        name='all_secrets.html',
+        request=request,
+        secrets=sorted(secrets, key=lambda ws: ws[1], reverse=True),
     )
 
 
@@ -120,15 +132,17 @@ async def secrets(request: Request, api_key: Optional[str] = None):
 async def faq(request: Request):
     _, cache_logic = get_logics(app=request.app, delta=timedelta(days=1))
     cache = await cache_logic.cache
-    return templates.TemplateResponse(
-        'faq.html',
-        context=dict(request=request, yesterday=cache[-11:])
+    return render(
+        name='faq.html',
+        request=request,
+        yesterday=cache[-11:]
     )
 
 
 @router.get("/videos/", response_class=HTMLResponse)
 async def videos(request: Request):
-    return templates.TemplateResponse(
-        'videos.html',
-        context=(dict(videos=request.app.state.videos)),
+    return render(
+        name='videos.html',
+        request=request,
+        videos=request.app.state.videos
     )

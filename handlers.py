@@ -82,7 +82,7 @@ async def index(request: Request):
     )
 
 
-@router.get("/api/distance/")
+@router.get("/api/distance")
 async def get(word: str, request: Request) -> DistanceResponse:
     word = word.replace("'", "")
     if egg := EasterEggLogic.get_easter_egg(word):
@@ -101,7 +101,7 @@ async def get(word: str, request: Request) -> DistanceResponse:
     return reply
 
 
-@router.get("/yesterday-top-1000/", response_class=HTMLResponse)
+@router.get("/yesterday-top-1000", response_class=HTMLResponse)
 async def yesterday_top(request: Request):
     delta = request.app.state.days_delta + timedelta(days=1)
     logic, cache_logic = get_logics(app=request.app, delta=delta)
@@ -114,7 +114,7 @@ async def yesterday_top(request: Request):
     )
 
 
-@router.get("/secrets/", response_class=HTMLResponse)
+@router.get("/secrets", response_class=HTMLResponse)
 async def secrets(request: Request, api_key: Optional[str] = None):
     logic, _ = get_logics(app=request.app)
     secrets = await logic.secret_logic.get_all_secrets()
@@ -128,7 +128,7 @@ async def secrets(request: Request, api_key: Optional[str] = None):
     )
 
 
-@router.get("/faq/", response_class=HTMLResponse)
+@router.get("/faq", response_class=HTMLResponse)
 async def faq(request: Request):
     _, cache_logic = get_logics(app=request.app, delta=timedelta(days=1))
     cache = await cache_logic.cache
@@ -139,7 +139,7 @@ async def faq(request: Request):
     )
 
 
-@router.get("/videos/", response_class=HTMLResponse)
+@router.get("/videos", response_class=HTMLResponse)
 async def videos(request: Request):
     return render(
         name='videos.html',

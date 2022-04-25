@@ -2,7 +2,7 @@ import glob
 import json
 import os
 import sys
-
+from pathlib import Path
 import numpy as np
 
 base = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
@@ -65,12 +65,16 @@ def main():
     )
     args = parser.parse_args()
 
+    input = Path(args.input)
+    if not input.is_absolute():
+        input = Path(__file__).resolve().parent.parent / input
+
     if args.input_type == 'gensim':
-        populator = GensimPopulater(args.input)
+        populator = GensimPopulater(input)
     elif args.input_type == 'json':
-        populator = JsonPopulater(args.input)
+        populator = JsonPopulater(input)
     else:
-        populator = ListsPopulater(args.input)
+        populator = ListsPopulater(input)
 
     mongo = get_mongo()
     to_insert = []

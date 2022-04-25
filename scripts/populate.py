@@ -68,7 +68,7 @@ def main():
     input = Path(args.input)
     if not input.is_absolute():
         input = Path(__file__).resolve().parent.parent / input
-
+    input = str(input)
     if args.input_type == 'gensim':
         populator = GensimPopulater(input)
     elif args.input_type == 'json':

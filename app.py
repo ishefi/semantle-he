@@ -8,7 +8,8 @@ from starlette.staticfiles import StaticFiles
 from common import config
 from common.session import get_mongo, get_redis
 
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import FastAPI, Request, status
+from fastapi.responses import JSONResponse
 
 from handlers import router
 
@@ -51,6 +52,6 @@ def request_is_limited(key: str):
 async def is_limited(request: Request, call_next):
     ip_address = request.client.host
     if request_is_limited(key=ip_address):
-        raise HTTPException(status_code=429, detail="Limited!")
+        return JSONResponse(status_code=status.HTTP_429_TOO_MANY_REQUESTS)
     response = await call_next(request)
     return response

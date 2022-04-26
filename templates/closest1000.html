@@ -22,7 +22,7 @@
 <body dir='rtl'>
 <header>
 <h1>{{yesterday[0][0]}}</h1>
-<div w3-include-html="static/menu.html"></div>
+<div w3-include-html="{{ url_for('static', path='/menu.html') }}"></div>
 </header>
 <h3>1000 המילים הכי קרובות</h3>
         <a href="/">חזרה</a>

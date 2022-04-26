@@ -1,7 +1,7 @@
 from datetime import timedelta, datetime
 import random
 from typing import Optional
-from fastapi import Request, HTTPException, FastAPI
+from fastapi import Request, HTTPException, FastAPI, status
 from starlette.responses import HTMLResponse
 from starlette.templating import Jinja2Templates
 
@@ -119,7 +119,7 @@ async def secrets(request: Request, api_key: Optional[str] = None):
     logic, _ = get_logics(app=request.app)
     secrets = await logic.secret_logic.get_all_secrets()
     if api_key != request.app.state.api_key:
-        raise HTTPException(status_code=403)
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
 
     return render(
         name='all_secrets.html',

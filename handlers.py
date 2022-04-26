@@ -52,7 +52,7 @@ async def health():
     return {"message": "Healthy!"}
 
 
-@router.get("/", response_class=HTMLResponse)
+@router.get("/", response_class=HTMLResponse, include_in_schema=False)
 async def index(request: Request):
     logic, cache_logic = get_logics(app=request.app)
     cache = await cache_logic.cache
@@ -101,7 +101,7 @@ async def get(word: str, request: Request) -> DistanceResponse:
     return reply
 
 
-@router.get("/yesterday-top-1000", response_class=HTMLResponse)
+@router.get("/yesterday-top-1000", response_class=HTMLResponse, include_in_schema=False)
 async def yesterday_top(request: Request):
     delta = request.app.state.days_delta + timedelta(days=1)
     logic, cache_logic = get_logics(app=request.app, delta=delta)
@@ -128,7 +128,7 @@ async def secrets(request: Request, api_key: Optional[str] = None):
     )
 
 
-@router.get("/faq", response_class=HTMLResponse)
+@router.get("/faq", response_class=HTMLResponse, include_in_schema=False)
 async def faq(request: Request):
     _, cache_logic = get_logics(app=request.app, delta=timedelta(days=1))
     cache = await cache_logic.cache
@@ -139,7 +139,7 @@ async def faq(request: Request):
     )
 
 
-@router.get("/videos", response_class=HTMLResponse)
+@router.get("/videos", response_class=HTMLResponse, include_in_schema=False)
 async def videos(request: Request):
     return render(
         name='videos.html',

@@ -1,16 +1,18 @@
 from datetime import timedelta, datetime
-import random
 from typing import Optional
 from fastapi import Request, HTTPException, FastAPI, status
+from fastapi import APIRouter
+from pydantic import BaseModel
 from starlette.responses import HTMLResponse
 from starlette.templating import Jinja2Templates
+import random
 
 from common.consts import FIRST_DATE
 from logic import EasterEggLogic, CacheSecretLogic, VectorLogic
 
-from pydantic import BaseModel
 
-from fastapi import APIRouter
+
+
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
@@ -83,7 +85,7 @@ async def index(request: Request):
 
 
 @router.get("/api/distance")
-async def get(word: str, request: Request) -> DistanceResponse:
+async def distance(word: str, request: Request) -> DistanceResponse:
     word = word.replace("'", "")
     if egg := EasterEggLogic.get_easter_egg(word):
         reply = DistanceResponse(similarity=99.99,

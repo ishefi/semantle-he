@@ -108,7 +108,7 @@ let Semantle = (function() {
         if (cache.hasOwnProperty(word)) {
             return cache[word];
         }
-        const url = "/api/distance" + '?word=' + word +'&rand='+ Date.now();
+        const url = "/api/distance" + '?word=' + word;
         const response = await fetch(url);
         try {
             return await response.json();

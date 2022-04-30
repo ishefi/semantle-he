@@ -3,11 +3,7 @@
 easter_eggs= "42"
 api_key="dd"
 quotes="dd"
-mongo={
-    "host":"42",
-    "Semantle": {
-        "word2vec2": "42"
-    }
-}
+""" In your mongodb there should be a database named Semantle and a collection named word2vec2 in order to populate"""
+mongo="mongodb+srv://42"
 redis="42"
 videos=[]

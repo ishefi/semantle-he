@@ -1,2 +1,13 @@
 #!/usr/bin/env python
 """ remove .format, and add configuration secretes here """
+easter_eggs= "42"
+api_key="dd"
+quotes="dd"
+mongo={
+    "host":"42",
+    "Semantle": {
+        "word2vec2": "42"
+    }
+}
+redis="42"
+videos=[]

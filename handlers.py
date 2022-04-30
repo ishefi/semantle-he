@@ -1,18 +1,21 @@
-from datetime import timedelta, datetime
-from typing import Optional
-from fastapi import Request, HTTPException, FastAPI, status
-from fastapi import APIRouter
-from pydantic import BaseModel
-from starlette.responses import HTMLResponse
-from starlette.templating import Jinja2Templates
+from datetime import datetime
+from datetime import timedelta
 import random
+from typing import Optional
+
+from fastapi import APIRouter
+from fastapi import FastAPI
+from fastapi import HTTPException
+from fastapi import Request
+from fastapi import status
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
+from pydantic import BaseModel
 
 from common.consts import FIRST_DATE
-from logic import EasterEggLogic, CacheSecretLogic, VectorLogic
-
-
-
-
+from logic import CacheSecretLogic
+from logic import EasterEggLogic
+from logic import VectorLogic
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
@@ -22,9 +25,8 @@ def get_date(delta: timedelta):
     return datetime.utcnow().date() - delta
 
 
-def get_logics(app: FastAPI, delta: timedelta = None):
-    if delta is None:
-        delta = app.state.days_delta
+def get_logics(app: FastAPI, delta: timedelta = timedelta()):
+    delta += app.state.days_delta
     date = get_date(delta)
     logic = VectorLogic(app.state.mongo, date)
     secret = logic.secret_logic.get_secret()
@@ -37,6 +39,7 @@ def get_logics(app: FastAPI, delta: timedelta = None):
 def render(name: str, request, **kwargs):
     kwargs['js_version'] = request.app.state.js_version
     kwargs['request'] = request
+    kwargs['enumerate'] = enumerate
     return templates.TemplateResponse(
         name,
         context=kwargs
@@ -105,8 +108,7 @@ async def distance(word: str, request: Request) -> DistanceResponse:
 
 @router.get("/yesterday-top-1000", response_class=HTMLResponse, include_in_schema=False)
 async def yesterday_top(request: Request):
-    delta = request.app.state.days_delta + timedelta(days=1)
-    logic, cache_logic = get_logics(app=request.app, delta=delta)
+    logic, cache_logic = get_logics(app=request.app, delta=timedelta(days=1))
     cache = await cache_logic.cache
     yesterday_sims = await logic.get_similarities(cache)
     return render(
@@ -119,14 +121,14 @@ async def yesterday_top(request: Request):
 @router.get("/secrets", response_class=HTMLResponse)
 async def secrets(request: Request, api_key: Optional[str] = None):
     logic, _ = get_logics(app=request.app)
-    secrets = await logic.secret_logic.get_all_secrets()
+    all_secrets = await logic.secret_logic.get_all_secrets()
     if api_key != request.app.state.api_key:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
 
     return render(
         name='all_secrets.html',
         request=request,
-        secrets=sorted(secrets, key=lambda ws: ws[1], reverse=True),
+        secrets=sorted(all_secrets, key=lambda ws: ws[1], reverse=True),
     )
 
 

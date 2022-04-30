@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>סמנטעל</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link id="favicon" rel="icon" type="image/x-icon" href="{{ url_for('static', path='/favicon.ico') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='/styles.css') }}">
 
 <!-- Global site tag (gtag.js) - Google Analytics -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-PP8J7V4T0X"></script>
@@ -21,7 +22,7 @@
 <body dir='rtl'>
 <header>
 <h1>סמנטעל</h1>
-<div w3-include-html="menu.html"></div>
+<div w3-include-html="{{ url_for('static', path='/menu.html') }}"></div>
 </header>
     <figure>
         <blockquote class="review" cite="{{quote[3]}}">
@@ -38,7 +39,7 @@
     המילה של אתמול הייתה
     <a href="/yesterday-top-1000" class="implicita">
         <b>{{yesterdays_secret}}</b></a>.
-    {% end %}
+    {% endif %}
     היום, חידה מספר <b id="puzzleNumber">{{number}}</b>,
     ציון הקרבה של המילה הכי קרובה (999/1000) למילה הסודית היום הוא
     <b>{{closest1}}</b>,
@@ -88,7 +89,9 @@
 <footer>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdn.statically.io/gh/zenorocha/clipboard.js/v2.0.10/dist/clipboard.min.js"></script>
-    <script src="js/semantle.js?version={{js_version}}"></script>
+    <script src="/static/semantle.js?version={{js_version}}"></script>
+
+
 </footer>
 
 </body>

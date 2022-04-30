@@ -1,178 +1,152 @@
 from datetime import datetime
 from datetime import timedelta
-import json
 import random
-import time
+from typing import Optional
 
-import tornado.web
+from fastapi import APIRouter
+from fastapi import FastAPI
+from fastapi import HTTPException
+from fastapi import Request
+from fastapi import status
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
+from pydantic import BaseModel
 
+from common.consts import FIRST_DATE
 from logic import CacheSecretLogic
 from logic import EasterEggLogic
 from logic import VectorLogic
-from collections import defaultdict
+
+router = APIRouter()
+templates = Jinja2Templates(directory="templates")
 
 
-def get_handlers():
-    return [
-        (r"/?", IndexHandler),
-        (r"/yesterday-top-1000/?", YesterdayClosestHandler),
-        (r"/api/distance/?", DistanceHandler),
-        (r"/secrets/?", AllSecretsHandler),
-        (r"/faq/?", FaqHandler),
-        (r"/videos/?", VideoHandler),
-    ]
+def get_date(delta: timedelta):
+    return datetime.utcnow().date() - delta
 
 
-class BaseHandler(tornado.web.RequestHandler):
-    _DELTA = None
-    _SECRET_CACHE = {}
-    _CURRENT_TIMEFRAME = [0]
-    _USAGE = defaultdict(int)
+def get_logics(app: FastAPI, delta: timedelta = timedelta()):
+    delta += app.state.days_delta
+    date = get_date(delta)
+    logic = VectorLogic(app.state.mongo, date)
+    secret = logic.secret_logic.get_secret()
+    cache_logic = CacheSecretLogic(
+        app.state.mongo, app.state.redis, secret=secret, dt=date
+    )
+    return logic, cache_logic
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.mongo = self.application.mongo
-        self.redis = self.application.redis
-        self.date = datetime.utcnow().date() - self.DELTA
-        self.logic = VectorLogic(self.mongo, self.date)
-        secret = self.logic.secret_logic.get_secret()
-        self.cache_logic = CacheSecretLogic(
-            self.mongo, self.redis, secret=secret, dt=self.date
+
+def render(name: str, request, **kwargs):
+    kwargs['js_version'] = request.app.state.js_version
+    kwargs['request'] = request
+    kwargs['enumerate'] = enumerate
+    return templates.TemplateResponse(
+        name,
+        context=kwargs
+    )
+
+
+class DistanceResponse(BaseModel):
+    similarity: Optional[float]
+    distance: int
+    egg: Optional[str] = None
+
+
+@router.get("/health")
+async def health():
+    return {"message": "Healthy!"}
+
+
+@router.get("/", response_class=HTMLResponse, include_in_schema=False)
+async def index(request: Request):
+    logic, cache_logic = get_logics(app=request.app)
+    cache = await cache_logic.cache
+    closest1 = await logic.get_similarity(cache[-2])
+    closest10 = await logic.get_similarity(cache[-12])
+    closest1000 = await logic.get_similarity(cache[0])
+
+    date = get_date(delta=request.app.state.days_delta)
+    number = (date - FIRST_DATE).days + 1
+
+    yestersecret = await VectorLogic(
+        mongo=request.app.state.mongo, dt=date - timedelta(days=1)
+    ).secret_logic.get_secret()
+
+    quotes = request.app.state.quotes
+    quote = random.choices(quotes, weights=[0.5] + [0.5 / (len(quotes) - 1)] * (len(quotes) - 1))[0]
+
+    return render(
+        name='index.html',
+        request=request,
+        number=number,
+        closest1=closest1,
+        closest10=closest10,
+        closest1000=closest1000,
+        yesterdays_secret=yestersecret,
+        quote=quote
+    )
+
+
+@router.get("/api/distance")
+async def distance(word: str, request: Request) -> DistanceResponse:
+    word = word.replace("'", "")
+    if egg := EasterEggLogic.get_easter_egg(word):
+        reply = DistanceResponse(similarity=99.99,
+                                 distance=-1,
+                                 egg=egg)
+
+    else:
+        logic, cache_logic = get_logics(app=request.app)
+        sim = await logic.get_similarity(word)
+        cache_score = await cache_logic.get_cache_score(word)
+        reply = DistanceResponse(
+            similarity=sim,
+            distance=cache_score
         )
-
-    @property
-    def DELTA(self):
-        if self._DELTA is None:
-            self._DELTA = timedelta(days=self.application.days_delta)
-        return self._DELTA
-
-    def render(self, *args, **kwargs):
-        return super(BaseHandler, self).render(
-            js_version=self.application.js_version,
-            *args,
-            **kwargs,
-        )
-
-    async def reply(self, content):
-        content = json.dumps(content)
-        self.set_header("Content-Type", "application/json")
-        self.set_header("Content-Length", len(content))
-        self.write(content)
-        await self.finish()
-
-    def prepare(self):
-        ip_address = self.request.headers.get("X-Real-IP") or \
-                     self.request.headers.get("X-Forwarded-For") or \
-                     self.request.remote_ip
-
-        if self.request_is_limited(key=ip_address):
-            raise tornado.web.HTTPError(429)
-
-    def request_is_limited(self, key: str):
-        now = int(time.time())
-        current = now - now % self.application.period
-        if self._CURRENT_TIMEFRAME[0] != current:
-            self._CURRENT_TIMEFRAME[0] = current
-            for ip, usage in self._USAGE.items():
-                if usage > self.application.limit * 0.75:
-                    self._USAGE[ip] = usage // 2
-                else:
-                    self._USAGE[ip] = 0
-        self._USAGE[key] += 1
-        return self._USAGE[key] > self.application.limit
+    return reply
 
 
-class IndexHandler(BaseHandler):
-    FIRST_DATE = datetime(2022, 2, 21).date()
-
-    async def get(self):
-        cache = await self.cache_logic.cache
-        closest1 = await self.logic.get_similarity(cache[-2])
-        closest10 = await self.logic.get_similarity(cache[-12])
-        closest1000 = await self.logic.get_similarity(cache[0])
-        number = (self.date - self.FIRST_DATE).days + 1
-
-        yestersecret = await VectorLogic(
-            self.mongo, self.date - timedelta(days=1)
-        ).secret_logic.get_secret()
-
-        if random.random() >= 0.5:
-            quote = self.application.main_quote
-        else:
-            quote = random.choice(self.application.quotes)
-
-        await self.render(
-            'static/index.html',
-            number=number,
-            closest1=closest1,
-            closest10=closest10,
-            closest1000=closest1000,
-            yesterdays_secret=yestersecret,
-            quote=quote,
-        )
+@router.get("/yesterday-top-1000", response_class=HTMLResponse, include_in_schema=False)
+async def yesterday_top(request: Request):
+    logic, cache_logic = get_logics(app=request.app, delta=timedelta(days=1))
+    cache = await cache_logic.cache
+    yesterday_sims = await logic.get_similarities(cache)
+    return render(
+        name='closest1000.html',
+        request=request,
+        yesterday=sorted(yesterday_sims.items(), key=lambda ws: ws[1], reverse=True)
+    )
 
 
-class DistanceHandler(BaseHandler):
-    async def get(self):
-        word = self.get_argument('word')
-        word = word.replace("'", "")
-        if egg := EasterEggLogic.get_easter_egg(word):
-            reply = {
-                "similarity": 99.99,
-                "distance": -1,
-                "egg": egg
-            }
-        else:
-            sim = await self.logic.get_similarity(word)
-            cache_score = await self.cache_logic.get_cache_score(word)
-            reply = {
-                "similarity": sim,
-                "distance": cache_score,
-            }
-        await self.reply(reply)
+@router.get("/secrets", response_class=HTMLResponse)
+async def secrets(request: Request, api_key: Optional[str] = None):
+    logic, _ = get_logics(app=request.app)
+    all_secrets = await logic.secret_logic.get_all_secrets()
+    if api_key != request.app.state.api_key:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
+
+    return render(
+        name='all_secrets.html',
+        request=request,
+        secrets=sorted(all_secrets, key=lambda ws: ws[1], reverse=True),
+    )
 
 
-class YesterdayClosestHandler(BaseHandler):
-    async def get(self):
-        cache = await self.cache_logic.cache
-        yesterday_sims = await self.logic.get_similarities(cache)
-        await self.render(
-            'static/closest1000.html',
-            yesterday=sorted(yesterday_sims.items(), key=lambda ws: ws[1], reverse=1),
-        )
-
-    @property
-    def DELTA(self):
-        return super().DELTA + timedelta(days=1)
+@router.get("/faq", response_class=HTMLResponse, include_in_schema=False)
+async def faq(request: Request):
+    _, cache_logic = get_logics(app=request.app, delta=timedelta(days=1))
+    cache = await cache_logic.cache
+    return render(
+        name='faq.html',
+        request=request,
+        yesterday=cache[-11:]
+    )
 
 
-class AllSecretsHandler(BaseHandler):
-    async def get(self):
-        secrets = await self.logic.secret_logic.get_all_secrets()
-        api_key = self.get_argument('api_key', None)
-        if api_key != self.application.api_key:
-            raise tornado.web.HTTPError(403)
-
-        await self.render(
-            'static/all_secrets.html',
-            secrets=sorted(secrets, key=lambda ws: ws[1], reverse=1),
-        )
-
-
-class FaqHandler(BaseHandler):
-    DELTA = timedelta(days=1)
-
-    async def get(self):
-        cache = await self.cache_logic.cache
-        await self.render(
-            'static/faq.html',
-            yesterday=cache[-11:],
-        )
-
-
-class VideoHandler(BaseHandler):
-    async def get(self):
-        await self.render(
-            'static/videos.html',
-            videos=self.application.videos,
-        )
+@router.get("/videos", response_class=HTMLResponse, include_in_schema=False)
+async def videos(request: Request):
+    return render(
+        name='videos.html',
+        request=request,
+        videos=request.app.state.videos
+    )

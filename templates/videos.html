@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <link rel="stylesheet" href="css/style.css">
+    <link id="favicon" rel="icon" type="image/x-icon" href="{{ url_for('static', path='/favicon.ico') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='/styles.css') }}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>סמנטעל: כולנו סמנטעל</title>
 
@@ -22,7 +23,7 @@
 
 <header>
 <h1>כולנו סמנטעל</h1>
-<div w3-include-html="menu.html"></div>
+<div w3-include-html="{{ url_for('static', path='/menu.html') }}"></div>
 </header>
     <a href="/">חזרה</a>
 <br><br>
@@ -32,13 +33,13 @@
 <iframe width="600" height="315" src="https://www.youtube.com/embed/{{video}}?wmode=transparent" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
     </div>
     <br>
-    {% end %}
+    {% endfor %}
 <br>
 </div>
     <a href="/">חזרה</a>
 <footer>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script src="js/semantle.js?version={{js_version}}"></script>
+    <script src="/static/semantle.js?version={{js_version}}"></script>
 </footer>
 </body>
 </html>

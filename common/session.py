@@ -1,4 +1,5 @@
-from motor import MotorClient as MongoClient
+from motor.motor_asyncio import AsyncIOMotorClient as MongoClient
+
 from aioredis.client import Redis
 
 

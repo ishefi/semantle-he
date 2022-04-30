@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <link rel="stylesheet" href="css/style.css">
+    <link id="favicon" rel="icon" type="image/x-icon" href="{{ url_for('static', path='/favicon.ico') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='/styles.css') }}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>סמנטעל: 1000 המילים הכי קרובות</title>
 
@@ -21,7 +22,7 @@
 <body dir='rtl'>
 <header>
 <h1>{{yesterday[0][0]}}</h1>
-<div w3-include-html="menu.html"></div>
+<div w3-include-html="{{ url_for('static', path='/menu.html') }}"></div>
 </header>
 <h3>1000 המילים הכי קרובות</h3>
         <a href="/">חזרה</a>
@@ -45,13 +46,13 @@
             {{ ws[1] }}
         </td>
         </tr>
-        {% end %}
+        {% endfor %}
         </tbody>
     </table>
     <a href="/">חזרה</a>
 <footer>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script src="js/semantle.js?version={{js_version}}"></script>
+    <script src="/static/semantle.js?version={{js_version}}"></script>
 </footer>
 </body>
 </html>

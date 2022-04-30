@@ -18,7 +18,7 @@ You can run the game with:
 ```commandline
 PORT=<PORT> python app.py
 ```
-Configurations can be set in `config.py` (not part of the repo as it contains secrets).
+Configurations should be set in a `semantle.cfg` file, following the example `semantle.cfg.format`.
 you should be using a mongo server for storing the vectors. Word2Vec model was trained as described (here)[https://github.com/Iddoyadlin/hebrew-w2v]
 
 

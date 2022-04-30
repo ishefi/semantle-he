@@ -65,16 +65,16 @@ def main():
     )
     args = parser.parse_args()
 
-    input = Path(args.input)
-    if not input.is_absolute():
-        input = Path(__file__).resolve().parent.parent / input
-    input = str(input)
+    input_path = Path(args.input)
+    if not input_path.is_absolute():
+        input_path = Path(__file__).resolve().parent.parent / input_path
+    input_path = str(input_path)
     if args.input_type == 'gensim':
-        populator = GensimPopulater(input)
+        populator = GensimPopulater(input_path)
     elif args.input_type == 'json':
-        populator = JsonPopulater(input)
+        populator = JsonPopulater(input_path)
     else:
-        populator = ListsPopulater(input)
+        populator = ListsPopulater(input_path)
 
     mongo = get_mongo()
     to_insert = []

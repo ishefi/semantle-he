@@ -6,6 +6,7 @@ newrelic
 numpy~=1.22.2
 pymongo[srv]~=3.12.3
 uvicorn[standard]~=0.17.6
+pydantic~=1.9.0
 
 
 

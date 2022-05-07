@@ -362,7 +362,7 @@ let Semantle = (function() {
             var x = setInterval(function() {
                 // Find the distance between now and the count down date
                 var distance = tomorrow.getTime() - Date.now();
-                if (distance < 0) {
+                if (distance < 0 && (!document.hidden)) {
                     window.location.reload();
                     return;
                 }

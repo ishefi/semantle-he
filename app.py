@@ -16,8 +16,8 @@ from handlers import router
 app = FastAPI()
 app.state.mongo = get_mongo()
 app.state.redis = get_redis()
-app.state.limit = int(os.environ.get("LIMIT", 10))
-app.state.period = int(os.environ.get("PERIOD", 20))
+app.state.limit = int(os.environ.get("LIMIT", getattr(config, 'limit', 10)))
+app.state.period = int(os.environ.get("PERIOD", getattr(config, 'period', 20)))
 app.state.videos = config.videos
 app.state.current_timeframe = 0
 app.state.usage = defaultdict(int)

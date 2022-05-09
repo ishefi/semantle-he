@@ -3,14 +3,10 @@ import sys
 from omegaconf import OmegaConf
 from pathlib import Path
 
-THIS = os.path.realpath(__file__)
-HERE = os.path.dirname(THIS)
-BASE = os.path.dirname(HERE)
-
 thismodule = sys.modules[__name__]
 
 conf = OmegaConf.create()
-if (config_path := Path(BASE) / 'config.yaml').exists():
+if (config_path := Path(__file__).parent.parent.resolve() / 'config.yaml').exists():
     conf.merge_with(OmegaConf.load(str(config_path)))
 if yaml_str := os.environ.get('YAML_CONFIG_STR'):
     conf.merge_with(OmegaConf.create(yaml_str))
@@ -28,6 +24,7 @@ def get_top_ups(conf):
             except KeyError:
                 print('Could not configure %s: %s' % (key, value))
     return top_ups
+
 
 if config := os.environ.get("HS_CONFIG"):
     exec(config, globals())

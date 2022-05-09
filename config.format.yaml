@@ -21,5 +21,5 @@ api_key : APIKEY
 redis : redis://REDISHOST:REDISPORT
 limit : 500
 period: 400
-port: 8000
+port: PORTNUM
 reload: false

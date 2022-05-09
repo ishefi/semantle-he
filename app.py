@@ -4,6 +4,7 @@ import uuid
 from collections import defaultdict
 from datetime import datetime, timedelta
 
+import uvicorn
 from starlette.staticfiles import StaticFiles
 from common import config
 from common.session import get_mongo, get_redis
@@ -55,3 +56,7 @@ async def is_limited(request: Request, call_next):
         return JSONResponse(status_code=status.HTTP_429_TOO_MANY_REQUESTS)
     response = await call_next(request)
     return response
+
+
+if __name__ == "__main__":
+    uvicorn.run('app:app', host="0.0.0.0", port=getattr(config, 'port', 5000), reload=getattr(config, 'reload', False))

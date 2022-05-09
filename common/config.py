@@ -9,13 +9,14 @@ BASE = os.path.dirname(HERE)
 
 thismodule = sys.modules[__name__]
 
+conf = OmegaConf.create()
+if (config_path := Path(BASE) / 'config.yaml').exists():
+    conf.merge_with(OmegaConf.load(str(config_path)))
+if yaml_str := os.environ.get('YAML_CONFIG_STR'):
+    conf.merge_with(OmegaConf.create(yaml_str))
+for k, v in conf.items():
+    setattr(thismodule, k, v)
 
-
-config_path = Path(BASE) / 'config.yaml'
-if config_path.exists():
-    conf = OmegaConf.load(str(config_path))
-    for k, v in conf.items():
-        setattr(thismodule, k, v)
 
 def get_top_ups(conf):
     top_ups = ""

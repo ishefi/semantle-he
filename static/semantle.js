@@ -417,7 +417,8 @@ let Semantle = (function() {
             <br>
             </p>
             <p align="left">
-             (ואם ממש בא לך, <a href="https://ko-fi.com/ishefi" target="_blank" style="text-decoration: none;">אפשר גם לקנות לי ☕</a>)
+             (ואם ממש בא לך, <a href="https://ko-fi.com/ishefi" target="_blank" style="text-decoration: none;">אפשר גם לקנות לי ☕</a>,
+             או לשחק ב<a href="https://degle.ishefi.com" target="_blank" style="text-decoration: none;">דעגעל🚩</a> עד הסמנטעל הבא)
              </p>`
         } else {
         // right now we do not allow giving up

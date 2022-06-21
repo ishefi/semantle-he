@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 
 from starlette.staticfiles import StaticFiles
 from common import config
+from common.logger import logger
 from common.session import get_mongo, get_redis
 
 from fastapi import FastAPI, Request, status
@@ -48,10 +49,22 @@ def request_is_limited(key: str):
     return app.state.usage[key] > app.state.limit
 
 
+def get_idenitifier(request: Request):
+    forwarded = request.headers.get("X-Forwarded-For")
+    XRealIP = request.headers.get("X-Real-IP")
+    host = request.headers.get("host")
+    logger.warning(f'forwarded is %s, XRealIP is %s, host is %s, request client host is %s',
+                   forwarded, XRealIP, host,
+                   request.client.host)
+    if forwarded:
+        return forwarded.split(",")[0]
+    return request.client.host
+
+
 @app.middleware("http")
 async def is_limited(request: Request, call_next):
-    ip_address = request.client.host
-    if request_is_limited(key=ip_address):
+    identifier = get_idenitifier(request)
+    if request_is_limited(key=identifier):
         return JSONResponse(status_code=status.HTTP_429_TOO_MANY_REQUESTS)
     response = await call_next(request)
     return response

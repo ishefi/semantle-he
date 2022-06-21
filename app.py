@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 
 from starlette.staticfiles import StaticFiles
 from common import config
+from common.logger import logger
 from common.session import get_mongo, get_redis
 
 from fastapi import FastAPI, Request, status
@@ -50,6 +51,7 @@ def request_is_limited(key: str):
 
 def get_idenitifier(request: Request):
     forwarded = request.headers.get("X-Forwarded-For")
+    logger.warning(f'forwarded is %s, host is %s', forwarded, request.client.host)
     if forwarded:
         return forwarded.split(",")[0]
     return request.client.host

@@ -51,7 +51,11 @@ def request_is_limited(key: str):
 
 def get_idenitifier(request: Request):
     forwarded = request.headers.get("X-Forwarded-For")
-    logger.warning(f'forwarded is %s, host is %s', forwarded, request.client.host)
+    XRealIP = request.headers.get("X-Real-IP")
+    host = request.headers.get("host")
+    logger.warning(f'forwarded is %s, XRealIP is %s, host is %s, request client host is %s',
+                   forwarded, XRealIP, host,
+                   request.client.host)
     if forwarded:
         return forwarded.split(",")[0]
     return request.client.host

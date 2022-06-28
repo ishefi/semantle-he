@@ -407,6 +407,9 @@ let Semantle = (function() {
         document.getElementById("timer").hidden = false;
         let response;
         if (won) {
+            updateAverageGuesses();
+            const average = getAverageGuesses();
+
             response = `<p><b>
             ניצחת!
             מצאת את הפתרון תוך ${guesses.length} ניחושים!
@@ -414,6 +417,11 @@ let Semantle = (function() {
             וגם <a href="javascript:share();">לשתף</a>
             ולחזור לשחק מחר.
             </b>
+            <p>
+                <b>
+              ממוצע הניחושים שלך עומד כעת על: ${average}
+                </b>
+            </p>
             <br>
             </p>
             <p align="left">
@@ -465,6 +473,25 @@ const observer = new MutationObserver((mutations, obs) => {
     return;
   }
 });
+
+const updateAverageGuesses = () => {
+    // guessHistory = [{level:21, amount: 92},{level:22, amount: 101} ...]
+    const guessHistory = storage.getItem("guessHistory") ? JSON.parse(storage.getItem("guessHistory")) : [];
+    const dailyGuesses = {
+      level: storage.getItem("puzzleNumber"),
+      amount: guesses.length,
+    };
+    const updatedGuessHistory = guessHistory.push(dailyGuesses);
+    storage.setItem("guessHistory", JSON.stringify(updatedGuessHistory));
+  };
+  
+  const getAverageGuesses = () => {
+    const guessHistory = storage.getItem("guessHistory");
+    const parsedGuessHistory = JSON.parse(guessHistory);
+    const average = parsedGuessHistory.reduce((a, b) => a.amount + b.amount) / parsedGuessHistory.length;
+  
+    return average;
+  };
 
 observer.observe(document, {
   childList: true,

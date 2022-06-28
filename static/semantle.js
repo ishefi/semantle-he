@@ -407,7 +407,7 @@ let Semantle = (function() {
         document.getElementById("timer").hidden = false;
         let response;
         if (won) {
-            updateAverageGuesses();
+            updateGuessesHistory();
             const average = getAverageGuesses();
 
             response = `<p><b>
@@ -474,21 +474,21 @@ const observer = new MutationObserver((mutations, obs) => {
   }
 });
 
-const updateAverageGuesses = () => {
+const updateGuessesHistory = () => {
     // guessHistory = [{level:21, amount: 92},{level:22, amount: 101} ...]
-    const guessHistory = storage.getItem("guessHistory") ? JSON.parse(storage.getItem("guessHistory")) : [];
-    const dailyGuesses = {
+    const guessesHistory = storage.getItem("guessesHistory") ? JSON.parse(storage.getItem("guessesHistory")) : [];
+    const dailyGuess = {
       level: storage.getItem("puzzleNumber"),
       amount: guesses.length,
     };
-    const updatedGuessHistory = guessHistory.push(dailyGuesses);
-    storage.setItem("guessHistory", JSON.stringify(updatedGuessHistory));
+    const updatedGuessesHistory = guessesHistory.push(dailyGuess);
+    storage.setItem("guessHistory", JSON.stringify(updatedGuessesHistory));
   };
   
   const getAverageGuesses = () => {
-    const guessHistory = storage.getItem("guessHistory");
-    const parsedGuessHistory = JSON.parse(guessHistory);
-    const average = parsedGuessHistory.reduce((a, b) => a.amount + b.amount) / parsedGuessHistory.length;
+    const guessesHistory = storage.getItem("guessesHistory");
+    const parsedGuessesHistory = JSON.parse(guessesHistory);
+    const average = parsedGuessesHistory.reduce((a, b) => a.amount + b.amount) / parsedGuessesHistory.length;
   
     return average;
   };

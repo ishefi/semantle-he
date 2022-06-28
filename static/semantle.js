@@ -482,7 +482,7 @@ const updateGuessesHistory = () => {
       amount: guesses.length,
     };
     const updatedGuessesHistory = guessesHistory.push(dailyGuess);
-    storage.setItem("guessHistory", JSON.stringify(updatedGuessesHistory));
+    storage.setItem("guessesHistory", JSON.stringify(updatedGuessesHistory));
   };
   
   const getAverageGuesses = () => {

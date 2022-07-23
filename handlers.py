@@ -108,13 +108,14 @@ async def distance(word: str, request: Request) -> DistanceResponse:
 
 @router.get("/yesterday-top-1000", response_class=HTMLResponse, include_in_schema=False)
 async def yesterday_top(request: Request):
-    logic, cache_logic = get_logics(app=request.app, delta=timedelta(days=1))
-    cache = await cache_logic.cache
-    yesterday_sims = await logic.get_similarities(cache)
+    # logic, cache_logic = get_logics(app=request.app, delta=timedelta(days=1))
+    # cache = await cache_logic.cache
+    # yesterday_sims = await logic.get_similarities(cache)
     return render(
         name='closest1000.html',
         request=request,
-        yesterday=sorted(yesterday_sims.items(), key=lambda ws: ws[1], reverse=True)
+        # yesterday=sorted(yesterday_sims.items(), key=lambda ws: ws[1], reverse=True)
+        yesterday=(["נראה שהמילים הקרובות מעצבנות יותר מדי אנשים, אז העמוד הוסר", 0],),
     )
 
 
@@ -139,7 +140,8 @@ async def faq(request: Request):
     return render(
         name='faq.html',
         request=request,
-        yesterday=cache[-11:]
+        # yesterday=cache[-11:]
+        yesterday=[],
     )
 
 

@@ -4,6 +4,7 @@ import uuid
 from collections import defaultdict
 from datetime import datetime, timedelta
 
+import uvicorn
 from starlette.staticfiles import StaticFiles
 from common import config
 from common.session import get_mongo, get_redis
@@ -16,8 +17,8 @@ from handlers import router
 app = FastAPI()
 app.state.mongo = get_mongo()
 app.state.redis = get_redis()
-app.state.limit = int(os.environ.get("LIMIT", 10))
-app.state.period = int(os.environ.get("PERIOD", 20))
+app.state.limit = int(os.environ.get("LIMIT", getattr(config, 'limit', 10)))
+app.state.period = int(os.environ.get("PERIOD", getattr(config, 'period', 20)))
 app.state.videos = config.videos
 app.state.current_timeframe = 0
 app.state.usage = defaultdict(int)
@@ -62,3 +63,7 @@ async def is_limited(request: Request, call_next):
         return JSONResponse(status_code=status.HTTP_429_TOO_MANY_REQUESTS)
     response = await call_next(request)
     return response
+
+
+if __name__ == "__main__":
+    uvicorn.run('app:app', host="0.0.0.0", port=getattr(config, 'port', 5000), reload=getattr(config, 'reload', False))

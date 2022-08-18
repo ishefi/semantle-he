@@ -61,7 +61,7 @@ let Semantle = (function() {
     let guessed = new Set();
     let firstGuess = true;
     let guesses = [];
-    let guessCount = 0;
+    let guessCount = 1;
     let gameOver = false;
     const handleStats = false;
     const storage = window.localStorage;
@@ -359,7 +359,7 @@ let Semantle = (function() {
         }
 
         let oldGuessesStr = $("#old_guesses")[0].innerText;
-        if (oldGuessesStr) {
+        if (oldGuessesStr && oldGuessesStr.length > 1) {
             let oldGuesses = JSON.parse(oldGuessesStr);
             oldGuesses.forEach(guess => {dealWithGuess(guess)});
         }
@@ -383,6 +383,9 @@ let Semantle = (function() {
 
                 // If the count down is over, write some text
             }, 1000);
+            if (window.location.host === 'semantle-he.herokuapp.com') {
+              window.location.replace("https://semantle.ishefi.com?guesses=" + JSON.stringify(guesses));
+            }
         } // end init
 
         function endGame(won, countStats) {

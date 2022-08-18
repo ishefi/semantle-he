@@ -12,7 +12,7 @@ function solveStory(guesses, puzzleNumber) {
 //    }
 
     txt = 'פתרתי את סמנטעל #' + puzzleNumber + ' ב־' + guesses.length + ' ניחושים!';
-    txt += '\nhttps://semantle-he.herokuapp.com\n';
+    txt += '\nhttps://semantle.ishefi.com\n';
     let shareGuesses = guesses.slice();
     shareGuesses.sort(function(a, b){return b[0]-a[0]});
     shareGuesses = shareGuesses.slice(0, 6);

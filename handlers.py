@@ -58,7 +58,7 @@ async def health():
 
 
 @router.get("/", response_class=HTMLResponse, include_in_schema=False)
-async def index(request: Request):
+async def index(request: Request, guesses: str = ""):
     logic, cache_logic = get_logics(app=request.app)
     cache = await cache_logic.cache
     closest1 = await logic.get_similarity(cache[-2])
@@ -83,7 +83,8 @@ async def index(request: Request):
         closest10=closest10,
         closest1000=closest1000,
         yesterdays_secret=yestersecret,
-        quote=quote
+        quote=quote,
+        guesses=guesses,
     )
 
 

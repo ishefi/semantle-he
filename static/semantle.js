@@ -287,6 +287,25 @@ let Semantle = (function() {
         let form = $('#form')[0];
         if (form === undefined) return;
 
+        function dealWithGuess(entry) {
+            let [similarity, guess, _, distance, egg] = entry;
+            if (!guessed.has(guess)) {
+                guessCount += 1;
+                guessed.add(guess);
+
+                guesses.push(entry);
+                if (distance == 1000){
+                    endGame(true, true);
+                }
+            }
+            guesses.sort(function(a, b){return b[0]-a[0]});
+            if (!gameOver){
+                saveGame(-1, -1);
+            }
+            updateGuesses(guess);
+            firstGuess = false;
+        }
+
         $('#form')[0].addEventListener('submit', async function(event) {
             event.preventDefault();
             $('#guess').focus();
@@ -305,33 +324,12 @@ let Semantle = (function() {
             }
 
             let score = guessData.similarity;
-
             const distance = guessData.distance;
-
             let egg = guessData.egg;
-
             cache[guess] = guessData;
 
-            let similarity = guessData.similarity;
-            if (!guessed.has(guess)) {
-                guessCount += 1;
-                guessed.add(guess);
-
-                const newEntry = [similarity, guess, guessCount, distance, egg];
-                guesses.push(newEntry);
-                if (distance == 1000){
-                    endGame(true, true);
-                }
-            }
-            guesses.sort(function(a, b){return b[0]-a[0]});
-            if (!gameOver){
-                saveGame(-1, -1);
-            }
-
-
-            updateGuesses(guess);
-
-            firstGuess = false;
+            const newEntry = [score, guess, guessCount, distance, egg];
+            dealWithGuess(newEntry);
 //            if (guess.toLowerCase() === secret && !gameOver) {
 //                endGame(guesses.length);
 //            }
@@ -359,6 +357,13 @@ let Semantle = (function() {
                 endGame(winState);
             }
         }
+
+        let oldGuessesStr = $("#old_guesses")[0].innerText;
+        if (oldGuessesStr) {
+            let oldGuesses = JSON.parse(oldGuessesStr);
+            oldGuesses.forEach(guess => {dealWithGuess(guess)});
+        }
+
             var x = setInterval(function() {
                 // Find the distance between now and the count down date
                 var distance = tomorrow.getTime() - Date.now();

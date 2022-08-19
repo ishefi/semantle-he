@@ -358,17 +358,17 @@ let Semantle = (function() {
             }
         }
 
-        let oldGuessesStr = $("#old_guesses")[0].innerText;
-        if (oldGuessesStr && oldGuessesStr.length > 1) {
-            let oldGuesses = JSON.parse(oldGuessesStr);
-            oldGuesses.forEach(guess => {dealWithGuess(guess)});
-        }
+        // let oldGuessesStr = $("#old_guesses")[0].innerText;
+        // if (oldGuessesStr && oldGuessesStr.length > 1) {
+        //     let oldGuesses = JSON.parse(oldGuessesStr);
+        //     oldGuesses.forEach(guess => {dealWithGuess(guess)});
+        // }
 
             var x = setInterval(function() {
                 // Find the distance between now and the count down date
                 var distance = tomorrow.getTime() - Date.now();
                 if (distance < 0 && (!document.hidden)) {
-                    window.location.reload();
+                    window.location.replace(location.protocol + '//' + location.host + location.pathname);
                     return;
                 }
 

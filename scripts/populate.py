@@ -20,6 +20,9 @@ class BasePopulater:
             if self._is_all_he(word):
                 yield word, vec, count
 
+    def _get_w2v(self):
+        raise NotImplementedError
+
     def _is_all_he(self, word):
         return all(ord('א') <= ord(c) <= ord('ת') for c in word)
 

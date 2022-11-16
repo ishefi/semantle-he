@@ -28,10 +28,10 @@ def get_date(delta: timedelta):
 def get_logics(app: FastAPI, delta: timedelta = timedelta()):
     delta += app.state.days_delta
     date = get_date(delta)
-    logic = VectorLogic(app.state.mongo, date)
+    logic = VectorLogic(app.state.mongo, dt=date, model=app.state.model)
     secret = logic.secret_logic.get_secret()
     cache_logic = CacheSecretLogic(
-        app.state.mongo, app.state.redis, secret=secret, dt=date
+        app.state.mongo, app.state.redis, secret=secret, dt=date, model=app.state.model
     )
     return logic, cache_logic
 
@@ -69,7 +69,7 @@ async def index(request: Request, guesses: str = ""):
     number = (date - FIRST_DATE).days + 1
 
     yestersecret = await VectorLogic(
-        mongo=request.app.state.mongo, dt=date - timedelta(days=1)
+        mongo=request.app.state.mongo,model=request.app.state.model, dt=date - timedelta(days=1)
     ).secret_logic.get_secret()
 
     quotes = request.app.state.quotes

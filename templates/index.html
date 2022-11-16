@@ -1,6 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-5B2VVCJ');</script>
+    <!-- End Google Tag Manager -->
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>סמנטעל</title>
@@ -17,12 +26,15 @@
   gtag('config', 'G-PP8J7V4T0X');
 </script>
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2098371592785764" crossorigin="anonymous"></script>
-<script id="3bears" src="https://www.3bears.ai/static/js/3bears.js" code="d01a8d801f184336b80611e05a1f8323"></script>
 </head>
 <body dir='rtl'>
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-5B2VVCJ"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
 <header>
 <h1>סמנטעל</h1>
-<div w3-include-html="{{ url_for('static', path='/menu.html') }}"></div>
+<div w3-include-html="/static/menu.html" }}></div>
 </header>
     <figure>
         <blockquote class="review" cite="{{quote[3]}}">
@@ -78,15 +90,21 @@
     <br><br>
     (ואפשר גם לשחק ב<a href="https://degle.ishefi.com" target="_blank" style="text-decoration: none;">דעגעל🚩</a>, משחק חדש שעשיתי)
     <br><br>
-    Made by <a target="_blank" href="https://twitter.com/shefi89">Itamar Shefi</a> 2022. Word2Vec data from Wikipedia.
+    Made by <a target="_blank" href="https://twitter.com/shefi89">Itamar Shefi</a> 2022
+    <br>
+    Language model by <a target="_blank" href="https://twitter.com/IddoYadlin">Iddo Yadlin</a>
+    <br>
+    Word2Vec data from Wikipedia.
     Based on David Turner's <a target="_blank" href="https://semantle.novalis.org/">Semantle</a>
 </div>
 
 <template id="x-icon">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-      <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+      <path fill-rule="evenodd" s="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
     </svg>
   </template>
+
+<p id="old_guesses" hidden> {{ guesses }}</p>
 
 <footer>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>

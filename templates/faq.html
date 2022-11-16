@@ -1,6 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-5B2VVCJ');</script>
+    <!-- End Google Tag Manager -->
+
     <meta charset="UTF-8">
     <link id="favicon" rel="icon" type="image/x-icon" href="{{ url_for('static', path='/favicon.ico') }}">
     <link rel="stylesheet" href="{{ url_for('static', path='/styles.css') }}">
@@ -17,13 +26,15 @@
   gtag('config', 'G-PP8J7V4T0X');
 </script>
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2098371592785764" crossorigin="anonymous"></script>
-<script id="3bears" src="https://www.3bears.ai/static/js/3bears.js" code="d01a8d801f184336b80611e05a1f8323"></script>
 </head>
 <body dir='rtl'>
-
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-5B2VVCJ"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
 <header>
 <h1>שאלות נפוצות</h1>
-<div w3-include-html="{{ url_for('static', path='/menu.html') }}"></div>
+<div w3-include-html="/static/menu.html" }}></div>
 </header>
     <a href="/">חזרה</a>
 <br>
@@ -78,7 +89,7 @@
     <button class="accordion"> איך זה עובד? </button>
 <div class="panel"><p> <a target="_blank" href="https://reshetech.co.il/machine-learning-tutorials/gensim-and-word2vec">הנה מאמר על Word2Vec.</a></p></div>
     <button class="accordion"> באיזה דאטה השתמשת?</button>
-    <div class="panel"><p> <a target="_blank" href="https://dumps.wikimedia.org/hewiki/latest/">ויקיפדיה </a></p></div>
+    <div class="panel"><p> <a target="_blank" href="https://dumps.wikimedia.org/hewiki/latest/">ויקיפדיה.</a></p></div>
 {% if yesterday %}
     <button class="accordion"> מה המילה של אתמול? </button>
     <div class="panel"><p> {{yesterday[-1]}} </p></div>
@@ -87,10 +98,13 @@
 {% endif %}
     <button class="accordion"> קוד מקור?</button>
     <div class="panel"><p> <a target="_blank" href="https://github.com/ishefi/semantle-he.git">בטח.</a></p></div>
+    <button class="accordion"> מודל שפה?</button>
+    <div class="panel"><p> <a target="_blank" href="https://github.com/Iddoyadlin/hebrew-w2v.git">בוודאי.</a></p></div>
     <button class="accordion"> יש לי רעיון ממש טוב לשיפור של סמנטעל, מה לעשות? </button>
     <div class="panel"><p> אפשר לפתוח issue בקישור שבתשובה הקודמת. אם אני אוהב את הרעיון אפשר לממש אותו
         בעצמך או לחכות שמישהי אחרת תעשה את זה!
     </p></div>
+
     <button class="accordion"> אפשר להתלונן על ציון קרבה של מילים? </button>
     <div class="panel"><p> כן, אבל אני כנראה אתעלם ממך. זאת המדיניות של דיויד טרנר שיצר את המשחק המקורי ואני זורם איתו. </p></div>
     <button class="accordion"> עשית עוד משחקים? </button>

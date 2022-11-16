@@ -12,7 +12,7 @@ function solveStory(guesses, puzzleNumber) {
 //    }
 
     txt = 'פתרתי את סמנטעל #' + puzzleNumber + ' ב־' + guesses.length + ' ניחושים!';
-    txt += '\nhttps://semantle-he.herokuapp.com\n';
+    txt += '\nhttps://semantle.ishefi.com\n';
     let shareGuesses = guesses.slice();
     shareGuesses.sort(function(a, b){return b[0]-a[0]});
     shareGuesses = shareGuesses.slice(0, 6);
@@ -61,7 +61,7 @@ let Semantle = (function() {
     let guessed = new Set();
     let firstGuess = true;
     let guesses = [];
-    let guessCount = 0;
+    let guessCount = 1;
     let gameOver = false;
     const handleStats = false;
     const storage = window.localStorage;
@@ -287,6 +287,25 @@ let Semantle = (function() {
         let form = $('#form')[0];
         if (form === undefined) return;
 
+        function dealWithGuess(entry) {
+            let [similarity, guess, _, distance, egg] = entry;
+            if (!guessed.has(guess)) {
+                guessCount += 1;
+                guessed.add(guess);
+
+                guesses.push(entry);
+                if (distance == 1000){
+                    endGame(true, true);
+                }
+            }
+            guesses.sort(function(a, b){return b[0]-a[0]});
+            if (!gameOver){
+                saveGame(-1, -1);
+            }
+            updateGuesses(guess);
+            firstGuess = false;
+        }
+
         $('#form')[0].addEventListener('submit', async function(event) {
             event.preventDefault();
             $('#guess').focus();
@@ -305,33 +324,12 @@ let Semantle = (function() {
             }
 
             let score = guessData.similarity;
-
             const distance = guessData.distance;
-
             let egg = guessData.egg;
-
             cache[guess] = guessData;
 
-            let similarity = guessData.similarity;
-            if (!guessed.has(guess)) {
-                guessCount += 1;
-                guessed.add(guess);
-
-                const newEntry = [similarity, guess, guessCount, distance, egg];
-                guesses.push(newEntry);
-                if (distance == 1000){
-                    endGame(true, true);
-                }
-            }
-            guesses.sort(function(a, b){return b[0]-a[0]});
-            if (!gameOver){
-                saveGame(-1, -1);
-            }
-
-
-            updateGuesses(guess);
-
-            firstGuess = false;
+            const newEntry = [score, guess, guessCount, distance, egg];
+            dealWithGuess(newEntry);
 //            if (guess.toLowerCase() === secret && !gameOver) {
 //                endGame(guesses.length);
 //            }
@@ -359,11 +357,18 @@ let Semantle = (function() {
                 endGame(winState);
             }
         }
+
+        // let oldGuessesStr = $("#old_guesses")[0].innerText;
+        // if (oldGuessesStr && oldGuessesStr.length > 1) {
+        //     let oldGuesses = JSON.parse(oldGuessesStr);
+        //     oldGuesses.forEach(guess => {dealWithGuess(guess)});
+        // }
+
             var x = setInterval(function() {
                 // Find the distance between now and the count down date
                 var distance = tomorrow.getTime() - Date.now();
                 if (distance < 0 && (!document.hidden)) {
-                    window.location.reload();
+                    window.location.replace(location.protocol + '//' + location.host + location.pathname);
                     return;
                 }
 
@@ -378,6 +383,9 @@ let Semantle = (function() {
 
                 // If the count down is over, write some text
             }, 1000);
+            if (window.location.host === 'semantle-he.herokuapp.com') {
+              window.location.replace("https://semantle.ishefi.com?guesses=" + JSON.stringify(guesses));
+            }
         } // end init
 
         function endGame(won, countStats) {

@@ -1,6 +1,5 @@
 # Hebrew Semantle
-
-A Hebrew version of [Semantle](https://semantle-he.herokuapp.com/).
+A Hebrew version of [Semantle](https://semantle.com/).
 
 ## Installation
 

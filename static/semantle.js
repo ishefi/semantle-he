@@ -239,6 +239,7 @@ let Semantle = (function() {
             event.stopPropagation();
         });
 
+        $('#guess').focus();
 
 
         document.querySelectorAll(".dialog-underlay, .dialog-close, #capitalized-link").forEach((el) => {

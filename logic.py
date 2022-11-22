@@ -76,7 +76,7 @@ class VectorLogic:
     async def calc_similarity(self, vec1: [float], vec2: [float]):
         return await self.model.calc_similarity(vec1, vec2)
 
-    async def iterate_all(self):
+    def iterate_all(self):
         return self.model.iterate_all()
 
 
@@ -122,7 +122,7 @@ class CacheSecretLogic:
         secret_vec = self._get_secret_vector()
 
         nearest = []
-        for word, vec in self._iterate_all_wv():
+        async for word, vec in self._iterate_all_wv():
             s = await self.vector_logic.calc_similarity(vec, secret_vec)
             heapq.heappush(nearest, (s, word))
             if len(nearest) > 1000:
@@ -164,10 +164,6 @@ class CacheSecretLogicGensim(CacheSecretLogic):
 
     def _get_secret_vector(self):
         return self.model[self.secret]
-
-    def _iterate_all_wv(self):
-        for word in self.words:
-            yield word, self.model[word]
 
 
 class EasterEggLogic:

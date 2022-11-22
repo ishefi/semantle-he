@@ -6,11 +6,11 @@ from datetime import timedelta
 import os
 import sys
 
-from common import config
 
 base = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.extend([base])
 
+from common import config
 from common.session import get_mongo, get_model
 from common.session import get_redis
 from logic import CacheSecretLogic

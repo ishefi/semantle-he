@@ -34,6 +34,10 @@ class GensimModel(Model):
         self.model = model
 
     async def get_vector(self, word: str):
+        if not all(ord('א') <= ord(c) <= ord('ת') for c in word):
+            return
+        if len(word) == 1:
+            return
         if word not in self.model:
             return
         return self.model[word].tolist()
@@ -42,7 +46,10 @@ class GensimModel(Model):
         return np.round(self.model.cosine_similarities(vector, np.asarray([self.model[w] for w in words])) * 100, 2)
 
     async def iterate_all(self):
-        for word in self.model:
+        for word in self.model.key_to_index.keys():
+            vector = await self.get_vector(word)
+            if vector is None:
+                continue
             yield word, self.model[word]
 
     async def calc_similarity(self, vec1: [float], vec2: [float]) -> float:

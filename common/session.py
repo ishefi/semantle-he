@@ -19,6 +19,4 @@ def get_model(mongo=None, has_model=False):
         logger.info("using model")
         import gensim.models.keyedvectors as word2vec
         return GensimModel(word2vec.KeyedVectors.load("model.mdl").wv)
-    else:
-        logger.info("using mongo")
-        return MongoModel(mongo)
+    raise Exception('couldnt find model')

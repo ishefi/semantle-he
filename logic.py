@@ -119,10 +119,10 @@ class CacheSecretLogic:
             if wv.get('secret_date') is not None:
                 raise ValueError("This word was a secret in the past")
 
-        secret_vec = await self._get_secret_vector()
+        secret_vec = self._get_secret_vector()
 
         nearest = []
-        async for word, vec in self._iterate_all_wv():
+        for word, vec in self._iterate_all_wv():
             s = await self.vector_logic.calc_similarity(vec, secret_vec)
             heapq.heappush(nearest, (s, word))
             if len(nearest) > 1000:

@@ -6,6 +6,8 @@ from datetime import timedelta
 import os
 import sys
 
+from common import config
+
 base = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.extend([base])
 
@@ -48,7 +50,8 @@ async def main():
 
     mongo = get_mongo()
     redis = get_redis()
-    model = get_model(model_path=args.model_path, mongo=mongo)
+    has_model = hasattr(config, "model_zip_id")
+    model = get_model(has_model=has_model, mongo=mongo)
 
     if args.date:
         date = args.date
@@ -59,7 +62,7 @@ async def main():
     else:
         secret = await get_random_word(mongo)
     while True:
-        await do_populate(mongo, redis, args.model_path, secret, date, args.force)
+        await do_populate(mongo, redis, has_model, secret, date, model, args.force)
         if not args.iterative:
             break
         date += timedelta(days=1)
@@ -77,9 +80,9 @@ async def get_date(mongo):
     return dt
 
 
-async def do_populate(mongo, redis, model_path, secret, date, model, force):
-    if model_path:
-        logic = CacheSecretLogicGensim(model_path, mongo, redis, secret, date)
+async def do_populate(mongo, redis, has_model, secret, date, model, force):
+    if has_model:
+        logic = CacheSecretLogicGensim('model.mdl', mongo, redis, secret, dt=date, model=model)
     else:
         logic = CacheSecretLogic(mongo, redis, secret, dt=date, model=model)
     await logic.set_secret(dry=True, force=force)
@@ -97,7 +100,7 @@ async def do_populate(mongo, redis, model_path, secret, date, model, force):
         return True
     else:
         secret = await get_random_word(mongo)
-        return await do_populate(mongo, redis, model_path, secret, date, force)
+        return await do_populate(mongo, redis, has_model, secret, date, model, force)
 
 
 async def get_random_word(mongo):

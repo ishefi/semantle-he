@@ -54,7 +54,7 @@ def request_is_limited(key: str):
 def get_idenitifier(request: Request):
     forwarded = request.headers.get("X-Forwarded-For")
     if forwarded:
-        return forwarded.split(',')[-1].strip()
+        return forwarded.split(',')[0].strip()
     return request.client.host
 
 

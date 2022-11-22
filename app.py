@@ -25,7 +25,7 @@ app.state.usage = defaultdict(int)
 app.state.api_key = config.api_key
 app.state.quotes = config.quotes
 app.state.js_version = uuid.uuid4().hex[:6]
-app.state.model = get_model(mongo=app.state.mongo, model_path=getattr(config, "model_path"))
+app.state.model = get_model(mongo=app.state.mongo, has_model=hasattr(config, "model_zip_id"))
 
 try:
     date = datetime.strptime(os.environ.get("GAME_DATE", ""), '%Y-%m-%d').date()

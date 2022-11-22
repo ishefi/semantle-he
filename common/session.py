@@ -14,9 +14,11 @@ def get_redis():
     return Redis.from_url(config.redis, decode_responses=True)
 
 
-def get_model(mongo=None, model_path=None):
-    if model_path is not None:
+def get_model(mongo=None, has_model=False):
+    if has_model is not None:
+        print("using model")
         import gensim.models.keyedvectors as word2vec
-        return GensimModel(word2vec.KeyedVectors.load(model_path).wv)
+        return GensimModel(word2vec.KeyedVectors.load("model.mdl").wv)
     else:
+        print("using mongo")
         return MongoModel(mongo)

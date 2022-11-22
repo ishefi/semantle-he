@@ -28,6 +28,6 @@
   "limit":500, #number of requests allowed in <period>
   "period":400, # period (seconds)
   "port":"PORTNUM",
-  "reload":false
+  "reload":false,
   "model_zip_id": "gdrive_file_id"
 }

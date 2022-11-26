@@ -3,17 +3,14 @@ from __future__ import annotations
 from datetime import timedelta
 import heapq
 import inspect
-import struct
 from typing import TYPE_CHECKING
 
-
 from common import config
-from common.consts import VEC_SIZE
-
-from numpy import dot
-from numpy.linalg import norm
 
 from datetime import datetime
+
+from model import Model
+
 if TYPE_CHECKING:
     from typing import Optional
     from datetime import date
@@ -49,28 +46,18 @@ class SecretLogic:
 class VectorLogic:
     _secret_cache = {}
 
-    def __init__(self, mongo, dt):
+    def __init__(self, mongo, model: Model, dt):
+        self.model = model
         self.mongo = mongo
         self.date = str(dt)
         self.secret_logic = SecretLogic(self.mongo, dt=dt)
 
     async def get_vector(self, word: str):
-        w2v = await self.mongo.find_one({'word': word})
-        if w2v is None:
-            return None
-        else:
-            return self._unpack_vector(w2v['vec'])
-
-    def _unpack_vector(self, raw_vec):
-        return struct.unpack(VEC_SIZE, raw_vec)
+        return await self.model.get_vector(word)
 
     async def get_similarities(self, words: [str]) -> [float]:
         secret_vector = await self.get_secret_vector()
-        wvs = self.mongo.find({'word': {'$in': words}})
-        return {
-            wv['word']: await self.calc_similarity(secret_vector, self._unpack_vector(wv['vec']))
-            for wv in await wvs.to_list(None)
-        }
+        return self.model.get_similarities(words, secret_vector)
 
     async def get_secret_vector(self):
         if self._secret_cache.get(self.date) is None:
@@ -86,12 +73,11 @@ class VectorLogic:
         secret_vector = await self.get_secret_vector()
         return await self.calc_similarity(secret_vector, word_vector)
 
-    async def calc_similarity(self, vec1, vec2):
-        return round(dot(vec1, vec2) / (norm(vec1) * norm(vec2)) * 100, 2)
+    async def calc_similarity(self, vec1: [float], vec2: [float]):
+        return await self.model.calc_similarity(vec1, vec2)
 
-    async def iterate_all(self):
-        for wv in await self.mongo.find().to_list(None):
-            yield wv['word'], self._unpack_vector(wv['vec'])
+    def iterate_all(self):
+        return self.model.iterate_all()
 
 
 class CacheSecretLogic:
@@ -99,14 +85,14 @@ class CacheSecretLogic:
     _cache_dict = {}
     MAX_CACHE = 50
 
-    def __init__(self, mongo, redis, secret, dt):
+    def __init__(self, mongo, redis, secret, dt, model):
         self.mongo = mongo
         self.redis = redis
         if dt is None:
             dt = datetime.utcnow().date()
         self.date_ = dt
         self.date = str(dt)
-        self.vector_logic = VectorLogic(self.mongo, dt=dt)
+        self.vector_logic = VectorLogic(self.mongo, model=model, dt=dt)
         self.secret = secret
         self._secret_cache_key = None
 
@@ -133,7 +119,7 @@ class CacheSecretLogic:
             if wv.get('secret_date') is not None:
                 raise ValueError("This word was a secret in the past")
 
-        secret_vec = await self._get_secret_vector()
+        secret_vec = self._get_secret_vector()
 
         nearest = []
         async for word, vec in self._iterate_all_wv():
@@ -178,10 +164,6 @@ class CacheSecretLogicGensim(CacheSecretLogic):
 
     def _get_secret_vector(self):
         return self.model[self.secret]
-
-    def _iterate_all_wv(self):
-        for word in self.words:
-            yield word, self.model[word]
 
 
 class EasterEggLogic:

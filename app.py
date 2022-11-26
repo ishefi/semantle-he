@@ -4,9 +4,10 @@ import uuid
 from collections import defaultdict
 from datetime import datetime, timedelta
 
+import uvicorn
 from starlette.staticfiles import StaticFiles
 from common import config
-from common.session import get_mongo, get_redis
+from common.session import get_mongo, get_redis, get_model
 
 from fastapi import FastAPI, Request, status
 from fastapi.responses import JSONResponse
@@ -16,14 +17,16 @@ from handlers import router
 app = FastAPI()
 app.state.mongo = get_mongo()
 app.state.redis = get_redis()
-app.state.limit = int(os.environ.get("LIMIT", 10))
-app.state.period = int(os.environ.get("PERIOD", 20))
+app.state.limit = int(os.environ.get("LIMIT", getattr(config, 'limit', 10)))
+app.state.period = int(os.environ.get("PERIOD", getattr(config, 'period', 20)))
 app.state.videos = config.videos
 app.state.current_timeframe = 0
 app.state.usage = defaultdict(int)
 app.state.api_key = config.api_key
 app.state.quotes = config.quotes
 app.state.js_version = uuid.uuid4().hex[:6]
+app.state.model = get_model(mongo=app.state.mongo, has_model=hasattr(config, "model_zip_id"))
+
 try:
     date = datetime.strptime(os.environ.get("GAME_DATE", ""), '%Y-%m-%d').date()
     delta = (datetime.utcnow().date() - date).days
@@ -51,7 +54,7 @@ def request_is_limited(key: str):
 def get_idenitifier(request: Request):
     forwarded = request.headers.get("X-Forwarded-For")
     if forwarded:
-        return forwarded.split(',')[-1].strip()
+        return forwarded.split(',')[0].strip()
     return request.client.host
 
 
@@ -62,3 +65,7 @@ async def is_limited(request: Request, call_next):
         return JSONResponse(status_code=status.HTTP_429_TOO_MANY_REQUESTS)
     response = await call_next(request)
     return response
+
+
+if __name__ == "__main__":
+    uvicorn.run('app:app', port=5001, reload=getattr(config, 'reload', False))

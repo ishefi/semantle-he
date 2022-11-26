@@ -6,10 +6,12 @@ from datetime import timedelta
 import os
 import sys
 
+
 base = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.extend([base])
 
-from common.session import get_mongo
+from common import config
+from common.session import get_mongo, get_model
 from common.session import get_redis
 from logic import CacheSecretLogic
 from logic import CacheSecretLogicGensim
@@ -31,13 +33,14 @@ async def main():
         help="Secret to set. If not provided, chooses a random word from Wikipedia.",
     )
     parser.add_argument(
-        '-d', '--date', metavar='DATE', type=valid_date, help="Date of secret. If not provided, first date w/o secret is used"
+        '-d', '--date', metavar='DATE', type=valid_date,
+        help="Date of secret. If not provided, first date w/o secret is used"
     )
     parser.add_argument(
         '--force', action='store_true', help="Allow rewriting dates or reusing secrets. Use with caution!"
     )
     parser.add_argument(
-        '-m', '--model', help="Path to a gensim w2v model. If not provided, will use w2v data stored in mongodb."
+        '-m', '--model_path', help="Path to a gensim w2v model. If not provided, will use w2v data stored in mongodb."
     )
     parser.add_argument(
         '-i', '--iterative', action='store_true', help="If provided, run in an iterative mode, starting the given date"
@@ -47,6 +50,8 @@ async def main():
 
     mongo = get_mongo()
     redis = get_redis()
+    has_model = hasattr(config, "model_zip_id")
+    model = get_model(has_model=has_model, mongo=mongo)
 
     if args.date:
         date = args.date
@@ -57,7 +62,7 @@ async def main():
     else:
         secret = await get_random_word(mongo)
     while True:
-        await do_populate(mongo, redis, args.model, secret, date, args.force)
+        await do_populate(mongo, redis, has_model, secret, date, model, args.force)
         if not args.iterative:
             break
         date += timedelta(days=1)
@@ -75,16 +80,16 @@ async def get_date(mongo):
     return dt
 
 
-async def do_populate(mongo, redis, model, secret, date, force):
-    if model:
-        logic = CacheSecretLogicGensim(model, mongo, redis, secret, date)
+async def do_populate(mongo, redis, has_model, secret, date, model, force):
+    if has_model:
+        logic = CacheSecretLogicGensim('model.mdl', mongo, redis, secret, dt=date, model=model)
     else:
-        logic = CacheSecretLogic(mongo, redis, secret, date)
+        logic = CacheSecretLogic(mongo, redis, secret, dt=date, model=model)
     await logic.set_secret(dry=True, force=force)
     cache = [w[::-1] for w in (await logic.cache)[::-1]]
     print(' ,'.join(cache))
     print(cache[0])
-    for rng in (range(i, i+10) for i in [1, 50, 100, 300, 550, 750]):
+    for rng in (range(i, i + 10) for i in [1, 50, 100, 300, 550, 750]):
         for i in rng:
             w = cache[i]
             print(f"{i}: {w}")
@@ -95,7 +100,7 @@ async def do_populate(mongo, redis, model, secret, date, force):
         return True
     else:
         secret = await get_random_word(mongo)
-        return await do_populate(mongo, redis, model, secret, date, force)
+        return await do_populate(mongo, redis, has_model, secret, date, model, force)
 
 
 async def get_random_word(mongo):

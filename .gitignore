@@ -4,3 +4,4 @@ venv
 __pycache__
 semantle.cfg
 config.json
+config.yaml

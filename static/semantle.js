@@ -315,13 +315,14 @@ let Semantle = (function() {
                 return false;
             }
 
-            $('#guess')[0].value = "";
-
             const guessData = await getSim(guess);
             if (guessData.similarity === null) {
                 $('#error')[0].textContent = `אני לא מכיר את המילה ${guess}.`;
+                $('#guess')[0].select();
                 return false;
             }
+
+            $('#guess')[0].value = "";
 
             let score = guessData.similarity;
             const distance = guessData.distance;

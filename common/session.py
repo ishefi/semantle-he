@@ -11,7 +11,7 @@ def get_mongo():
 
 
 def get_redis():
-    return Redis.from_url(config.redis, decode_responses=True)
+    return Redis.from_url(config.redis, decode_responses=True, max_connections=10)
 
 
 def get_model(mongo=None, has_model=False):

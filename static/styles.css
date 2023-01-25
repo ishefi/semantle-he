@@ -394,3 +394,7 @@ body.dark .active:after {
   content: "\2796"; /* Unicode character for "minus" sign (-) */
   font-size: 17px;
 }
+
+img.emoji {
+  height: 1rem;
+}

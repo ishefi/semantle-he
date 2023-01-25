@@ -209,6 +209,7 @@ let Semantle = (function() {
             }
         }
         $('#guesses')[0].innerHTML = inner;
+        twemoji.parse($('#guesses')[0]);
     }
 
     function toggleDarkMode(on) {
@@ -387,6 +388,7 @@ let Semantle = (function() {
             if (window.location.host === 'semantle-he.herokuapp.com') {
               window.location.replace("https://semantle.ishefi.com?guesses=" + JSON.stringify(guesses));
             }
+            twemoji.parse(document.body);
         } // end init
 
         function endGame(won, countStats) {
@@ -426,10 +428,17 @@ let Semantle = (function() {
             <br>
             </p>
             <p align="left">
-             (ואם ממש בא לך, <a href="https://ko-fi.com/ishefi" target="_blank" style="text-decoration: none;">אפשר גם לקנות לי ☕</a>, 
+             ואם ממש בא לך,
+             <br/>
+             <a href="https://ko-fi.com/ishefi" target="_blank" style="text-decoration: none;">אפשר גם לקנות לי ☕</a>,
+             <br/>
              לשחק ב<a href="https://degle.ishefi.com" target="_blank" style="text-decoration: none;">דעגעל🚩</a>
+             <br/>
+             או ב־<a href="https://mimamu.ishefi.com" target="_blank" style="text-decoration: none;">MiMaMu</a>
+             <br/>
              או לעקוב אחרי <a href="https://sufganiyot.ishefi.com" target="_blank" style="text-decoration: none;">כמה סופגניות אכלתי </a>
-             עד הסמנטעל הבא)
+             <br/>
+             עד הסמנטעל הבא
              </p>`
         } else {
         // right now we do not allow giving up
@@ -452,7 +461,7 @@ Stats (since we started recording, on day 23): <br/>
 `;
         }
         $('#response')[0].innerHTML = response;
-
+        twemoji.parse($('#response')[0]);
         if (endGame) {
             saveGame(guesses.length, won ? 1 : 0);
         }

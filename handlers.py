@@ -50,6 +50,7 @@ class DistanceResponse(BaseModel):
     similarity: Optional[float]
     distance: int
     egg: Optional[str] = None
+    solver_count: Optional[int] = None
 
 
 @router.get("/health")
@@ -100,9 +101,14 @@ async def distance(word: str, request: Request) -> DistanceResponse:
         logic, cache_logic = get_logics(app=request.app)
         sim = await logic.get_similarity(word)
         cache_score = await cache_logic.get_cache_score(word)
+        if cache_score == 1000:
+            solver_count = await logic.get_and_update_solver_count()
+        else:
+            solver_count = None
         reply = DistanceResponse(
             similarity=sim,
-            distance=cache_score
+            distance=cache_score,
+            solver_count=solver_count,
         )
     return reply
 

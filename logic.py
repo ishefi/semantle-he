@@ -42,6 +42,12 @@ class SecretLogic:
         secrets = self.mongo.find({'secret_date': {'$exists': True, '$ne': None}})
         return ((secret['word'], secret['secret_date']) for secret in await secrets.to_list(None))
 
+    async def get_and_update_solver_count(self):
+        secret = await self.mongo.find_one_and_update(
+            {'secret_date': str(self.date)}, {'$inc': {'solver_count': 1}}
+        )
+        return secret.get('solver_count', 0)
+
 
 class VectorLogic:
     _secret_cache = {}
@@ -75,6 +81,9 @@ class VectorLogic:
 
     async def calc_similarity(self, vec1: [float], vec2: [float]):
         return await self.model.calc_similarity(vec1, vec2)
+
+    async def get_and_update_solver_count(self):
+        return await self.secret_logic.get_and_update_solver_count()
 
     def iterate_all(self):
         return self.model.iterate_all()

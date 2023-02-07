@@ -1,4 +1,4 @@
-const cache = {};
+let cache = {};
 let darkModeMql = window.matchMedia('(prefers-color-scheme: dark)');
 let darkMode = false;
 
@@ -175,7 +175,6 @@ let Semantle = (function() {
 
         storage.setItem("winState", winState);
         storage.setItem("guesses", JSON.stringify(guesses));
-
     };
 
     function openRules() {
@@ -329,6 +328,7 @@ let Semantle = (function() {
             const distance = guessData.distance;
             let egg = guessData.egg;
             cache[guess] = guessData;
+            storage.setItem("cache", JSON.stringify(cache));
 
             const newEntry = [score, guess, guessCount, distance, egg];
             dealWithGuess(newEntry);
@@ -342,6 +342,7 @@ let Semantle = (function() {
         let storagePuzzleNumber = storage.getItem("puzzleNumber");
         if (storagePuzzleNumber != puzzleNumber) {
             storage.removeItem("guesses");
+            storage.removeItem("cache");
             storage.removeItem("winState");
             storage.setItem("puzzleNumber", puzzleNumber);
         }
@@ -349,6 +350,7 @@ let Semantle = (function() {
         const winState = storage.getItem("winState");
         if (winState != null) {
             guesses = JSON.parse(storage.getItem("guesses"));
+            cache = JSON.parse(storage.getItem("cache")) || {};
             guesses.sort(function(a, b){return b[0]-a[0]});
             for (let guess of guesses) {
                 guessed.add(guess[1]);

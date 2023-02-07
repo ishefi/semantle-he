@@ -5,7 +5,7 @@ from collections import defaultdict
 from datetime import datetime, timedelta
 
 import uvicorn
-from starlette.staticfiles import StaticFiles
+from fastapi.staticfiles import StaticFiles
 from common import config
 from common.session import get_mongo, get_redis, get_model
 

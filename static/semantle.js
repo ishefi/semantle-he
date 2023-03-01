@@ -2,6 +2,32 @@ let cache = {};
 let darkModeMql = window.matchMedia('(prefers-color-scheme: dark)');
 let darkMode = false;
 
+function getSolverCountStory(beforePronoun) {
+    let solverCountStory = "";
+    if (localStorage.getItem("solverCount"))  {
+        const solversBefore = parseInt(localStorage.getItem("solverCount"));
+        if (solversBefore === 0) {
+            solverCountStory = `🤩 מקום ראשון! 🤩`;
+            if (Math.random() >= 0.5) {
+               solverCountStory += ` אף אחת לא פתרה`;
+            } else {
+                solverCountStory += ` אף אחד לא פתר`;
+            }
+        } else if (solversBefore === 1) {
+            if (Math.random() >= 0.5) {
+               solverCountStory = `רק אחת פתרה`;
+            } else {
+                solverCountStory = `רק אחד פתר`;
+            }
+        } else {
+            solverCountStory = `רק ${solversBefore} פתרו`;
+        }
+        solverCountStory += ` היום את סמנטעל ${beforePronoun}!`;
+    }
+    return solverCountStory;
+}
+
+
 function solveStory(guesses, puzzleNumber) {
 //    if (guess_count == 0) {
 //        return `I gave up on Semantle ${puzzleNumber} without even guessing once.`;
@@ -11,7 +37,8 @@ function solveStory(guesses, puzzleNumber) {
 //        return `I got Semantle ${puzzleNumber} on my first guess!`;
 //    }
 
-    txt = 'פתרתי את סמנטעל #' + puzzleNumber + ' ב־' + guesses.length + ' ניחושים!';
+    txt = 'פתרתי את סמנטעל #' + puzzleNumber + ' ב־' + guesses.length + ' ניחושים!\n';
+    txt += getSolverCountStory('לפני');
     txt += '\nhttps://semantle.ishefi.com\n';
     let shareGuesses = guesses.slice();
     shareGuesses.sort(function(a, b){return b[0]-a[0]});
@@ -39,7 +66,6 @@ function solveStory(guesses, puzzleNumber) {
 
     return txt;
 }
-
 
         function share() {
     // We use the stored guesses here, because those are not updated again
@@ -329,6 +355,9 @@ let Semantle = (function() {
             let egg = guessData.egg;
             cache[guess] = guessData;
             storage.setItem("cache", JSON.stringify(cache));
+            if (guessData.solver_count !== undefined) {
+                storage.setItem("solverCount", JSON.stringify(guessData.solver_count));
+            }
 
             const newEntry = [score, guess, guessCount, distance, egg];
             dealWithGuess(newEntry);
@@ -419,10 +448,14 @@ let Semantle = (function() {
         gameOver = true;
         document.getElementById("timer").hidden = false;
         let response;
+
+        const solverCountStory = getSolverCountStory("לפניך");
+
         if (won) {
             response = `<p><b>
             ניצחת!
             מצאת את הפתרון תוך ${guesses.length} ניחושים!
+             ${solverCountStory}
             אפשר להמשיך לנסות להכניס מילים ולראות את הקרבה שלהן,
             וגם <a href="javascript:share();">לשתף</a>
             ולחזור לשחק מחר.

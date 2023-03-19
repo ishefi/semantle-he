@@ -67,7 +67,7 @@ function solveStory(guesses, puzzleNumber) {
     return txt;
 }
 
-        function share() {
+function share() {
     // We use the stored guesses here, because those are not updated again
     // once you win -- we don't want to include post-win guesses here.
     const text = solveStory(JSON.parse(window.localStorage.getItem("guesses")), puzzleNumber.innerText);
@@ -75,6 +75,17 @@ function solveStory(guesses, puzzleNumber) {
 
     if (copied) {
         alert("העתקת, אפשר להדביק ברשתות החברתיות!");
+    }
+    else {
+        alert("Failed to copy to clipboard");
+    }
+}
+
+function shareBtc() {
+    const BTCAddress = "bc1qe3hpdddft34lmm7g6s6u6pef6k6mz4apykrla3jewapxeup4hpwsydhgx0";
+    const copied = ClipboardJS.copy(BTCAddress);
+    if (copied) {
+        alert("copied BTC wallet address :)");
     }
     else {
         alert("Failed to copy to clipboard");

@@ -387,7 +387,7 @@ let Semantle = (function() {
             let egg = guessData.egg;
             cache[guess] = guessData;
             storage.setItem("cache", JSON.stringify(cache));
-            if (guessData.solver_count !== undefined) {
+            if (guessData.solver_count != null) {
                 storage.setItem("solverCount", JSON.stringify(guessData.solver_count));
             }
 

@@ -30,6 +30,7 @@ app.state.current_timeframe = 0
 app.state.usage = defaultdict(int)
 app.state.api_key = config.api_key
 app.state.quotes = config.quotes
+app.state.notification = config.notification
 app.state.js_version = JS_VERSION
 app.state.model = get_model(mongo=app.state.mongo, has_model=hasattr(config, "model_zip_id"))
 

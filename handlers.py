@@ -87,6 +87,7 @@ async def index(request: Request, guesses: str = ""):
         yesterdays_secret=yestersecret,
         quote=quote,
         guesses=guesses,
+        notification=request.app.state.notification,
     )
 
 

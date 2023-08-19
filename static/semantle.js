@@ -102,10 +102,12 @@ let Semantle = (function() {
     let gameOver = false;
     const handleStats = false;
     const storage = window.localStorage;
+    let notificationId = null;
 
 //    TODO: use value sent from BE ?
+    const day_ms = 86400000;
     const now = Date.now();
-    const today = Math.floor(now / 86400000);
+    const today = Math.floor(now / day_ms);
     const initialDay = 19044;
     const puzzleNumber = today + 1 - initialDay;
     const tomorrow = new Date();
@@ -222,6 +224,10 @@ let Semantle = (function() {
         document.body.classList.add('dialog-open', 'settings-open');
         $("#settings-close")[0].focus();
     }
+    function openNotification() {
+        document.body.classList.add("notification-open");
+        storage.setItem("notification-" + notificationId, true);
+    }
 
     function updateGuesses(guess) {
         let inner = `<tr>
@@ -258,16 +264,32 @@ let Semantle = (function() {
     }
 
     async function init() {
+        let notification = document.getElementById("notification");
+        let popupBlocks = ["rules"];
+        if (notification) {
+            notificationId = notification.dataset.notificationid;
+            popupBlocks.push("notification");
+        }
         if (!storage.getItem("readRules")) {
             openRules();
+        } else if (notificationId) {
+           let seenNotification = storage.getItem("notification-" + notificationId);
+           let expiry = Date.parse(notification.dataset.notificationexpire) / day_ms;
+           let expired = today > expiry;
+           if (!(seenNotification || expired)) {
+                openNotification();
+           }
         }
 
         $("#rules-button")[0].addEventListener('click', openRules);
         $("#settings-button")[0].addEventListener('click', openSettings);
 
-        [$("#rules-underlay"), $("#rules-close")].forEach((el) => {
-            el[0].addEventListener('click', () => {
-                document.body.classList.remove('rules-open');
+        popupBlocks.forEach((blockType) => {
+            let blockId = "#" + blockType + "-";
+            [$(blockId + "underlay"), $(blockId + "close")].forEach((el) => {
+                el[0].addEventListener('click', () => {
+                    document.body.classList.remove(blockType + '-open');
+                });
             });
         });
 
@@ -275,7 +297,6 @@ let Semantle = (function() {
             // prevents click from propagating to the underlay, which closes the rules
             event.stopPropagation();
         });
-
 
 
         document.querySelectorAll(".dialog-underlay, .dialog-close, #capitalized-link").forEach((el) => {

@@ -130,6 +130,15 @@ body.rules-open #rules-underlay {
     float: top;
 }
 
+body.notification-open {
+    overflow: hidden;
+}
+
+body.notification-open #notification-underlay {
+    display: block;
+    float: top;
+}
+
 body.settings-open #settings-underlay {
     display: block;
 }

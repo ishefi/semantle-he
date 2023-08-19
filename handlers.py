@@ -6,6 +6,7 @@ from typing import Optional
 from fastapi import APIRouter
 from fastapi import FastAPI
 from fastapi import HTTPException
+from fastapi import Query
 from fastapi import Request
 from fastapi import status
 from fastapi.responses import HTMLResponse
@@ -90,7 +91,10 @@ async def index(request: Request, guesses: str = ""):
 
 
 @router.get("/api/distance")
-async def distance(word: str, request: Request) -> DistanceResponse:
+async def distance(
+        request: Request,
+        word: str = Query(default=..., min_length=2, max_length=24, regex=r"^[א-ת ']+$")
+) -> DistanceResponse:
     word = word.replace("'", "")
     if egg := EasterEggLogic.get_easter_egg(word):
         reply = DistanceResponse(similarity=99.99,

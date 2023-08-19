@@ -353,7 +353,7 @@ let Semantle = (function() {
             }
 
             const guessData = await getSim(guess);
-            if (guessData.similarity === null) {
+            if (guessData === null || guessData.similarity === null) {
                 $('#error')[0].textContent = `אני לא מכיר את המילה ${guess}.`;
                 $('#guess')[0].select();
                 return false;

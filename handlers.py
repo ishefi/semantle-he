@@ -39,6 +39,7 @@ def get_logics(app: FastAPI, delta: timedelta = timedelta()):
 
 def render(name: str, request, **kwargs):
     kwargs['js_version'] = request.app.state.js_version
+    kwargs['css_version'] = request.app.state.css_version
     kwargs['request'] = request
     kwargs['enumerate'] = enumerate
     return templates.TemplateResponse(

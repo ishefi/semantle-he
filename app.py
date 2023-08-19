@@ -20,6 +20,11 @@ with open(STATIC_FOLDER + "/semantle.js", "rb") as f:
     js_hasher.update(f.read())
 JS_VERSION = js_hasher.hexdigest()[:8]
 
+css_hasher = hashlib.sha3_256()
+with open(STATIC_FOLDER + "/styles.css", "rb") as f:
+    css_hasher.update(f.read())
+CSS_VERSION = css_hasher.hexdigest()[:8]
+
 app = FastAPI()
 app.state.mongo = get_mongo()
 app.state.redis = get_redis()
@@ -32,6 +37,7 @@ app.state.api_key = config.api_key
 app.state.quotes = config.quotes
 app.state.notification = config.notification
 app.state.js_version = JS_VERSION
+app.state.css_version = CSS_VERSION
 app.state.model = get_model(mongo=app.state.mongo, has_model=hasattr(config, "model_zip_id"))
 
 try:

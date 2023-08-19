@@ -1,6 +1,6 @@
+import hashlib
 import os
 import time
-import uuid
 from collections import defaultdict
 from datetime import datetime, timedelta
 
@@ -14,6 +14,12 @@ from fastapi.responses import JSONResponse
 
 from handlers import router
 
+STATIC_FOLDER = "static"
+js_hasher = hashlib.sha3_256()
+with open(STATIC_FOLDER + "/semantle.js", "rb") as f:
+    js_hasher.update(f.read())
+JS_VERSION = js_hasher.hexdigest()[:8]
+
 app = FastAPI()
 app.state.mongo = get_mongo()
 app.state.redis = get_redis()
@@ -24,7 +30,7 @@ app.state.current_timeframe = 0
 app.state.usage = defaultdict(int)
 app.state.api_key = config.api_key
 app.state.quotes = config.quotes
-app.state.js_version = uuid.uuid4().hex[:6]
+app.state.js_version = JS_VERSION
 app.state.model = get_model(mongo=app.state.mongo, has_model=hasattr(config, "model_zip_id"))
 
 try:
@@ -33,7 +39,7 @@ try:
 except ValueError:
     delta = 0
 app.state.days_delta = timedelta(days=delta)
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount(f"/{STATIC_FOLDER}", StaticFiles(directory=STATIC_FOLDER), name=STATIC_FOLDER)
 app.include_router(router)
 
 

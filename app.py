@@ -60,6 +60,9 @@ def request_is_limited(key: str):
                 app.state.usage[ip] = usage // 2
             else:
                 app.state.usage[ip] = 0
+        app.state.usage = defaultdict(
+            int, {ip: usage for ip, usage in app.state.usage.items() if usage > 0}
+        )
     app.state.usage[key] += 1
     return app.state.usage[key] > app.state.limit
 

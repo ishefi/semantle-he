@@ -133,11 +133,12 @@ async def yesterday_top(request: Request):
 
 
 @router.get("/secrets", response_class=HTMLResponse)
-async def secrets(request: Request, api_key: Optional[str] = None):
-    logic, _ = get_logics(app=request.app)
-    all_secrets = await logic.secret_logic.get_all_secrets()
-    if api_key != request.app.state.api_key:
+async def secrets(request: Request, api_key: Optional[str] = None, with_future: bool = False):
+    if api_key != request.app.state.api_key and with_future:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
+
+    logic, _ = get_logics(app=request.app)
+    all_secrets = await logic.secret_logic.get_all_secrets(with_future=with_future)
 
     return render(
         name='all_secrets.html',

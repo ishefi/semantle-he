@@ -38,8 +38,11 @@ class SecretLogic:
 
         )
 
-    async def get_all_secrets(self):
-        secrets = self.mongo.find({'secret_date': {'$exists': True, '$ne': None}})
+    async def get_all_secrets(self, with_future: bool):
+        date_filter = {'$exists': True, '$ne': None}
+        if not with_future:
+            date_filter["$lt"] = str(self.date)
+        secrets = self.mongo.find({"secret_date": date_filter})
         return ((secret['word'], secret['secret_date']) for secret in await secrets.to_list(None))
 
     async def get_and_update_solver_count(self):

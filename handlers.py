@@ -169,3 +169,11 @@ async def videos(request: Request):
         request=request,
         videos=request.app.state.videos
     )
+
+
+@router.get("/api/menu", response_class=HTMLResponse, include_in_schema=False)
+async def menu(request: Request):
+    return render(
+        name="menu.html",
+        request=request
+    )

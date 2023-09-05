@@ -14,8 +14,8 @@ sys.path.extend([base])
 from common import config
 from common.session import get_mongo, get_model
 from common.session import get_redis
-from logic import CacheSecretLogic
-from logic import CacheSecretLogicGensim
+from logic.game_logic import CacheSecretLogic
+from logic.game_logic import CacheSecretLogicGensim
 
 
 def valid_date(date_str):

@@ -14,9 +14,9 @@ from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 
 from common.consts import FIRST_DATE
-from logic import CacheSecretLogic
-from logic import EasterEggLogic
-from logic import VectorLogic
+from logic.game_logic import CacheSecretLogic
+from logic.game_logic import EasterEggLogic
+from logic.game_logic import VectorLogic
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")

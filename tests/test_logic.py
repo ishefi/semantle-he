@@ -1,4 +1,4 @@
-from logic import VectorLogic
+from logic.game_logic import VectorLogic
 from mocks.hs_test_case import HsTestCase
 # from mocks.mock_db import MockDb  # TODO: use mongo mock instead
 from fakeredis import FakeRedis

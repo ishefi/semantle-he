@@ -8,8 +8,8 @@ sys.path.extend([base])
 
 from common.session import get_redis, get_model
 from common.session import get_mongo
-from logic import VectorLogic
-from logic import CacheSecretLogic
+from logic.game_logic import VectorLogic
+from logic.game_logic import CacheSecretLogic
 
 
 async def main():

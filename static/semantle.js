@@ -150,9 +150,11 @@ let Semantle = (function() {
         const url = "/api/distance" + '?word=' + word;
         const response = await fetch(url);
         try {
-            return await response.json();
+            if (response.status === 200) {
+                return await response.json();
+            }
         } catch (e) {
-            return null;
+
         }
     }
 
@@ -347,7 +349,7 @@ let Semantle = (function() {
 
         function dealWithGuess(entry) {
             let [similarity, guess, _, distance, egg] = entry;
-            if (!guessed.has(guess)) {
+            if ((!guessed.has(guess)) && (similarity != null)) {
                 guessCount += 1;
                 guessed.add(guess);
 
@@ -374,7 +376,7 @@ let Semantle = (function() {
             }
 
             const guessData = await getSim(guess);
-            if (guessData === null || guessData.similarity === null) {
+            if (guessData == null || guessData.similarity === null) {
                 $('#error')[0].textContent = `אני לא מכיר את המילה ${guess}.`;
                 $('#guess')[0].select();
                 return false;

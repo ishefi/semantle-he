@@ -39,6 +39,8 @@ app.state.notification = config.notification
 app.state.js_version = JS_VERSION
 app.state.css_version = CSS_VERSION
 app.state.model = get_model(mongo=app.state.mongo, has_model=hasattr(config, "model_zip_id"))
+app.state.google_app = config.google_app
+
 
 try:
     date = datetime.strptime(os.environ.get("GAME_DATE", ""), '%Y-%m-%d').date()

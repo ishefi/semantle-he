@@ -2,12 +2,11 @@ from motor.motor_asyncio import AsyncIOMotorClient as MongoClient
 from aioredis.client import Redis
 from common.logger import logger
 from common import config
-from model import MongoModel, GensimModel
+from model import GensimModel
 
 
 def get_mongo():
-    mongdb = MongoClient(config.mongo).Semantle
-    return mongdb.word2vec2
+    return MongoClient(config.mongo).Semantle
 
 
 def get_redis():

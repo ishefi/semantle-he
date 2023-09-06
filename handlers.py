@@ -1,19 +1,24 @@
+import urllib.parse
 from datetime import datetime
 from datetime import timedelta
 import random
-from typing import Optional
+from typing import Optional, Union
+from typing import Annotated
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Cookie
+from fastapi import Form
 from fastapi import FastAPI
 from fastapi import HTTPException
 from fastapi import Query
 from fastapi import Request
 from fastapi import status
 from fastapi.responses import HTMLResponse
+from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 
 from common.consts import FIRST_DATE
+from logic.auth_logic import AuthLogic
 from logic.game_logic import CacheSecretLogic
 from logic.game_logic import EasterEggLogic
 from logic.game_logic import VectorLogic
@@ -29,10 +34,10 @@ def get_date(delta: timedelta):
 def get_logics(app: FastAPI, delta: timedelta = timedelta()):
     delta += app.state.days_delta
     date = get_date(delta)
-    logic = VectorLogic(app.state.mongo, dt=date, model=app.state.model)
+    logic = VectorLogic(app.state.mongo.word2vec2, dt=date, model=app.state.model)
     secret = logic.secret_logic.get_secret()
     cache_logic = CacheSecretLogic(
-        app.state.mongo, app.state.redis, secret=secret, dt=date, model=app.state.model
+        app.state.mongo.word2vec2, app.state.redis, secret=secret, dt=date, model=app.state.model
     )
     return logic, cache_logic
 
@@ -74,7 +79,7 @@ async def index(request: Request, guesses: str = ""):
     number = (date - FIRST_DATE).days + 1
 
     yestersecret = await VectorLogic(
-        mongo=request.app.state.mongo,model=request.app.state.model, dt=date - timedelta(days=1)
+        mongo=request.app.state.mongo.word2vec2,model=request.app.state.model, dt=date - timedelta(days=1)
     ).secret_logic.get_secret()
 
     quotes = request.app.state.quotes
@@ -175,5 +180,47 @@ async def videos(request: Request):
 async def menu(request: Request):
     return render(
         name="menu.html",
-        request=request
+        request=request,
+        google_auth_client_id=request.app.state.google_app["client_id"],
+        user=request.state.user
     )
+
+
+@router.post("/login")
+async def login(
+        request: Request,
+        credential: Annotated[str, Form()],
+        state: Annotated[str, Form()] = "",
+):
+    try:
+        parsed_state = urllib.parse.parse_qs(state)
+        auth_logic = AuthLogic(request.app.state.mongo, request.app.state.google_app["client_id"])
+        session_id = await auth_logic.session_id_from_credential(credential)
+        if state is None or "next" not in parsed_state:
+            next_uri = "/"
+        else:
+            next_uri = parsed_state["next"][0]
+        response = RedirectResponse(next_uri, status_code=status.HTTP_302_FOUND)
+        response.set_cookie(
+            key="session_id",
+            value=session_id,
+            secure=True,
+            httponly=True,
+        )
+        return response
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Could not validate credentials"
+        )
+
+
+@router.get("/logout")
+async def logout(
+        request: Request,
+        session_id: Union[str, None] = Cookie(None),
+):
+    auth_logic = AuthLogic(request.app.state.mongo, request.app.state.google_app["client_id"])
+    await auth_logic.logout(session_id)
+    response = RedirectResponse("/", status_code=status.HTTP_302_FOUND)
+    response.delete_cookie(key="session_id")
+    return response

@@ -143,15 +143,6 @@ body.settings-open #settings-underlay {
     display: block;
 }
 
-#rules-button {
-    border: 2px solid black;
-    border-radius: 50%;
-    height: 2em;
-    font-weight: bold;
-    width: 2em;
-    align: left;
-}
-
 .dialog-underlay {
     background: rgba(0,0,0,.5);
     bottom: 0;
@@ -406,4 +397,14 @@ body.dark .active:after {
 
 img.emoji {
   height: 1rem;
+}
+
+#tooltip-menu {
+    position: absolute;
+    background-color: #fff;
+    box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.3);
+    border-radius: 5px;
+    padding: 5px;
+    display: none;
+    transform: translateX(50%); /* Move left by 100% of its own width */
 }

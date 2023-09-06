@@ -3,16 +3,18 @@ import os
 import time
 from collections import defaultdict
 from datetime import datetime, timedelta
+from typing import Union, Annotated
 
 import uvicorn
 from fastapi.staticfiles import StaticFiles
 from common import config
 from common.session import get_mongo, get_redis, get_model
 
-from fastapi import FastAPI, Request, status
+from fastapi import FastAPI, Request, status, Cookie
 from fastapi.responses import JSONResponse
 
 from handlers import router
+from logic.user_logic import UserLogic
 
 STATIC_FOLDER = "static"
 js_hasher = hashlib.sha3_256()
@@ -38,7 +40,7 @@ app.state.quotes = config.quotes
 app.state.notification = config.notification
 app.state.js_version = JS_VERSION
 app.state.css_version = CSS_VERSION
-app.state.model = get_model(mongo=app.state.mongo, has_model=hasattr(config, "model_zip_id"))
+app.state.model = get_model(mongo=app.state.mongo.word2vec2, has_model=hasattr(config, "model_zip_id"))
 app.state.google_app = config.google_app
 
 
@@ -83,6 +85,20 @@ async def is_limited(request: Request, call_next):
         return JSONResponse(status_code=status.HTTP_429_TOO_MANY_REQUESTS)
     response = await call_next(request)
     return response
+
+
+@app.middleware("http")
+async def get_user(request: Request, call_next):
+    if session_id := request.cookies.get("session_id"):
+        mongo = request.app.state.mongo
+        session = await mongo.sessions.find_one({"session_id": session_id})
+        if session is None:
+            return
+        user_logic = UserLogic(mongo)
+        request.state.user = await user_logic.get_user(session["user_email"])
+    else:
+        request.state.user = None
+    return await(call_next(request))
 
 
 if __name__ == "__main__":

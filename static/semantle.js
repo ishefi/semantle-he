@@ -287,6 +287,56 @@ let Semantle = (function() {
         }
     }
 
+    function addEventListenersWhenMenuAppears() {
+    const profileImage = document.getElementById("profile-image");
+    const tooltipMenu = document.getElementById("tooltip-menu");
+    const logoutLink = document.getElementById("logout-link");
+
+
+    function toggleTooltipMenu() {
+        tooltipMenu.style.display = tooltipMenu.style.display === "block" ? "none" : "block";
+    }
+
+    if (profileImage && tooltipMenu && logoutLink) {
+        // Event listener for clicking the profile image
+        profileImage.addEventListener("click", function (event) {
+            event.stopPropagation(); // Prevent the click event from propagating to the document
+            toggleTooltipMenu();
+        });
+
+        // Event listener for clicking anywhere outside the tooltip menu
+        document.addEventListener("click", function (event) {
+            if (event.target !== tooltipMenu && event.target !== profileImage) {
+                tooltipMenu.style.display = "none";
+            }
+        });
+    } else {
+        // The "menu" element is not yet available, so set up a MutationObserver to wait for it
+        const observer = new MutationObserver(function (mutationsList) {
+            for (const mutation of mutationsList) {
+                if (mutation.type === "childList" && mutation.addedNodes) {
+                    for (const addedNode of mutation.addedNodes) {
+                        if (addedNode.id === "menu") {
+                            // "menu" element is now available, remove the observer and add event listeners
+                            observer.disconnect();
+                            addEventListenersWhenMenuAppears();
+                            return;
+                        }
+                    }
+                }
+            }
+        });
+
+        // Start observing changes in the DOM
+        observer.observe(document.body, { childList: true, subtree: true });
+    }
+}
+
+// Call the function to add event listeners when the "menu" element appears
+addEventListenersWhenMenuAppears();
+
+
+
     async function init() {
         let notification = document.getElementById("notification");
         let popupBlocks = ["rules"];

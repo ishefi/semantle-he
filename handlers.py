@@ -5,7 +5,7 @@ import random
 from typing import Optional, Union
 from typing import Annotated
 
-from fastapi import APIRouter, Cookie
+from fastapi import APIRouter, Cookie, Header
 from fastapi import Form
 from fastapi import FastAPI
 from fastapi import HTTPException
@@ -15,8 +15,8 @@ from fastapi import status
 from fastapi.responses import HTMLResponse
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
-from pydantic import BaseModel
 
+from common import schemas
 from common.consts import FIRST_DATE
 from logic.auth_logic import AuthLogic
 from logic.game_logic import CacheSecretLogic
@@ -51,15 +51,6 @@ def render(name: str, request, **kwargs):
         name,
         context=kwargs
     )
-
-
-class DistanceResponse(BaseModel):
-    guess: str
-    similarity: Optional[float]
-    distance: int
-    egg: Optional[str] = None
-    solver_count: Optional[int] = None
-    guess_number: int = 0
 
 
 @router.get("/health")
@@ -102,14 +93,13 @@ async def index(request: Request, guesses: str = ""):
 @router.get("/api/distance")
 async def distance(
         request: Request,
-        word: str = Query(default=..., min_length=2, max_length=24, regex=r"^[א-ת ']+$")
-) -> DistanceResponse:
+        word: str = Query(default=..., min_length=2, max_length=24, regex=r"^[א-ת ']+$"),
+) -> schemas.DistanceResponse:
     word = word.replace("'", "")
     if egg := EasterEggLogic.get_easter_egg(word):
-        reply = DistanceResponse(
+        response = schemas.DistanceResponse(
             guess=word, similarity=99.99, distance=-1, egg=egg
         )
-
     else:
         logic, cache_logic = get_logics(app=request.app)
         sim = await logic.get_similarity(word)
@@ -118,13 +108,14 @@ async def distance(
             solver_count = await logic.get_and_update_solver_count()
         else:
             solver_count = None
-        reply = DistanceResponse(
+        response = schemas.DistanceResponse(
             guess=word,
             similarity=sim,
             distance=cache_score,
             solver_count=solver_count,
         )
-    return reply
+    return response
+
 
 
 @router.get("/yesterday-top-1000", response_class=HTMLResponse, include_in_schema=False)

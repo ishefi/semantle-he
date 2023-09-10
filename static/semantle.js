@@ -418,7 +418,7 @@ let Semantle = (function() {
             for (let guess of guesses) {
                 guessed.add(guess[1]);
             }
-            guessCount = guessed.size;
+            guessCount = guessed.size + 1;
             updateGuesses("");
             if (winState != -1) {
                 endGame(winState);

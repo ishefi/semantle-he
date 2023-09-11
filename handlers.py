@@ -49,10 +49,12 @@ def render(name: str, request, **kwargs):
 
 
 class DistanceResponse(BaseModel):
+    guess: str
     similarity: Optional[float]
     distance: int
     egg: Optional[str] = None
     solver_count: Optional[int] = None
+    guess_number: int = 0
 
 
 @router.get("/health")
@@ -99,9 +101,9 @@ async def distance(
 ) -> DistanceResponse:
     word = word.replace("'", "")
     if egg := EasterEggLogic.get_easter_egg(word):
-        reply = DistanceResponse(similarity=99.99,
-                                 distance=-1,
-                                 egg=egg)
+        reply = DistanceResponse(
+            guess=word, similarity=99.99, distance=-1, egg=egg
+        )
 
     else:
         logic, cache_logic = get_logics(app=request.app)
@@ -112,6 +114,7 @@ async def distance(
         else:
             solver_count = None
         reply = DistanceResponse(
+            guess=word,
             similarity=sim,
             distance=cache_score,
             solver_count=solver_count,

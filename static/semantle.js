@@ -41,7 +41,7 @@ function solveStory(guesses, puzzleNumber) {
     txt += getSolverCountStory('לפני');
     txt += '\nhttps://semantle.ishefi.com\n';
     let shareGuesses = guesses.slice();
-    shareGuesses.sort(function(a, b){return b[0]-a[0]});
+    shareGuesses.sort(function(a, b){return b.similarity-a.similarity});
     shareGuesses = shareGuesses.slice(0, 6);
     let greens = 0;
     let whites = 0;
@@ -145,7 +145,9 @@ let Semantle = (function() {
 
     async function getSim(word) {
         if (cache.hasOwnProperty(word)) {
-            return cache[word];
+            let cached = cache[word];
+            cached.guess = word;
+            return cached;
         }
         const url = "/api/distance" + '?word=' + word;
         const response = await fetch(url);
@@ -158,7 +160,7 @@ let Semantle = (function() {
         }
     }
 
-    function guessRow(similarity, oldGuess, percentile, guessNumber, guess, egg) {
+    function guessRow(similarity, oldGuess, percentile, guessNumber, guess, egg) {  // TODO: simplify method's signature
     let percentileText = "(רחוק)";
     let progress = "";
     let cls = "";
@@ -231,7 +233,7 @@ let Semantle = (function() {
         storage.setItem("notification-" + notificationId, true);
     }
 
-    function updateGuesses(guess) {
+    function updateGuesses(newGuess) {
         let inner = `<tr>
         <th>#</th>
         <th>ניחוש</th>
@@ -239,21 +241,41 @@ let Semantle = (function() {
         <th>מתחמם?</th></tr>`;
         /* This is dumb: first we find the most-recent word, and put
            it at the top.  Then we do the rest. */
-        for (let entry of guesses) {
-            let [similarity, oldGuess, guessNumber, percentile, egg] = entry;
-            if (oldGuess == guess) {
-                inner += guessRow(similarity, oldGuess, percentile, guessNumber, guess, egg);
+       var i;
+        for (i = 0; i < guesses.length; i++) {
+            let entry = guesses[i];
+            if (entry.guess == newGuess) {
+                inner += guessRow(entry.similarity, entry.guess, entry.distance, entry.guess_number, newGuess, entry.egg);
+                break;
             }
         }
         inner += "<tr><td colspan=4><hr></td></tr>";
-        for (let entry of guesses) {
-            let [similarity, oldGuess, guessNumber, percentile, egg] = entry;
-            if (oldGuess != guess) {
-                inner += guessRow(similarity, oldGuess, percentile, guessNumber, guess, egg);
+        for (i = 0; i < guesses.length; i++) {
+            let entry = guesses[i];
+            if (entry.guess != newGuess) {
+                inner += guessRow(entry.similarity, entry.guess, entry.distance, entry.guess_number, newGuess, entry.egg);
             }
         }
         $('#guesses')[0].innerHTML = inner;
         twemoji.parse($('#guesses')[0]);
+    }
+
+    function fetchGuesses() {
+        let fixed = []
+        let storedGuesses = JSON.parse(storage.getItem("guesses"));
+        for (let entry of storedGuesses) {
+          if (entry instanceof Array) {
+            entry = {
+                similarity: entry[0],
+                guess: entry[1],
+                guess_number: entry[2],
+                distance: entry[3],
+                egg: entry[4]
+            }
+          }
+          fixed.push(entry);
+        }
+       return fixed;
     }
 
     function toggleDarkMode(on) {
@@ -348,17 +370,19 @@ let Semantle = (function() {
         if (form === undefined) return;
 
         function dealWithGuess(entry) {
-            let [similarity, guess, _, distance, egg] = entry;
+            let {similarity, guess, distance, egg} = entry;
             if ((!guessed.has(guess)) && (similarity != null)) {
-                guessCount += 1;
                 guessed.add(guess);
-
+                if (!entry.guess_number) {
+                  entry.guess_number = guessCount
+                }
                 guesses.push(entry);
+                guessCount += 1;
                 if (distance == 1000){
                     endGame(true, true);
                 }
             }
-            guesses.sort(function(a, b){return b[0]-a[0]});
+            guesses.sort(function(a, b){return b.similarity-a.similarity});
             if (!gameOver){
                 saveGame(-1, -1);
             }
@@ -387,17 +411,14 @@ let Semantle = (function() {
             let score = guessData.similarity;
             const distance = guessData.distance;
             let egg = guessData.egg;
-            cache[guess] = guessData;
+            let toCache = Object.assign({}, guessData);
+            toCache.guess_number = 0;
+            cache[guess] = toCache;
             storage.setItem("cache", JSON.stringify(cache));
             if (guessData.solver_count != null) {
                 storage.setItem("solverCount", JSON.stringify(guessData.solver_count));
             }
-
-            const newEntry = [score, guess, guessCount, distance, egg];
-            dealWithGuess(newEntry);
-//            if (guess.toLowerCase() === secret && !gameOver) {
-//                endGame(guesses.length);
-//            }
+            dealWithGuess(guessData);
             return false;
         });
 
@@ -412,13 +433,13 @@ let Semantle = (function() {
 
         const winState = storage.getItem("winState");
         if (winState != null) {
-            guesses = JSON.parse(storage.getItem("guesses"));
+            guesses = fetchGuesses();
             cache = JSON.parse(storage.getItem("cache")) || {};
-            guesses.sort(function(a, b){return b[0]-a[0]});
+            guesses.sort(function(a, b){return b.similarity-a.similarity});
             for (let guess of guesses) {
-                guessed.add(guess[1]);
+                guessed.add(guess.guess);
             }
-            guessCount = guessed.size + 1;
+            guessCount = guesses.length + 1;
             updateGuesses("");
             if (winState != -1) {
                 endGame(winState);

@@ -150,7 +150,7 @@ let Semantle = (function() {
             return cached;
         }
         const url = "/api/distance" + '?word=' + word;
-        const response = await fetch(url);
+        const response = await fetch(url, {headers: new Headers({'X-SH-Version': "2023-09-10"})});
         try {
             if (response.status === 200) {
                 return await response.json();
@@ -419,6 +419,20 @@ addEventListenersWhenMenuAppears();
         let form = $('#form')[0];
         if (form === undefined) return;
 
+        function dealWithHistory(guessHistory) {
+          if (!guessHistory || guessHistory.length <= 1) {
+            return;
+          }
+          guessed = new Set();
+          guesses = []
+          for (var i = 0; i < guessHistory.length - 1; i++) {
+            let guess = guessHistory[i];
+            guessed.add(guess.guess);
+            guesses.push(guess);
+          }
+          guessCount = guessed.size + 1;
+        }
+
         function dealWithGuess(entry) {
             let {similarity, guess, distance, egg} = entry;
             if ((!guessed.has(guess)) && (similarity != null)) {
@@ -449,7 +463,11 @@ addEventListenersWhenMenuAppears();
                 return false;
             }
 
-            const guessData = await getSim(guess);
+            const allGuessData = await getSim(guess);
+            let guessData = null;
+            if (allGuessData) {
+              guessData = allGuessData[allGuessData.length - 1];
+            }
             if (guessData == null || guessData.similarity === null) {
                 $('#error')[0].textContent = `אני לא מכיר את המילה ${guess}.`;
                 $('#guess')[0].select();
@@ -463,11 +481,12 @@ addEventListenersWhenMenuAppears();
             let egg = guessData.egg;
             let toCache = Object.assign({}, guessData);
             toCache.guess_number = 0;
-            cache[guess] = toCache;
+            cache[guess] = toCache; // TODO: deal with history as well
             storage.setItem("cache", JSON.stringify(cache));
             if (guessData.solver_count != null) {
                 storage.setItem("solverCount", JSON.stringify(guessData.solver_count));
             }
+            dealWithHistory(allGuessData);
             dealWithGuess(guessData);
             return false;
         });
@@ -496,11 +515,15 @@ addEventListenersWhenMenuAppears();
             }
         }
 
-        // let oldGuessesStr = $("#old_guesses")[0].innerText;
-        // if (oldGuessesStr && oldGuessesStr.length > 1) {
-        //     let oldGuesses = JSON.parse(oldGuessesStr);
-        //     oldGuesses.forEach(guess => {dealWithGuess(guess)});
-        // }
+        let oldGuessesStr = $("#old_guesses")[0].innerText;
+        if (oldGuessesStr && oldGuessesStr.length > 1) {
+             let oldGuesses = JSON.parse(oldGuessesStr);
+             let guessNumber = 0;
+             oldGuesses.forEach(guess => {
+                saveGame(-1, -1);
+                dealWithGuess(guess);
+             });
+         }
 
             var x = setInterval(function() {
                 // Find the distance between now and the count down date

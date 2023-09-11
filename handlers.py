@@ -1,3 +1,4 @@
+import json
 import urllib.parse
 from datetime import datetime
 from datetime import timedelta
@@ -22,6 +23,7 @@ from logic.auth_logic import AuthLogic
 from logic.game_logic import CacheSecretLogic
 from logic.game_logic import EasterEggLogic
 from logic.game_logic import VectorLogic
+from logic.user_logic import UserHistoryLogic
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
@@ -59,7 +61,7 @@ async def health():
 
 
 @router.get("/", response_class=HTMLResponse, include_in_schema=False)
-async def index(request: Request, guesses: str = ""):
+async def index(request: Request):
     logic, cache_logic = get_logics(app=request.app)
     cache = await cache_logic.cache
     closest1 = await logic.get_similarity(cache[-2])
@@ -73,6 +75,18 @@ async def index(request: Request, guesses: str = ""):
         mongo=request.app.state.mongo.word2vec2,model=request.app.state.model, dt=date - timedelta(days=1)
     ).secret_logic.get_secret()
 
+    if request.state.user:
+        history_logic = UserHistoryLogic(
+            request.app.state.mongo,
+            request.state.user,
+            get_date(request.app.state.days_delta)
+        )
+        history = json.dumps([
+            historia.dict() for historia in await history_logic.get_history()
+        ])
+    else:
+        history = []
+
     quotes = request.app.state.quotes
     quote = random.choices(quotes, weights=[0.5] + [0.5 / (len(quotes) - 1)] * (len(quotes) - 1))[0]
 
@@ -85,7 +99,7 @@ async def index(request: Request, guesses: str = ""):
         closest1000=closest1000,
         yesterdays_secret=yestersecret,
         quote=quote,
-        guesses=guesses,
+        guesses=history,
         notification=request.app.state.notification,
     )
 
@@ -94,7 +108,7 @@ async def index(request: Request, guesses: str = ""):
 async def distance(
         request: Request,
         word: str = Query(default=..., min_length=2, max_length=24, regex=r"^[א-ת ']+$"),
-) -> schemas.DistanceResponse:
+) -> Union[schemas.DistanceResponse, list[schemas.DistanceResponse]]:
     word = word.replace("'", "")
     if egg := EasterEggLogic.get_easter_egg(word):
         response = schemas.DistanceResponse(
@@ -114,6 +128,16 @@ async def distance(
             distance=cache_score,
             solver_count=solver_count,
         )
+    if request.headers.get("x-sh-version", "2022-02-20") >= "2023-09-10":
+        if request.state.user:
+            history_logic = UserHistoryLogic(
+                request.app.state.mongo,
+                request.state.user,
+                get_date(request.app.state.days_delta)
+            )
+            return await history_logic.update_and_get_history(response)
+        else:
+            return [response]
     return response
 
 

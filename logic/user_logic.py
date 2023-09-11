@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 import datetime
 
+from common import schemas
+
 
 class UserLogic:
     def __init__(self, mongo):
@@ -20,5 +22,54 @@ class UserLogic:
         return user
 
     async def get_user(self, email):
-        return await self.mongo.users.find_one({"email": email})
+        return await self.mongo.users.find_one({"email": email}, {"history": 0})
+
+
+class UserHistoryLogic:
+    def __init__(self, mongo, user, date):
+        self.mongo = mongo
+        self.user = user
+        self.date = str(date)
+
+    @property
+    def projection(self):
+        return {"history": f"$history.{self.date}"}
+
+    @property
+    def user_filter(self):
+        return {"email": self.user["email"]}
+
+    async def update_and_get_history(self, guess: schemas.DistanceResponse):
+        if guess.similarity is not None:
+            await self.mongo.users.update_one(
+                self.user_filter,
+                {"$push": {f"history.{self.date}": guess.dict()}},
+            )
+            with_bad_guess = []
+        else:
+            with_bad_guess = [guess]
+        history = await self.get_history()
+        return with_bad_guess + history
+
+    async def get_history(self):
+        raw_history = await self.mongo.users.find_one(
+            self.user_filter,
+            projection=self.projection
+        )
+        history = []
+        guesses = set()
+        for document in raw_history.get("history", []):
+            historia = schemas.DistanceResponse(**document)
+            if historia.guess not in guesses:
+                guesses.add(historia.guess)
+                history.append(historia)
+        if len(history) != len(raw_history):
+            # fix duplicates
+            await self.mongo.users.update_one(
+                self.user_filter,
+                {"$set": {f"history.{self.date}": [historia.dict() for historia in history]}}
+            )
+        for i, historia in enumerate(history, start=1):
+            historia.guess_number = i
+        return history
 

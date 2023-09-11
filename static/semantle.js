@@ -310,6 +310,12 @@ let Semantle = (function() {
                 tooltipMenu.style.display = "none";
             }
         });
+        // Event listener for clicking the logout link
+        logoutLink.addEventListener("click", function (event) {
+          event.preventDefault(); // Prevent the link from navigating
+          localStorage.clear();
+          window.location.href = "/logout";
+        });
     } else {
         // The "menu" element is not yet available, so set up a MutationObserver to wait for it
         const observer = new MutationObserver(function (mutationsList) {
@@ -518,9 +524,7 @@ addEventListenersWhenMenuAppears();
         let oldGuessesStr = $("#old_guesses")[0].innerText;
         if (oldGuessesStr && oldGuessesStr.length > 1) {
              let oldGuesses = JSON.parse(oldGuessesStr);
-             let guessNumber = 0;
              oldGuesses.forEach(guess => {
-                saveGame(-1, -1);
                 dealWithGuess(guess);
              });
          }

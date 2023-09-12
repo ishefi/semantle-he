@@ -46,9 +46,9 @@ function solveStory(guesses, puzzleNumber) {
     let greens = 0;
     let whites = 0;
     let squares = 5;
-    shareGuesses.forEach(guess => {
-        [similarity, old_guess, guess_number, percentile, egg] = guess;
-        greens = Math.max(Math.floor(squares * percentile / 1000), 0);
+    shareGuesses.forEach(entry => {
+        let {similarity, guess, guess_number, distance, egg} = entry;
+        greens = Math.max(Math.floor(squares * distance / 1000), 0);
         whites = squares - greens;
         if (egg) {
             txt += '✨'.repeat(squares);
@@ -58,7 +58,7 @@ function solveStory(guesses, puzzleNumber) {
         }
         txt += ' ' + guess_number;
         if (greens != 0) {
-            txt += ' (' + percentile + '/1000)';
+            txt += ' (' + distance + '/1000)';
         }
         txt += '\n'
     }

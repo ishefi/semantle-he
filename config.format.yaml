@@ -23,7 +23,6 @@
     "YOUTUBE_ID2"
   ],
   "mongo":"mongodb+srv://MONGOHOST:MONGOPORT/DB",
-  "api_key":"APIKEY",
   "redis":"redis://REDISHOST:REDISPORT",
   "limit":500, #number of requests allowed in <period>
   "period":400, # period (seconds)

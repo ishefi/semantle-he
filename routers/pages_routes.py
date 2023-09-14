@@ -12,7 +12,7 @@ from fastapi.responses import HTMLResponse
 
 from common.consts import FIRST_DATE
 from logic.game_logic import VectorLogic
-from logic.user_logic import UserHistoryLogic
+from logic.user_logic import UserHistoryLogic, UserLogic
 from routers.base import get_date
 from routers.base import get_logics
 from routers.base import render
@@ -74,9 +74,11 @@ async def yesterday_top(request: Request):
 
 
 @pages_router.get("/secrets", response_class=HTMLResponse)
-async def secrets(request: Request, api_key: Optional[str] = None, with_future: bool = False):
-    if api_key != request.app.state.api_key and with_future:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
+async def secrets(request: Request, with_future: bool = False):
+    if with_future:
+        user = request.state.user
+        if not user or not UserLogic.has_permissions(user, UserLogic.SUPER_ADMIN):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
 
     logic, _ = get_logics(app=request.app)
     all_secrets = await logic.secret_logic.get_all_secrets(with_future=with_future)

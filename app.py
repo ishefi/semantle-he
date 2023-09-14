@@ -34,7 +34,6 @@ app.state.period = int(os.environ.get("PERIOD", getattr(config, 'period', 20)))
 app.state.videos = config.videos
 app.state.current_timeframe = 0
 app.state.usage = defaultdict(int)
-app.state.api_key = config.api_key
 app.state.quotes = config.quotes
 app.state.notification = config.notification
 app.state.js_version = JS_VERSION

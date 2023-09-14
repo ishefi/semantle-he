@@ -1,17 +1,25 @@
 #!/usr/bin/env python
 import datetime
 
+from common import config
 from common import schemas
 
 
 class UserLogic:
+    USER = "User"
+    SUPER_ADMIN = config.super_admin
+
+    PERMISSIONS = (
+        USER,
+        SUPER_ADMIN,
+    )
     def __init__(self, mongo):
         self.mongo = mongo
 
     async def create_user(self, user_info):
         user = {
                 "email": user_info["email"],
-                "user_type": "User",
+                "user_type": self.USER,
                 "active": True,
                 "picture": user_info["picture"],
                 "given_name": user_info["given_name"],
@@ -23,6 +31,10 @@ class UserLogic:
 
     async def get_user(self, email):
         return await self.mongo.users.find_one({"email": email}, {"history": 0})
+
+    @staticmethod
+    def has_permissions(user, permission):
+        return UserLogic.PERMISSIONS.index(user["user_type"]) >= UserLogic.PERMISSIONS.index(permission)
 
 
 class UserHistoryLogic:

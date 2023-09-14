@@ -85,7 +85,7 @@ async def index(request: Request):
             historia.dict() for historia in await history_logic.get_history()
         ])
     else:
-        history = []
+        history = ""
 
     quotes = request.app.state.quotes
     quote = random.choices(quotes, weights=[0.5] + [0.5 / (len(quotes) - 1)] * (len(quotes) - 1))[0]

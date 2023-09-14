@@ -47,18 +47,24 @@
 </button>
 {% if user %}
     <div id="profile-pic">
-    <img src="{{user['picture']}}" style="height: 2rem; border-radius: 50%" id="profile-image">
+    <img src="{{user['picture']}}" style="height: 2rem; border-radius: 50%" id="profile-image" referrerpolicy="no-referrer">
     <div id="tooltip-menu" class="hidden">
         <a id="logout-link" style="color: black; font-size: small;">להתנתק</a>
     </div>
 </div>
 {% else %}
-<div class="g_id_signin" data-type="icon" data-size="medium"></div>
+<div style="color-scheme: light">
 <div id="g_id_onload"
     data-client_id="{{ google_auth_client_id }}"
     data-ux_mode="redirect"
     data-login_uri="/login"
     style="visibility: hidden">
+</div>
+<div class="g_id_signin"
+     data-type="icon"
+     data-shape="circle"
+     data-size="medium">
+</div>
 </div>
 {% endif %}
 </nav>

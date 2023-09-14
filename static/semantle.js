@@ -2,6 +2,8 @@ let cache = {};
 let darkModeMql = window.matchMedia('(prefers-color-scheme: dark)');
 let darkMode = false;
 
+let storyToShare = "";
+
 function getSolverCountStory(beforePronoun) {
     let solverCountStory = "";
     if (localStorage.getItem("solverCount"))  {
@@ -68,10 +70,7 @@ function solveStory(guesses, puzzleNumber) {
 }
 
 function share() {
-    // We use the stored guesses here, because those are not updated again
-    // once you win -- we don't want to include post-win guesses here.
-    const text = solveStory(JSON.parse(window.localStorage.getItem("guesses")), puzzleNumber.innerText);
-    const copied = ClipboardJS.copy(text);
+    const copied = ClipboardJS.copy(storyToShare);
 
     if (copied) {
         alert("העתקת, אפשר להדביק ברשתות החברתיות!");
@@ -103,6 +102,7 @@ let Semantle = (function() {
     const handleStats = false;
     const storage = window.localStorage;
     let notificationId = null;
+    let guessesToWin = 5000;
 
 //    TODO: use value sent from BE ?
     const day_ms = 86400000;
@@ -147,7 +147,7 @@ let Semantle = (function() {
         if (cache.hasOwnProperty(word)) {
             let cached = cache[word];
             cached.guess = word;
-            return cached;
+            return [cached];
         }
         const url = "/api/distance" + '?word=' + word;
         const response = await fetch(url, {headers: new Headers({'X-SH-Version': "2023-09-10"})});
@@ -210,6 +210,23 @@ let Semantle = (function() {
         toggleDarkMode(darkMode);
     }
 
+    function addToCache(guessDataPoints) {
+      guessDataPoints.forEach((guessData) => {
+        let toCache = Object.assign({}, guessData);
+        toCache.guess_number = 0;
+        cache[guessData.guess] = toCache;
+      });
+      storage.setItem("cache", JSON.stringify(cache));
+    }
+
+    function clearState(withCache) {
+      storage.removeItem("guesses");
+      storage.removeItem("winState");
+      if (withCache) {
+        storage.removeItem("cache");
+      }
+    }
+
     function saveGame(guessCount, winState) {
         // If we are in a tab still open from yesterday, we're done here.
         // Don't save anything because we may overwrite today's game!
@@ -234,6 +251,9 @@ let Semantle = (function() {
     }
 
     function updateGuesses(newGuess) {
+        if (guesses.length < 1) {
+          return;
+        }
         let inner = `<tr>
         <th>#</th>
         <th>ניחוש</th>
@@ -313,7 +333,7 @@ let Semantle = (function() {
         // Event listener for clicking the logout link
         logoutLink.addEventListener("click", function (event) {
           event.preventDefault(); // Prevent the link from navigating
-          localStorage.clear();
+          clearState(false);
           window.location.href = "/logout";
         });
     } else {
@@ -426,20 +446,25 @@ addEventListenersWhenMenuAppears();
         if (form === undefined) return;
 
         function dealWithHistory(guessHistory) {
-          if (!guessHistory || guessHistory.length <= 1) {
+          if (!guessHistory) {
             return;
           }
           guessed = new Set();
           guesses = []
-          for (var i = 0; i < guessHistory.length - 1; i++) {
+          for (var i = 0; i < guessHistory.length; i++) {
             let guess = guessHistory[i];
-            guessed.add(guess.guess);
-            guesses.push(guess);
+            dealWithGuess(guess);
+            // guessed.add(guess.guess);
+            // guesses.push(guess);
           }
           guessCount = guessed.size + 1;
         }
 
         function dealWithGuess(entry) {
+            addToCache([entry]);
+            if (entry.solver_count != null) {
+              storage.setItem("solverCount", JSON.stringify(entry.solver_count));
+            }
             let {similarity, guess, distance, egg} = entry;
             if ((!guessed.has(guess)) && (similarity != null)) {
                 guessed.add(guess);
@@ -469,10 +494,11 @@ addEventListenersWhenMenuAppears();
                 return false;
             }
 
-            const allGuessData = await getSim(guess);
+            let allGuessData = await getSim(guess);
             let guessData = null;
             if (allGuessData) {
               guessData = allGuessData[allGuessData.length - 1];
+              allGuessData = allGuessData.slice(0, allGuessData.length - 1);
             }
             if (guessData == null || guessData.similarity === null) {
                 $('#error')[0].textContent = `אני לא מכיר את המילה ${guess}.`;
@@ -481,28 +507,25 @@ addEventListenersWhenMenuAppears();
             }
 
             $('#guess')[0].value = "";
-
-            let score = guessData.similarity;
-            const distance = guessData.distance;
-            let egg = guessData.egg;
-            let toCache = Object.assign({}, guessData);
-            toCache.guess_number = 0;
-            cache[guess] = toCache; // TODO: deal with history as well
-            storage.setItem("cache", JSON.stringify(cache));
-            if (guessData.solver_count != null) {
-                storage.setItem("solverCount", JSON.stringify(guessData.solver_count));
+            if (allGuessData.length > 1) {
+              dealWithHistory(allGuessData);
             }
-            dealWithHistory(allGuessData);
             dealWithGuess(guessData);
             return false;
         });
 
-//        let puzzleNumber = $("#puzzleNumber")[0].innerText;
+        let oldGuessesStr = $("#old_guesses")[0].innerText;
+        if (oldGuessesStr && oldGuessesStr.length > 1) {
+             let oldGuesses = JSON.parse(oldGuessesStr);
+             clearState(true);
+             dealWithHistory(oldGuesses);
+             addToCache(oldGuesses);
+             saveGame(-1, -1);
+         }
+
         let storagePuzzleNumber = storage.getItem("puzzleNumber");
         if (storagePuzzleNumber != puzzleNumber) {
-            storage.removeItem("guesses");
-            storage.removeItem("cache");
-            storage.removeItem("winState");
+            clearState(true);
             storage.setItem("puzzleNumber", puzzleNumber);
         }
 
@@ -515,19 +538,11 @@ addEventListenersWhenMenuAppears();
                 guessed.add(guess.guess);
             }
             guessCount = guesses.length + 1;
-            updateGuesses("");
+            updateGuesses();
             if (winState != -1) {
                 endGame(winState);
             }
         }
-
-        let oldGuessesStr = $("#old_guesses")[0].innerText;
-        if (oldGuessesStr && oldGuessesStr.length > 1) {
-             let oldGuesses = JSON.parse(oldGuessesStr);
-             oldGuesses.forEach(guess => {
-                dealWithGuess(guess);
-             });
-         }
 
             var x = setInterval(function() {
                 // Find the distance between now and the count down date
@@ -584,6 +599,7 @@ addEventListenersWhenMenuAppears();
         const solverCountStory = getSolverCountStory("לפניך");
 
         if (won) {
+            storyToShare = solveStory(guesses, puzzleNumber);
             response = `<p><b>
             ניצחת!
             מצאת את הפתרון תוך ${guesses.length} ניחושים!

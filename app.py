@@ -3,17 +3,16 @@ import os
 import time
 from collections import defaultdict
 from datetime import datetime, timedelta
-from typing import Union, Annotated
 
 import uvicorn
 from fastapi.staticfiles import StaticFiles
 from common import config
 from common.session import get_mongo, get_redis, get_model
 
-from fastapi import FastAPI, Request, status, Cookie
+from fastapi import FastAPI, Request, status
 from fastapi.responses import JSONResponse
 
-from handlers import router
+from routers import routers
 from logic.user_logic import UserLogic
 
 STATIC_FOLDER = "static"
@@ -51,7 +50,8 @@ except ValueError:
     delta = 0
 app.state.days_delta = timedelta(days=delta)
 app.mount(f"/{STATIC_FOLDER}", StaticFiles(directory=STATIC_FOLDER), name=STATIC_FOLDER)
-app.include_router(router)
+for router in routers:
+    app.include_router(router)
 
 
 def request_is_limited(key: str):
@@ -99,6 +99,11 @@ async def get_user(request: Request, call_next):
     else:
         request.state.user = None
     return await(call_next(request))
+
+
+@app.get("/health")
+async def health():
+    return {"message": "Healthy!"}
 
 
 if __name__ == "__main__":

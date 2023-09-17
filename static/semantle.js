@@ -307,59 +307,69 @@ let Semantle = (function() {
         }
     }
 
-    function addEventListenersWhenMenuAppears() {
-    const profileImage = document.getElementById("profile-image");
-    const tooltipMenu = document.getElementById("tooltip-menu");
-    const logoutLink = document.getElementById("logout-link");
-
-
-    function toggleTooltipMenu() {
-        tooltipMenu.style.display = tooltipMenu.style.display === "block" ? "none" : "block";
+    function getAllChildren(node, nodes) {
+      node.childNodes.forEach(function(child) {
+        getAllChildren(child, nodes);
+      });
+      nodes.push(node);
     }
 
-    if (profileImage && tooltipMenu && logoutLink) {
-        // Event listener for clicking the profile image
-        profileImage.addEventListener("click", function (event) {
-            event.stopPropagation(); // Prevent the click event from propagating to the document
-            toggleTooltipMenu();
-        });
-
-        // Event listener for clicking anywhere outside the tooltip menu
-        document.addEventListener("click", function (event) {
-            if (event.target !== tooltipMenu && event.target !== profileImage) {
-                tooltipMenu.style.display = "none";
-            }
-        });
-        // Event listener for clicking the logout link
-        logoutLink.addEventListener("click", function (event) {
-          event.preventDefault(); // Prevent the link from navigating
-          clearState(false);
-          window.location.href = "/logout";
-        });
-    } else {
+    function addEventListenerWhenElementAppears(elementId, event, eventListener, domEventListener) {
+      const element = document.getElementById(elementId);
+      if (element) {
+        element.addEventListener(event, eventListener);
+        if (domEventListener) {
+          document.addEventListener(event, domEventListener);
+        }
+      } else {
         // The "menu" element is not yet available, so set up a MutationObserver to wait for it
         const observer = new MutationObserver(function (mutationsList) {
             for (const mutation of mutationsList) {
                 if (mutation.type === "childList" && mutation.addedNodes) {
                     for (const addedNode of mutation.addedNodes) {
-                        if (addedNode.id === "menu") {
-                            // "menu" element is now available, remove the observer and add event listeners
-                            observer.disconnect();
-                            addEventListenersWhenMenuAppears();
-                            return;
+                        let allChildren = [];
+                        getAllChildren(addedNode, allChildren);
+                        for (const node of allChildren) {
+                          if (node.id === elementId) {
+                              // element is now available, remove the observer and add event listeners
+                              observer.disconnect();
+                              addEventListenerWhenElementAppears(elementId, event, eventListener, domEventListener);
+                              return;
+                          }
                         }
                     }
                 }
             }
         });
-
         // Start observing changes in the DOM
         observer.observe(document.body, { childList: true, subtree: true });
+      }
     }
-}
 
-// Call the function to add event listeners when the "menu" element appears
-addEventListenersWhenMenuAppears();
+    addEventListenerWhenElementAppears("profile-image", "click", (function (event) {
+      event.stopPropagation(); // Prevent the click event from propagating to the document
+      const tooltipMenu = document.getElementById("tooltip-menu");
+      tooltipMenu.style.display = tooltipMenu.style.display === "block" ? "none" : "block";
+    }), (function(event) {
+      const tooltipMenu = document.getElementById("tooltip-menu");
+      if (event.target !== tooltipMenu) {
+        tooltipMenu.style.display = "none";
+      }
+    }));
+    addEventListenerWhenElementAppears("logout-link", "click", function(event) {
+          event.preventDefault();
+          clearState(false);
+          window.location.href = "/logout";
+      }
+    );
+    addEventListenerWhenElementAppears("menu-toggle", "click", function(event){
+      this.classList.toggle("active");
+      this.parentNode.classList.toggle("active");
+      const navButtons = document.querySelectorAll('nav button');
+      navButtons.forEach(function (button) {
+        button.classList.toggle("show");
+      });
+    });
 
 
 

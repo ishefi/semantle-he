@@ -326,6 +326,10 @@ body.dark .panel {
     background: #334;
 }
 
+body.dark #menu .burger-menu .bar {
+    background-color: #fafafa;
+}
+
 /*
 Accordion styling taken from
 https://www.w3schools.com/howto/howto_js_accordion.asp
@@ -378,7 +382,7 @@ body.dark .accordion {
   margin-right: 5px;
 }
 
-.active:after {
+.accordion.active:after {
   content: "\2796"; /* Unicode character for "minus" sign (-) */
   font-size: 17px;
 }
@@ -390,7 +394,7 @@ body.dark .accordion:after {
   margin-right: 5px;
 }
 
-body.dark .active:after {
+body.dark .accordion.active:after {
   content: "\2796"; /* Unicode character for "minus" sign (-) */
   font-size: 17px;
 }
@@ -407,4 +411,78 @@ img.emoji {
     padding: 5px;
     display: none;
     transform: translateX(50%); /* Move left by 100% of its own width */
+}
+
+
+.burger-menu {
+    display: none; /* Hide the hamburger menu button by default */
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 10px;
+}
+
+.burger-menu .bar {
+    width: 20px;
+    height: 3px;
+    background-color: #000; /* Adjust the color as needed */
+    margin: 5px auto;
+    transition: 0.4s;
+    border-radius: 10px;
+}
+
+/* Add animation for the bars when menu is toggled */
+.burger-menu.active .bar:nth-child(1) {
+    transform: rotate(-45deg) translate(-5px, 6px);
+}
+
+.burger-menu.active .bar:nth-child(2) {
+    opacity: 0;
+}
+
+.burger-menu.active .bar:nth-child(3) {
+    transform: rotate(45deg) translate(-5px, -6px);
+}
+
+/* Media query for mobile devices */
+@media screen and (max-width: 768px) {
+    /* Show the hamburger icon and hide the navigation buttons */
+    .burger-menu {
+        display: block !important;
+    }
+
+    #menu button {
+        display: none;
+    }
+
+    /* Style the hamburger icon as needed */
+    .burger-menu {
+        /* Add styles for the hamburger icon, e.g., background, size, etc. */
+    }
+    #menu nav button {
+      display: none;
+    }
+
+    #menu {
+      top: 2rem;
+      left: 1rem;
+      position: fixed;
+      display: flex;
+      flex-direction: column-reverse;
+      background-color: #f3f3f38a;
+      padding: 4px;
+      border-radius: 2px;
+    }
+
+    #menu.active {
+      height: auto;
+    }
+
+    body.dark #menu {
+      background-color: #7570708a;
+    }
+}
+
+.show {
+    display: block !important;
 }

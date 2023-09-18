@@ -211,6 +211,8 @@ header {
 #menu {
     display: flex;
     column-gap: .5em;
+    align-items: center;
+    line-height: 1rem;
 }
 
 #menu button,
@@ -218,6 +220,11 @@ header {
     background: transparent;
     border: none;
     padding: 0;
+    opacity: 0.6;
+}
+
+#menu button:hover {
+  opacity: 1;
 }
 
 #menu button svg {
@@ -459,8 +466,10 @@ img.emoji {
     .burger-menu {
         /* Add styles for the hamburger icon, e.g., background, size, etc. */
     }
-    #menu nav button {
+    #menu button {
       display: none;
+      opacity: 1;
+
     }
 
     #menu {
@@ -472,6 +481,7 @@ img.emoji {
       background-color: #f3f3f38a;
       padding: 4px;
       border-radius: 2px;
+      row-gap: .4em;
     }
 
     #menu.active {

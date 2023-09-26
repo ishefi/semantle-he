@@ -151,7 +151,7 @@ body.settings-open #settings-underlay {
     position: fixed;
     right: 0;
     top: 0;
-    z-index: 1;
+    z-index: 1000;
 }
 
 body.dialog-open {
@@ -213,7 +213,7 @@ header {
     column-gap: .5em;
     align-items: center;
     line-height: 1rem;
-    z-index: 1000;
+    z-index: 999; /* under modal */
 }
 
 #menu button,

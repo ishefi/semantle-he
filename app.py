@@ -29,8 +29,8 @@ CSS_VERSION = css_hasher.hexdigest()[:8]
 app = FastAPI()
 app.state.mongo = get_mongo()
 app.state.redis = get_redis()
-app.state.limit = int(os.environ.get("LIMIT", getattr(config, 'limit', 10)))
-app.state.period = int(os.environ.get("PERIOD", getattr(config, 'period', 20)))
+app.state.limit = int(os.environ.get("LIMIT", getattr(config, "limit", 10)))
+app.state.period = int(os.environ.get("PERIOD", getattr(config, "period", 20)))
 app.state.videos = config.videos
 app.state.current_timeframe = 0
 app.state.usage = defaultdict(int)
@@ -38,12 +38,14 @@ app.state.quotes = config.quotes
 app.state.notification = config.notification
 app.state.js_version = JS_VERSION
 app.state.css_version = CSS_VERSION
-app.state.model = get_model(mongo=app.state.mongo.word2vec2, has_model=hasattr(config, "model_zip_id"))
+app.state.model = get_model(
+    mongo=app.state.mongo.word2vec2, has_model=hasattr(config, "model_zip_id")
+)
 app.state.google_app = config.google_app
 
 
 try:
-    date = datetime.strptime(os.environ.get("GAME_DATE", ""), '%Y-%m-%d').date()
+    date = datetime.strptime(os.environ.get("GAME_DATE", ""), "%Y-%m-%d").date()
     delta = (datetime.utcnow().date() - date).days
 except ValueError:
     delta = 0
@@ -73,7 +75,7 @@ def request_is_limited(key: str):
 def get_idenitifier(request: Request):
     forwarded = request.headers.get("X-Forwarded-For")
     if forwarded:
-        return forwarded.split(',')[0].strip()
+        return forwarded.split(",")[0].strip()
     return request.client.host
 
 
@@ -92,12 +94,13 @@ async def get_user(request: Request, call_next):
         mongo = request.app.state.mongo
         session = await mongo.sessions.find_one({"session_id": session_id})
         if session is None:
-            return
-        user_logic = UserLogic(mongo)
-        request.state.user = await user_logic.get_user(session["user_email"])
+            request.state.user = None
+        else:
+            user_logic = UserLogic(mongo)
+            request.state.user = await user_logic.get_user(session["user_email"])
     else:
         request.state.user = None
-    return await(call_next(request))
+    return await call_next(request)
 
 
 @app.get("/health")
@@ -106,4 +109,4 @@ async def health():
 
 
 if __name__ == "__main__":
-    uvicorn.run('app:app', port=5001, reload=getattr(config, 'reload', False))
+    uvicorn.run("app:app", port=5001, reload=getattr(config, "reload", False))

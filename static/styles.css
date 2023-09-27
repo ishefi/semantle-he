@@ -497,3 +497,12 @@ img.emoji {
 .show {
     display: block !important;
 }
+
+.material-symbols-rounded {
+  vertical-align: bottom;
+}
+
+#statistics-table td {
+  padding-left: 2em;
+  padding-top: 0.2em;
+}

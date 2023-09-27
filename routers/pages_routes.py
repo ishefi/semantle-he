@@ -2,6 +2,7 @@
 import json
 import random
 from datetime import timedelta
+import urllib.parse
 
 from fastapi import APIRouter
 from fastapi import HTTPException
@@ -121,6 +122,7 @@ async def menu(request: Request):
         request=request,
         google_auth_client_id=request.app.state.google_app["client_id"],
         user=request.state.user,
+        next_page=urllib.parse.urlparse(request.headers.get("referer")).path
     )
 
 

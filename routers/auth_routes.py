@@ -51,6 +51,7 @@ async def logout(
 ):
     auth_logic = AuthLogic(request.app.state.mongo, request.app.state.google_app["client_id"])
     await auth_logic.logout(session_id)
-    response = RedirectResponse("/", status_code=status.HTTP_302_FOUND)
+    redirect = urllib.parse.urlparse(request.headers.get("referer")).path
+    response = RedirectResponse(redirect, status_code=status.HTTP_302_FOUND)
     response.delete_cookie(key="session_id")
     return response

@@ -2,7 +2,6 @@
 import json
 import random
 from datetime import timedelta
-from typing import Optional
 
 from fastapi import APIRouter
 from fastapi import HTTPException
@@ -12,7 +11,9 @@ from fastapi.responses import HTMLResponse
 
 from common.consts import FIRST_DATE
 from logic.game_logic import VectorLogic
-from logic.user_logic import UserHistoryLogic, UserLogic
+from logic.user_logic import UserHistoryLogic
+from logic.user_logic import UserLogic
+from logic.user_logic import UserStatisticsLogic
 from routers.base import get_date
 from routers.base import get_logics
 from routers.base import render
@@ -98,8 +99,8 @@ async def secrets(request: Request, with_future: bool = False):
 
 @pages_router.get("/faq", response_class=HTMLResponse, include_in_schema=False)
 async def faq(request: Request):
-    _, cache_logic = get_logics(app=request.app, delta=timedelta(days=1))
-    cache = await cache_logic.cache
+    # _, cache_logic = get_logics(app=request.app, delta=timedelta(days=1))
+    # cache = await cache_logic.cache
     return render(
         name="faq.html",
         request=request,
@@ -120,4 +121,19 @@ async def menu(request: Request):
         request=request,
         google_auth_client_id=request.app.state.google_app["client_id"],
         user=request.state.user,
+    )
+
+
+@pages_router.get("/statistics", response_class=HTMLResponse, include_in_schema=False)
+async def get_statistics(request: Request):
+    if request.state.user is not None:
+        logic = UserStatisticsLogic(request.app.state.mongo, request.state.user)
+        statistics = await logic.get_statistics()
+    else:
+        statistics = None
+    return render(
+        name="statistics.html",
+        request=request,
+        statistics=statistics,
+        google_auth_client_id=request.app.state.google_app["client_id"],
     )

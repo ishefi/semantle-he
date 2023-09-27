@@ -1,5 +1,5 @@
 from motor.motor_asyncio import AsyncIOMotorClient as MongoClient
-from aioredis.client import Redis
+from redis.asyncio import Redis
 from common.logger import logger
 from common import config
 from model import GensimModel

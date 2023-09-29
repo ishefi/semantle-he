@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import datetime
 import sys
-from typing import Optional
+from dateutil.relativedelta import relativedelta
 
 from common import config
 from common import schemas
@@ -40,6 +40,28 @@ class UserLogic:
         return UserLogic.PERMISSIONS.index(
             user["user_type"]
         ) >= UserLogic.PERMISSIONS.index(permission)
+
+    async def subscribe(self, subscription: schemas.Subscription) -> bool:
+        user = await self.get_user(subscription.email) # TODO: deal with unknown users
+        if user is None:
+            return False
+        if subscription.message_id in user.get("subscription_ids", []):
+            return False
+        now = datetime.datetime.utcnow()
+        expiry = user.get("subscription_expiry", now)
+        expiry = max(expiry, now)
+        expiry += relativedelta(
+            months=subscription.amount // 3,  # one month per 3$
+            days=10 * (subscription.amount % 3)  # 10 days per 1$ reminder
+        )
+        await self.mongo.users.update_one(
+            {"email": subscription.email},
+            {
+                "$set": {"subscription_expiry": expiry},
+                "$push": {"subscription_ids": subscription.message_id},
+            }
+        )
+        return True
 
 
 class UserHistoryLogic:

@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import datetime
 from typing import Optional
 from pydantic import BaseModel
 from pydantic import validator
@@ -24,3 +25,11 @@ class UserStatistics(BaseModel):
     def result_check(cls, v):
         ...
         return round(v, 2)
+
+class Subscription(BaseModel):
+    verification_token: str
+    message_id: str
+    timestamp: datetime.datetime
+    email: str
+    amount: int
+    tier_name: str | None = None

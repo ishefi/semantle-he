@@ -84,7 +84,9 @@
            autocomplete="off"
            type="search" id="guess">
     <input type="submit" value="ניחוש" id="guess-btn">
-<!--    <input type="button" value="נמאס לי" id="give-up-btn">-->
+    {% set user = request.state.user %}
+
+        <input type="button" value="רמז" id="clue-btn">
     </div>
     </form>
     <div id="response"></div>

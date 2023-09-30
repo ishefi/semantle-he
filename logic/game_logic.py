@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import timedelta
+import hashlib
 import heapq
 import inspect
 from typing import TYPE_CHECKING
@@ -165,6 +166,12 @@ class CacheSecretLogic:
             return (await self.cache).index(word) + 1
         except ValueError:
             return -1
+
+    async def get_clue_char(self) -> str:
+        secret = await self.secret
+        digest = hashlib.md5(secret.encode()).hexdigest()
+        clue_index = int(digest, 16) % len(secret)
+        return secret[clue_index]  # TODO: deal with final letters?
 
 
 class CacheSecretLogicGensim(CacheSecretLogic):

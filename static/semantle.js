@@ -524,6 +524,26 @@ let Semantle = (function() {
             return false;
         });
 
+        $("#clue-btn").click(async function(event) {
+            const url = "/api/clue";
+            const response = await fetch(url);
+            var clue;
+            try {
+                if (response.status === 200) {
+                    clue = (await response.json()).clue;
+                }
+                else if (response.status === 401) {
+                    clue = "רמזים זמינים רק למשתמשים מחוברים שתרמו לסמנטעל, יש להתחבר";
+                }
+                else if (response.status === 402) {
+                    clue = "רמז זאת הדרך שלנו לומר תודה למי שנרשמו ותרמו לסמנטעל. אפשר לתרום או להמשיך לשחק בלי רמזים :)";
+                }
+            } catch (e) {
+                clue =  "בעיה בקבלת רמז. אפשר לנסות שוב מאוחר יותר.";
+            }
+            alert(clue);
+        });
+
         let oldGuessesStr = $("#old_guesses")[0].innerText;
         if (oldGuessesStr && oldGuessesStr.length > 1) {
              let oldGuesses = JSON.parse(oldGuessesStr);

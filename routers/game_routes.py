@@ -2,8 +2,10 @@
 from typing import Union
 
 from fastapi import APIRouter
+from fastapi import HTTPException
 from fastapi import Query
 from fastapi import Request
+from fastapi import status
 
 from common import schemas
 from logic.game_logic import EasterEggLogic
@@ -49,3 +51,14 @@ async def distance(
         else:
             return [response]
     return response
+
+@game_router.get("/api/clue")
+async def get_clue(request: Request):
+    if not request.state.user:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
+    elif not request.state.user["has_active_subscription"]:
+        raise HTTPException(status_code=status.HTTP_402_PAYMENT_REQUIRED)
+    else:
+        _, cache_logic = get_logics(app=request.app)
+        clue_char = await cache_logic.get_clue_char()
+        return {"clue": f'המילה הסודית מכילה את האות "{clue_char}"'}

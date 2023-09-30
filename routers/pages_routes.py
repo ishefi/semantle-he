@@ -121,7 +121,6 @@ async def menu(request: Request):
         name="menu.html",
         request=request,
         google_auth_client_id=request.app.state.google_app["client_id"],
-        user=request.state.user,
         next_page=urllib.parse.urlparse(request.headers.get("referer")).path
     )
 

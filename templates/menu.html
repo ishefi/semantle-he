@@ -43,6 +43,7 @@
       <div class="bar"></div>
       <div class="bar"></div>
     </button>
+    {% set user = request.state.user %}
     {% if user %}
     <div id="profile-pic">
         <img src="{{user['picture']}}" style="height: 2rem; border-radius: 50%"

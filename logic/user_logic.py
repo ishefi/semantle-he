@@ -33,7 +33,10 @@ class UserLogic:
         return user
 
     async def get_user(self, email):
-        return await self.mongo.users.find_one({"email": email}, {"history": 0})
+        user = await self.mongo.users.find_one({"email": email}, {"history": 0})
+        subscription_expiry = user.get("subscription_expiry", datetime.datetime.utcnow())
+        user["has_active_subscription"] = subscription_expiry > datetime.datetime.utcnow()
+        return user
 
     @staticmethod
     def has_permissions(user, permission):

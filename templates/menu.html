@@ -45,7 +45,10 @@
     </button>
     {% if user %}
     <div id="profile-pic">
-        <img src="{{user['picture']}}" style="height: 2rem; border-radius: 50%" id="profile-image" referrerpolicy="no-referrer">
+        <img src="{{user['picture']}}" style="height: 2rem; border-radius: 50%"
+             {% if user['has_active_subscription'] %} class="shimmer" {% endif %}
+             id="profile-image"
+             referrerpolicy="no-referrer">
         <div id="tooltip-menu" class="hidden">
             <a id="logout-link" style="color: black; font-size: small;">להתנתק</a>
         </div>

@@ -506,3 +506,17 @@ img.emoji {
   padding-left: 2em;
   padding-top: 0.2em;
 }
+
+.shimmer {
+  -webkit-mask:linear-gradient(-60deg,#000 30%,#0005,#000 70%) right/300% 100%;
+  background-repeat: no-repeat;
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  20% {-webkit-mask-position:left}
+}
+
+@keyframes shimmer {
+  100% {-webkit-mask-position:left}
+}

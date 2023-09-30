@@ -33,8 +33,10 @@ class UserLogic:
         await self.mongo.users.insert_one(user)
         return user
 
-    async def get_user(self, email):
+    async def get_user(self, email) -> dict | None:
         user = await self.mongo.users.find_one({"email": email}, {"history": 0})
+        if not user:
+            return None
         subscription_expiry = user.get("subscription_expiry", datetime.datetime.utcnow())
         user["has_active_subscription"] = subscription_expiry > datetime.datetime.utcnow()
         return user

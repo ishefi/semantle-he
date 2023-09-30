@@ -4,6 +4,20 @@ let darkMode = false;
 
 let storyToShare = "";
 
+const RED = "#f44336";
+const GREEN = "#4CAF50";
+const YELLOW = "#ffeb3b";
+
+
+function snackbarAlert(alertText, alertColor) {
+    let x = document.getElementById("snackbar");
+    x.innerText = alertText;
+    x.style.backgroundColor = alertColor;
+    x.className = "show";
+    setTimeout(function(){ x.className = x.className.replace("show", ""); }, 5000);
+}
+
+
 function getSolverCountStory(beforePronoun) {
     let solverCountStory = "";
     if (localStorage.getItem("solverCount"))  {
@@ -73,10 +87,10 @@ function share() {
     const copied = ClipboardJS.copy(storyToShare);
 
     if (copied) {
-        alert("העתקת, אפשר להדביק ברשתות החברתיות!");
+        snackbarAlert("העתקת, אפשר להדביק ברשתות החברתיות!", GREEN);
     }
     else {
-        alert("Failed to copy to clipboard");
+        snackbarAlert("Failed to copy to clipboard", RED);
     }
 }
 
@@ -84,10 +98,10 @@ function shareBtc() {
     const BTCAddress = "bc1qe3hpdddft34lmm7g6s6u6pef6k6mz4apykrla3jewapxeup4hpwsydhgx0";
     const copied = ClipboardJS.copy(BTCAddress);
     if (copied) {
-        alert("copied BTC wallet address :)");
+        snackbarAlert("copied BTC wallet address :)", GREEN);
     }
     else {
-        alert("Failed to copy to clipboard");
+        snackbarAlert("Failed to copy to clipboard", RED);
     }
 }
 
@@ -541,7 +555,7 @@ let Semantle = (function() {
             } catch (e) {
                 clue =  "בעיה בקבלת רמז. אפשר לנסות שוב מאוחר יותר.";
             }
-            alert(clue);
+            snackbarAlert(clue, response.status === 200 ? GREEN : YELLOW);
         });
 
         let oldGuessesStr = $("#old_guesses")[0].innerText;

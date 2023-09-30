@@ -167,13 +167,6 @@ class CacheSecretLogic:
         except ValueError:
             return -1
 
-    async def get_clue_char(self) -> str:
-        secret = await self.secret
-        digest = hashlib.md5(secret.encode()).hexdigest()
-        clue_index = int(digest, 16) % len(secret)
-        return secret[clue_index]  # TODO: deal with final letters?
-
-
 class CacheSecretLogicGensim(CacheSecretLogic):
     def __init__(self, model_path, *args, **kwargs):
         super().__init__(*args, **kwargs)

@@ -85,8 +85,9 @@
            type="search" id="guess">
     <input type="submit" value="ניחוש" id="guess-btn">
     {% set user = request.state.user %}
-
+    {% if user and user["has_active_subscription"] %}
         <input type="button" value="רמז" id="clue-btn">
+    {% endif %}
     </div>
     </form>
     <div id="response"></div>

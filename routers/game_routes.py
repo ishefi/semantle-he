@@ -10,6 +10,7 @@ from fastapi import status
 from common import schemas
 from logic.game_logic import EasterEggLogic
 from logic.user_logic import UserHistoryLogic
+from logic.user_logic import UserClueLogic
 from routers.base import get_date
 from routers.base import get_logics
 
@@ -60,5 +61,10 @@ async def get_clue(request: Request):
         raise HTTPException(status_code=status.HTTP_402_PAYMENT_REQUIRED)
     else:
         _, cache_logic = get_logics(app=request.app)
-        clue_char = await cache_logic.get_clue_char()
+        user_logic = UserClueLogic(
+            mongo=request.app.state.mongo,
+            user=request.state.user,
+            secret=await cache_logic.secret
+        )
+        clue_char = await user_logic.get_clue()
         return {"clue": f'המילה הסודית מכילה את האות "{clue_char}"'}

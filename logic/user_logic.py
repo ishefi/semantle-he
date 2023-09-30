@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import datetime
+import hashlib
 import sys
 from dateutil.relativedelta import relativedelta
 
@@ -175,3 +176,16 @@ class UserStatisticsLogic:
             else:
                 break
         return game_streak
+
+
+class UserClueLogic:
+    def __init__(self, mongo, user, secret):
+        self.mongo = mongo
+        self.user = user
+        self.secret = secret
+
+    async def get_clue(self):
+        digest = hashlib.md5(self.secret.encode()).hexdigest()
+        clue_index = int(digest, 16) % len(self.secret)
+        # TODO: mark clue as used?
+        return self.secret[clue_index]  # TODO: deal with final letters?

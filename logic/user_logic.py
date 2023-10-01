@@ -223,7 +223,7 @@ class UserClueLogic:
         clues = self.user.get("clues")
         if clues is None:
             return False
-        max_date = datetime.datetime.fromisoformat(max(clues))
+        max_date = datetime.datetime.fromisoformat(max(clues)).date()
         if max_date + self.CLUE_COOLDOWN_FOR_UNSUBSCRIBED > self.date:
             return True
         else:

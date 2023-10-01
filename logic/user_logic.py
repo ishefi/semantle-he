@@ -181,13 +181,68 @@ class UserStatisticsLogic:
 
 
 class UserClueLogic:
-    def __init__(self, mongo, user, secret):
+    CLUE_CHAR_FORMAT = 'המילה הסודית מכילה את האות "{clue_char}"'
+    CLUE_LEN_FORMAT = "המילה הסודית מכילה {clue_len} אותיות"
+    NO_MORE_CLUES_STR = "אין יותר רמזים"
+    CLUE_COOLDOWN_FOR_UNSUBSCRIBED = datetime.timedelta(days=7)
+
+
+    def __init__(self, mongo, user, secret, date):
         self.mongo = mongo
         self.user = user
         self.secret = secret
+        self.date = date
 
-    async def get_clue(self):
+    @property
+    def clues(self):
+        return [
+            self._get_clue_char,
+            self._get_secret_len,
+        ]
+
+    @property
+    def clues_used(self):
+        return self.user.get("clues", {}).get(str(self.date), 0)
+
+    async def get_clue(self) -> str | None:
+        if not self.user["has_active_subscription"] and self._used_max_clues_for_inactive():
+            raise ValueError("Reached max clues")
+        elif self.clues_used < len(self.clues):
+            await self._update_clue_usage()
+            return await self.clues[self.clues_used]()
+        else:
+            return None
+
+    async def get_all_clues_used(self):
+        clues = []
+        for i in range(self.clues_used):
+            clues.append(await self.clues[i]())
+        return clues
+
+    async def _used_max_clues_for_inactive(self):
+        clues = self.user.get("clues")
+        if clues is None:
+            return False
+        max_date = datetime.datetime.fromisoformat(max(clues))
+        if max_date + self.CLUE_COOLDOWN_FOR_UNSUBSCRIBED > self.date:
+            return True
+        else:
+            return False
+
+
+    async def _update_clue_usage(self):
+        await self.mongo.users.update_one(
+            {"email": self.user["email"]},
+            {
+                "$inc": {f"clues.{self.date}": 1}
+            }
+        )
+
+    async def _get_clue_char(self):
         digest = hashlib.md5(self.secret.encode()).hexdigest()
         clue_index = int(digest, 16) % len(self.secret)
-        # TODO: mark clue as used?
-        return self.secret[clue_index]  # TODO: deal with final letters?
+        # TODO: deal with final letters?
+        return self.CLUE_CHAR_FORMAT.format(clue_char=self.secret[clue_index])
+
+    async def _get_secret_len(self):
+        return self.CLUE_LEN_FORMAT.format(clue_len=len(self.secret))

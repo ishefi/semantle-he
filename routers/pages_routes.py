@@ -12,6 +12,7 @@ from fastapi.responses import HTMLResponse
 
 from common.consts import FIRST_DATE
 from logic.game_logic import VectorLogic
+from logic.user_logic import UserClueLogic
 from logic.user_logic import UserHistoryLogic
 from logic.user_logic import UserLogic
 from logic.user_logic import UserStatisticsLogic
@@ -56,6 +57,17 @@ async def index(request: Request):
         quotes, weights=[0.5] + [0.5 / (len(quotes) - 1)] * (len(quotes) - 1)
     )[0]
 
+    if request.state.user:
+        clue_logic = UserClueLogic(
+            mongo=request.app.state.mongo,
+            user=request.state.user,
+            secret=await logic.secret_logic.get_secret(),
+            date=date,
+        )
+        used_clues = await clue_logic.get_all_clues_used()
+    else:
+        used_clues = []
+
     return render(
         name="index.html",
         request=request,
@@ -67,6 +79,7 @@ async def index(request: Request):
         quote=quote,
         guesses=history,
         notification=request.app.state.notification,
+        clues=used_clues,
     )
 
 

@@ -6,6 +6,7 @@ from fastapi import HTTPException
 from fastapi import Query
 from fastapi import Request
 from fastapi import status
+from fastapi.responses import Response
 
 from common import schemas
 from logic.game_logic import EasterEggLogic
@@ -57,14 +58,19 @@ async def distance(
 async def get_clue(request: Request):
     if not request.state.user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
-    elif not request.state.user["has_active_subscription"]:
-        raise HTTPException(status_code=status.HTTP_402_PAYMENT_REQUIRED)
     else:
-        _, cache_logic = get_logics(app=request.app)
+        logic, _ = get_logics(app=request.app)
         user_logic = UserClueLogic(
             mongo=request.app.state.mongo,
             user=request.state.user,
-            secret=await cache_logic.secret
+            secret=await logic.secret_logic.get_secret(),
+            date=get_date(request.app.state.days_delta),
         )
-        clue_char = await user_logic.get_clue()
-        return {"clue": f'המילה הסודית מכילה את האות "{clue_char}"'}
+        try:
+            clue = await user_logic.get_clue()
+        except ValueError:
+            raise HTTPException(status_code=status.HTTP_402_PAYMENT_REQUIRED)
+        if clue is None:
+            return Response(status_code=status.HTTP_204_NO_CONTENT)
+        else:
+            return {"clue": clue}

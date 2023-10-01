@@ -45,15 +45,23 @@ function getSolverCountStory(beforePronoun) {
 
 
 function solveStory(guesses, puzzleNumber) {
-//    if (guess_count == 0) {
-//        return `I gave up on Semantle ${puzzleNumber} without even guessing once.`;
-//    }
-
-//    if (guess_count == 1) {
-//        return `I got Semantle ${puzzleNumber} on my first guess!`;
-//    }
-
-    txt = 'פתרתי את סמנטעל #' + puzzleNumber + ' ב־' + guesses.length + ' ניחושים!\n';
+    const totalClues = $("#clueList > li").length;
+    txt = `פתרתי את סמנטעל #${puzzleNumber} ב`;
+    if (guesses.length == 1) {
+        txt += "ניחוש אחד, ";
+    }
+    else {
+        txt += `־${guesses.length} ניחושים, `;
+    }
+    if (totalClues === 0) {
+        txt += 'ובלי רמזים בכלל!\n';
+    }
+    else if (totalClues === 1) {
+        txt += 'עם רמז אחד!\n';
+    }
+    else {
+        txt += `עם ${totalClues} רמזים!\n`;
+    }
     txt += getSolverCountStory('לפני');
     txt += '\nhttps://semantle.ishefi.com\n';
     let shareGuesses = guesses.slice();
@@ -540,19 +548,26 @@ let Semantle = (function() {
 
         $("#clue-btn").click(async function(event) {
             const url = "/api/clue";
-            const response = await fetch(url);
             var clue;
             try {
+                const response = await fetch(url);
                 if (response.status === 200) {
                     clue = (await response.json()).clue;
+                    $("#clue-btn").val("עוד רמז");
+                    $("#clueList").append(`<li>${clue}</li>`)
+                }
+                else if (response.status === 204 ) {
+                    clue = "אין יותר רמזים";
+                    $("#clue-btn").attr("disabled", true)
                 }
                 else if (response.status === 401) {
-                    clue = "רמזים זמינים רק למשתמשים מחוברים שתרמו לסמנטעל, יש להתחבר";
+                    clue = "רמזים זמינים רק למשתמשים מחוברים, יש להתחבר";
                 }
                 else if (response.status === 402) {
-                    clue = "רמז זאת הדרך שלנו לומר תודה למי שנרשמו ותרמו לסמנטעל. אפשר לתרום או להמשיך לשחק בלי רמזים :)";
+                    clue = "רמזים זאת הדרך שלנו לומר תודה למי שתרם לסמנטעל. משתמשים שלא תרמו זכאים לרמז אחד בשבוע. אפשר להמשיך לשחק בלי רמזים :)";
                 }
             } catch (e) {
+                console.log(e);
                 clue =  "בעיה בקבלת רמז. אפשר לנסות שוב מאוחר יותר.";
             }
             snackbarAlert(clue, response.status === 200 ? GREEN : YELLOW);

@@ -49,7 +49,7 @@ async def main():
 
     args = parser.parse_args()
 
-    mongo = get_mongo()
+    mongo = get_mongo().word2vec2
     redis = get_redis()
     has_model = hasattr(config, "model_zip_id")
     model = get_model(has_model=has_model, mongo=mongo)

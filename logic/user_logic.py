@@ -205,9 +205,7 @@ class UserClueLogic:
         return self.user.get("clues", {}).get(str(self.date), 0)
 
     async def get_clue(self) -> str | None:
-        if not self.user["has_active_subscription"] and await self._used_max_clues_for_inactive():
-            raise ValueError("Reached max clues")
-        elif self.clues_used < len(self.clues):
+        if self.clues_used < len(self.clues):
             await self._update_clue_usage()
             return await self.clues[self.clues_used]()
         else:

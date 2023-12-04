@@ -226,6 +226,7 @@ header {
 
 #menu button:hover {
   opacity: 1;
+  cursor: pointer;
 }
 
 #menu button svg {

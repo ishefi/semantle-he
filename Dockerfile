@@ -3,9 +3,10 @@ FROM python:3.11
 #
 WORKDIR /code
 #
-COPY ./requirements.txt /code/requirements.txt
+COPY ./pyproject.toml /code/pyproject.toml
 #
-RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
+RUN pip install --no-cache-dir --upgrade poetry
+RUN poetry install --no-dev
 #
 
 COPY ./common /code/common

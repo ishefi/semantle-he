@@ -9,15 +9,8 @@ you can download one by following the instructions [here](https://github.com/Idd
 ### Console 
 
 ```commandline
-python -m virtualenv venv
-source venv/bin/activate
-pip install -r requirements.txt
-```
-
-unless you want to do dev stuff and then you can replace the last line with:
-
-```commandline
-pip install -r requirements-dev.txt
+pip install poetry
+poetry install
 ```
 
 Install [mongodb](https://www.mongodb.com/docs/manual/installation/) and [redis](https://redis.io/docs/getting-started/installation/).

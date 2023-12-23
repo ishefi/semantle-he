@@ -22,7 +22,7 @@ subscription_router = APIRouter(prefix="/api/subscribe")
 async def subscribe(
         request: Request,
         data: Annotated[str, Form()]
-):
+) -> dict[str, str]:
     subscription = schemas.Subscription(**json.loads(data))
     is_valid_token = hmac.compare_digest(
         subscription.verification_token, config.kofi_verification_token

@@ -21,10 +21,11 @@ class UserStatistics(BaseModel):
     total_games_won: int
     average_guesses: float
 
-    @validator('average_guesses')
-    def result_check(cls, v):
+    @validator('average_guesses')  # TODO: use some other parsing method
+    def result_check(cls, v: float) -> float:
         ...
         return round(v, 2)
+
 
 class Subscription(BaseModel):
     verification_token: str

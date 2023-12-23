@@ -26,6 +26,24 @@ python-multipart = "^0.0.6"
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^3.6.0"
+mypy = "^1.8.0"
+types-python-dateutil = "^2.8.19.14"
+types-requests = "^2.31.0.10"
+types-redis = "^4.6.0.11"
+
+
+[tool.mypy]
+strict = true
+
+[[tool.mypy.overrides]]
+module = [
+  "gdown",
+  "gensim.*",
+  "google.oauth2",
+  "google.auth.transport",
+]
+ignore_missing_imports = true
+
 
 [build-system]
 requires = ["poetry-core"]

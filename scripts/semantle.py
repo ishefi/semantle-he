@@ -12,26 +12,30 @@ from logic.game_logic import VectorLogic
 from logic.game_logic import CacheSecretLogic
 
 
-async def main():
+async def main() -> None:
     print("Welcome! Take a guess:")
     inp = None
-    mongo = get_mongo()
+    mongo = get_mongo().word2vec2
     redis = get_redis()
     model = get_model()
     date = datetime.utcnow().date()
     logic = VectorLogic(mongo, dt=date, model=model)
     secret = await logic.secret_logic.get_secret()
+    if secret is None:
+        raise Exception("No secret for today!")  # TODO: better exception
     cache_logic = CacheSecretLogic(mongo, redis, secret=secret, dt=date, model=model)
     while inp != 'exit':
         if datetime.utcnow().date() != date:
             date = datetime.utcnow().date()
             logic = VectorLogic(mongo, dt=date, model=model)
             secret = await logic.secret_logic.get_secret()
+            if secret is None:
+                raise Exception("No secret for today!")  # TODO: better exception
             cache_logic = CacheSecretLogic(mongo, redis, secret=secret, dt=date, model=model)
         inp = input('>')
         print(inp[::-1])
         similarity = await logic.get_similarity(inp)
-        if similarity < 0:
+        if similarity is None or similarity < 0:
             print("I don't know this word!")
         else:
             cache_score = await cache_logic.get_cache_score(inp)

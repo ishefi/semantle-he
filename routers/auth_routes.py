@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 import urllib.parse
-from typing import Union
 from typing import Annotated
 
 from fastapi import APIRouter
@@ -21,7 +20,7 @@ async def login(
         request: Request,
         credential: Annotated[str, Form()],
         state: Annotated[str, Form()] = "",
-):
+) -> RedirectResponse:
     try:
         parsed_state = urllib.parse.parse_qs(state)
         auth_logic = AuthLogic(request.app.state.mongo, request.app.state.google_app["client_id"])
@@ -47,11 +46,16 @@ async def login(
 @auth_router.get("/logout")
 async def logout(
         request: Request,
-        session_id: Union[str, None] = Cookie(None),
-):
+        session_id: str | None = Cookie(None),
+) -> RedirectResponse:
     auth_logic = AuthLogic(request.app.state.mongo, request.app.state.google_app["client_id"])
-    await auth_logic.logout(session_id)
-    redirect = urllib.parse.urlparse(request.headers.get("referer")).path
-    response = RedirectResponse(redirect, status_code=status.HTTP_302_FOUND)
+    if session_id is not None:
+        await auth_logic.logout(session_id)
+    redirect = urllib.parse.urlparse(request.headers.get("referer"))
+    if isinstance(redirect.path, bytes):
+        path = redirect.path.decode()
+    else:
+        path = redirect.path
+    response = RedirectResponse(path, status_code=status.HTTP_302_FOUND)
     response.delete_cookie(key="session_id")
     return response

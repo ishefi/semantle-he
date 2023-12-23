@@ -1,9 +1,12 @@
+from __future__ import annotations
 import hashlib
 import os
 import time
 from collections import defaultdict
 from datetime import datetime, timedelta
+from typing import TYPE_CHECKING
 
+from fastapi import Response
 import uvicorn
 from fastapi.staticfiles import StaticFiles
 from common import config
@@ -14,6 +17,10 @@ from fastapi.responses import JSONResponse
 
 from routers import routers
 from logic.user_logic import UserLogic
+
+if TYPE_CHECKING:
+    from typing import Awaitable
+    from typing import Callable
 
 STATIC_FOLDER = "static"
 js_hasher = hashlib.sha3_256()
@@ -53,7 +60,7 @@ for router in routers:
     app.include_router(router)
 
 
-def request_is_limited(key: str):
+def request_is_limited(key: str) -> bool:
     now = int(time.time())
     current = now - now % app.state.period
     if app.state.current_timeframe != current:
@@ -67,27 +74,35 @@ def request_is_limited(key: str):
             int, {ip: usage for ip, usage in app.state.usage.items() if usage > 0}
         )
     app.state.usage[key] += 1
-    return app.state.usage[key] > app.state.limit
+    if app.state.usage[key] > app.state.limit:
+        return True
+    else:
+        return False
 
 
-def get_idenitifier(request: Request):
+def get_idenitifier(request: Request) -> str:
     forwarded = request.headers.get("X-Forwarded-For")
     if forwarded:
         return forwarded.split(",")[0].strip()
-    return request.client.host
+    if request.client:
+        return request.client.host
+    else:
+        return "unknown"
 
 
 @app.middleware("http")
-async def is_limited(request: Request, call_next):
+async def is_limited(request: Request, call_next: Callable[[Request], Awaitable[Response]]) -> Response:
     identifier = get_idenitifier(request)
     if request_is_limited(key=identifier):
-        return JSONResponse(status_code=status.HTTP_429_TOO_MANY_REQUESTS)
+        return JSONResponse(
+            content="", status_code=status.HTTP_429_TOO_MANY_REQUESTS
+        )
     response = await call_next(request)
     return response
 
 
 @app.middleware("http")
-async def get_user(request: Request, call_next):
+async def get_user(request: Request, call_next: Callable[[Request], Awaitable[Response]]) -> Response:
     if session_id := request.cookies.get("session_id"):
         mongo = request.app.state.mongo
         session = await mongo.sessions.find_one({"session_id": session_id})
@@ -102,7 +117,7 @@ async def get_user(request: Request, call_next):
 
 
 @app.get("/health")
-async def health():
+async def health() -> dict[str, str]:
     return {"message": "Healthy!"}
 
 

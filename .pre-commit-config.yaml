@@ -1,0 +1,9 @@
+repos:
+-   repo: local 
+    hooks:
+    - id: mypy
+      name: MyPy
+      entry: mypy
+      language: system
+      types: [python] 
+

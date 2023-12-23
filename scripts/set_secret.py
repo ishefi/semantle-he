@@ -51,8 +51,7 @@ async def main():
 
     mongo = get_mongo().word2vec2
     redis = get_redis()
-    has_model = hasattr(config, "model_zip_id")
-    model = get_model(has_model=has_model, mongo=mongo)
+    model = get_model()
 
     if args.date:
         date = args.date
@@ -63,7 +62,7 @@ async def main():
     else:
         secret = await get_random_word(mongo)
     while True:
-        await do_populate(mongo, redis, has_model, secret, date, model, args.force)
+        await do_populate(mongo, redis, secret, date, model, args.force)
         if not args.iterative:
             break
         date += timedelta(days=1)
@@ -81,11 +80,8 @@ async def get_date(mongo):
     return dt
 
 
-async def do_populate(mongo, redis, has_model, secret, date, model, force):
-    if has_model:
-        logic = CacheSecretLogicGensim('model.mdl', mongo, redis, secret, dt=date, model=model)
-    else:
-        logic = CacheSecretLogic(mongo, redis, secret, dt=date, model=model)
+async def do_populate(mongo, redis, secret, date, model, force):
+    logic = CacheSecretLogicGensim('model.mdl', mongo, redis, secret, dt=date, model=model)
     await logic.set_secret(dry=True, force=force)
     cache = [w[::-1] for w in (await logic.cache)[::-1]]
     print(' ,'.join(cache))
@@ -101,7 +97,7 @@ async def do_populate(mongo, redis, has_model, secret, date, model, force):
         return True
     else:
         secret = await get_random_word(mongo)
-        return await do_populate(mongo, redis, has_model, secret, date, model, force)
+        return await do_populate(mongo, redis, secret, date, model, force)
 
 
 async def get_random_word(mongo):

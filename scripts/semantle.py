@@ -17,7 +17,7 @@ async def main():
     inp = None
     mongo = get_mongo()
     redis = get_redis()
-    model = get_model(mongo)
+    model = get_model()
     date = datetime.utcnow().date()
     logic = VectorLogic(mongo, dt=date, model=model)
     secret = await logic.secret_logic.get_secret()

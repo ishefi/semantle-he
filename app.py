@@ -38,9 +38,7 @@ app.state.quotes = config.quotes
 app.state.notification = config.notification
 app.state.js_version = JS_VERSION
 app.state.css_version = CSS_VERSION
-app.state.model = get_model(
-    mongo=app.state.mongo.word2vec2, has_model=hasattr(config, "model_zip_id")
-)
+app.state.model = get_model()
 app.state.google_app = config.google_app
 
 

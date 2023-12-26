@@ -2,16 +2,15 @@
 from __future__ import annotations
 
 import datetime
-
 import hashlib
-
 
 from fastapi import APIRouter
 from fastapi import HTTPException
-from fastapi.requests import Request
 from fastapi import status
+from fastapi.requests import Request
 
 from common import config
+
 user_router = APIRouter(prefix="/api/user")
 
 

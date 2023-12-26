@@ -1,15 +1,16 @@
 import asyncio
-from datetime import datetime
 import os
 import sys
+from datetime import datetime
 
 base = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.extend([base])
 
-from common.session import get_redis, get_model
-from common.session import get_mongo
-from logic.game_logic import VectorLogic
-from logic.game_logic import CacheSecretLogic
+from common.session import get_model  # noqa: E402
+from common.session import get_mongo  # noqa: E402
+from common.session import get_redis  # noqa: E402
+from logic.game_logic import CacheSecretLogic  # noqa: E402
+from logic.game_logic import VectorLogic  # noqa: E402
 
 
 async def main() -> None:
@@ -24,15 +25,17 @@ async def main() -> None:
     if secret is None:
         raise Exception("No secret for today!")  # TODO: better exception
     cache_logic = CacheSecretLogic(mongo, redis, secret=secret, dt=date, model=model)
-    while inp != 'exit':
+    while inp != "exit":
         if datetime.utcnow().date() != date:
             date = datetime.utcnow().date()
             logic = VectorLogic(mongo, dt=date, model=model)
             secret = await logic.secret_logic.get_secret()
             if secret is None:
                 raise Exception("No secret for today!")  # TODO: better exception
-            cache_logic = CacheSecretLogic(mongo, redis, secret=secret, dt=date, model=model)
-        inp = input('>')
+            cache_logic = CacheSecretLogic(
+                mongo, redis, secret=secret, dt=date, model=model
+            )
+        inp = input(">")
         print(inp[::-1])
         similarity = await logic.get_similarity(inp)
         if similarity is None or similarity < 0:
@@ -40,11 +43,11 @@ async def main() -> None:
         else:
             cache_score = await cache_logic.get_cache_score(inp)
             if cache_score < 0:
-                cache_data = '(cold)'
+                cache_data = "(cold)"
             else:
-                cache_data = f'{cache_score}/1000'
+                cache_data = f"{cache_score}/1000"
             print(f"Distance: {similarity} | {cache_data}")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     asyncio.run(main())

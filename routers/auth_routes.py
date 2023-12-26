@@ -17,13 +17,15 @@ auth_router = APIRouter()
 
 @auth_router.post("/login")
 async def login(
-        request: Request,
-        credential: Annotated[str, Form()],
-        state: Annotated[str, Form()] = "",
+    request: Request,
+    credential: Annotated[str, Form()],
+    state: Annotated[str, Form()] = "",
 ) -> RedirectResponse:
     try:
         parsed_state = urllib.parse.parse_qs(state)
-        auth_logic = AuthLogic(request.app.state.mongo, request.app.state.google_app["client_id"])
+        auth_logic = AuthLogic(
+            request.app.state.mongo, request.app.state.google_app["client_id"]
+        )
         session_id = await auth_logic.session_id_from_credential(credential)
         if state is None or "next" not in parsed_state:
             next_uri = "/"
@@ -39,16 +41,19 @@ async def login(
         return response
     except ValueError:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="Could not validate credentials"
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Could not validate credentials",
         )
 
 
 @auth_router.get("/logout")
 async def logout(
-        request: Request,
-        session_id: str | None = Cookie(None),
+    request: Request,
+    session_id: str | None = Cookie(None),
 ) -> RedirectResponse:
-    auth_logic = AuthLogic(request.app.state.mongo, request.app.state.google_app["client_id"])
+    auth_logic = AuthLogic(
+        request.app.state.mongo, request.app.state.google_app["client_id"]
+    )
     if session_id is not None:
         await auth_logic.logout(session_id)
     redirect = urllib.parse.urlparse(request.headers.get("referer"))

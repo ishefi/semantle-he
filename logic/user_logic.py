@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 from __future__ import annotations
-from typing import TYPE_CHECKING
 
 import datetime
 import hashlib
 import sys
+from typing import TYPE_CHECKING
+
 from dateutil.relativedelta import relativedelta
 
 from common import config
@@ -14,6 +15,7 @@ if TYPE_CHECKING:
     from typing import Any
     from typing import Awaitable
     from typing import Callable
+
     import motor.core
 
 
@@ -48,8 +50,12 @@ class UserLogic:
         )
         if not user:
             return None
-        subscription_expiry = user.get("subscription_expiry", datetime.datetime.utcnow())
-        user["has_active_subscription"] = subscription_expiry > datetime.datetime.utcnow()
+        subscription_expiry = user.get(
+            "subscription_expiry", datetime.datetime.utcnow()
+        )
+        user["has_active_subscription"] = (
+            subscription_expiry > datetime.datetime.utcnow()
+        )
         return user
 
     @staticmethod
@@ -59,7 +65,7 @@ class UserLogic:
         ) >= UserLogic.PERMISSIONS.index(permission)
 
     async def subscribe(self, subscription: schemas.Subscription) -> bool:
-        user = await self.get_user(subscription.email) # TODO: deal with unknown users
+        user = await self.get_user(subscription.email)  # TODO: deal with unknown users
         if user is None:
             return False
         if subscription.message_id in user.get("subscription_ids", []):
@@ -69,21 +75,22 @@ class UserLogic:
         expiry = max(expiry, now)
         expiry += relativedelta(
             months=subscription.amount // 3,  # one month per 3$
-            days=10 * (subscription.amount % 3)  # 10 days per 1$ reminder
+            days=10 * (subscription.amount % 3),  # 10 days per 1$ reminder
         )
         await self.mongo.users.update_one(
             {"email": subscription.email},
             {
                 "$set": {"subscription_expiry": expiry},
                 "$push": {"subscription_ids": subscription.message_id},
-            }
+            },
         )
         return True
 
 
 class UserHistoryLogic:
     def __init__(
-        self, mongo: motor.core.AgnosticDatabase[Any],
+        self,
+        mongo: motor.core.AgnosticDatabase[Any],
         user: dict[str, Any],
         date: datetime.date,
     ):
@@ -100,7 +107,7 @@ class UserHistoryLogic:
         return {"email": self.user["email"]}
 
     async def update_and_get_history(
-            self, guess: schemas.DistanceResponse
+        self, guess: schemas.DistanceResponse
     ) -> list[schemas.DistanceResponse]:
         history = await self.get_history()
         if guess.similarity is not None:
@@ -128,7 +135,7 @@ class UserHistoryLogic:
         )
 
     async def _fix_history(
-            self, history: list[schemas.DistanceResponse], update_db: bool
+        self, history: list[schemas.DistanceResponse], update_db: bool
     ) -> list[schemas.DistanceResponse]:
         for i, historia in enumerate(history, start=1):
             historia.guess_number = i
@@ -165,7 +172,8 @@ class UserStatisticsLogic:
         user_history = user.get("history", {})
         user_history = {
             date: [schemas.DistanceResponse(**guess) for guess in history]
-            for date, history in user_history.items() if history
+            for date, history in user_history.items()
+            if history
         }
 
         game_streak = self._get_game_streak(user_history.keys())
@@ -208,11 +216,11 @@ class UserClueLogic:
     CLUE_COOLDOWN_FOR_UNSUBSCRIBED = datetime.timedelta(days=7)
 
     def __init__(
-            self,
-            mongo: motor.core.AgnosticDatabase[Any],
-            user: dict[str, Any],
-            secret: str,
-            date: datetime.date
+        self,
+        mongo: motor.core.AgnosticDatabase[Any],
+        user: dict[str, Any],
+        secret: str,
+        date: datetime.date,
     ):
         self.mongo = mongo
         self.user = user
@@ -256,10 +264,7 @@ class UserClueLogic:
 
     async def _update_clue_usage(self) -> None:
         await self.mongo.users.update_one(
-            {"email": self.user["email"]},
-            {
-                "$inc": {f"clues.{self.date}": 1}
-            }
+            {"email": self.user["email"]}, {"$inc": {f"clues.{self.date}": 1}}
         )
 
     async def _get_clue_char(self) -> str:

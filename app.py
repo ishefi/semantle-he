@@ -1,22 +1,27 @@
 from __future__ import annotations
+
 import hashlib
 import os
 import time
 from collections import defaultdict
-from datetime import datetime, timedelta
+from datetime import datetime
+from datetime import timedelta
 from typing import TYPE_CHECKING
 
-from fastapi import Response
 import uvicorn
-from fastapi.staticfiles import StaticFiles
-from common import config
-from common.session import get_mongo, get_redis, get_model
-
-from fastapi import FastAPI, Request, status
+from fastapi import FastAPI
+from fastapi import Request
+from fastapi import Response
+from fastapi import status
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 
-from routers import routers
+from common import config
+from common.session import get_model
+from common.session import get_mongo
+from common.session import get_redis
 from logic.user_logic import UserLogic
+from routers import routers
 
 if TYPE_CHECKING:
     from typing import Awaitable
@@ -91,18 +96,20 @@ def get_idenitifier(request: Request) -> str:
 
 
 @app.middleware("http")
-async def is_limited(request: Request, call_next: Callable[[Request], Awaitable[Response]]) -> Response:
+async def is_limited(
+    request: Request, call_next: Callable[[Request], Awaitable[Response]]
+) -> Response:
     identifier = get_idenitifier(request)
     if request_is_limited(key=identifier):
-        return JSONResponse(
-            content="", status_code=status.HTTP_429_TOO_MANY_REQUESTS
-        )
+        return JSONResponse(content="", status_code=status.HTTP_429_TOO_MANY_REQUESTS)
     response = await call_next(request)
     return response
 
 
 @app.middleware("http")
-async def get_user(request: Request, call_next: Callable[[Request], Awaitable[Response]]) -> Response:
+async def get_user(
+    request: Request, call_next: Callable[[Request], Awaitable[Response]]
+) -> Response:
     if session_id := request.cookies.get("session_id"):
         mongo = request.app.state.mongo
         session = await mongo.sessions.find_one({"session_id": session_id})

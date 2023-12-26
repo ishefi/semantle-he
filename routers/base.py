@@ -14,8 +14,9 @@ templates = Jinja2Templates(directory="templates")
 
 if TYPE_CHECKING:
     from typing import Any
-    from fastapi.responses import Response
+
     from fastapi import Request
+    from fastapi.responses import Response
 
 
 def get_date(delta: datetime.timedelta) -> datetime.date:
@@ -23,7 +24,9 @@ def get_date(delta: datetime.timedelta) -> datetime.date:
 
 
 # TODO: replace this with a dependency
-async def get_logics(app: FastAPI, delta: datetime.timedelta = datetime.timedelta()) -> tuple[VectorLogic, CacheSecretLogic]:
+async def get_logics(
+    app: FastAPI, delta: datetime.timedelta = datetime.timedelta()
+) -> tuple[VectorLogic, CacheSecretLogic]:
     delta += app.state.days_delta
     date = get_date(delta)
     logic = VectorLogic(app.state.mongo.word2vec2, dt=date, model=app.state.model)
@@ -41,11 +44,8 @@ async def get_logics(app: FastAPI, delta: datetime.timedelta = datetime.timedelt
 
 
 def render(name: str, request: Request, **kwargs: Any) -> Response:
-    kwargs['js_version'] = request.app.state.js_version
-    kwargs['css_version'] = request.app.state.css_version
-    kwargs['request'] = request
-    kwargs['enumerate'] = enumerate
-    return templates.TemplateResponse(
-        name,
-        context=kwargs
-    )
+    kwargs["js_version"] = request.app.state.js_version
+    kwargs["css_version"] = request.app.state.css_version
+    kwargs["request"] = request
+    kwargs["enumerate"] = enumerate
+    return templates.TemplateResponse(name, context=kwargs)

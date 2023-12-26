@@ -6,12 +6,11 @@ from fastapi import HTTPException
 from fastapi import Query
 from fastapi import Request
 from fastapi import status
-from fastapi.responses import Response
 
 from common import schemas
 from logic.game_logic import EasterEggLogic
-from logic.user_logic import UserHistoryLogic
 from logic.user_logic import UserClueLogic
+from logic.user_logic import UserHistoryLogic
 from routers.base import get_date
 from routers.base import get_logics
 
@@ -20,8 +19,8 @@ game_router = APIRouter()
 
 @game_router.get("/api/distance")
 async def distance(
-        request: Request,
-        word: str = Query(default=..., min_length=2, max_length=24, regex=r"^[א-ת ']+$"),
+    request: Request,
+    word: str = Query(default=..., min_length=2, max_length=24, regex=r"^[א-ת ']+$"),
 ) -> schemas.DistanceResponse | list[schemas.DistanceResponse]:
     word = word.replace("'", "")
     if egg := EasterEggLogic.get_easter_egg(word):
@@ -47,7 +46,7 @@ async def distance(
             history_logic = UserHistoryLogic(
                 request.app.state.mongo,
                 request.state.user,
-                get_date(request.app.state.days_delta)
+                get_date(request.app.state.days_delta),
             )
             return await history_logic.update_and_get_history(response)
         else:

@@ -1,14 +1,15 @@
 #!/usr/bin/env python
 from __future__ import annotations
+
 import json
 import random
-from datetime import timedelta
 import urllib.parse
+from datetime import timedelta
 
 from fastapi import APIRouter
 from fastapi import HTTPException
-from fastapi import Response
 from fastapi import Request
+from fastapi import Response
 from fastapi import status
 from fastapi.responses import HTMLResponse
 
@@ -23,7 +24,6 @@ from routers.base import get_logics
 from routers.base import render
 
 pages_router = APIRouter()
-
 
 
 @pages_router.get("/", response_class=HTMLResponse, include_in_schema=False)
@@ -140,7 +140,7 @@ async def menu(request: Request) -> Response:
         name="menu.html",
         request=request,
         google_auth_client_id=request.app.state.google_app["client_id"],
-        next_page=urllib.parse.urlparse(request.headers.get("referer")).path
+        next_page=urllib.parse.urlparse(request.headers.get("referer")).path,
     )
 
 

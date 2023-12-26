@@ -3,16 +3,18 @@ from __future__ import annotations
 import datetime
 import heapq
 from typing import TYPE_CHECKING
+
 from common import config
 from common.typing import np_float_arr
-
 
 if TYPE_CHECKING:
     from typing import Any
     from typing import AsyncIterator
     from typing import Generator
+
     from motor.core import AgnosticCollection
     from redis.asyncio import Redis
+
     from model import GensimModel
 
 
@@ -24,34 +26,35 @@ class SecretLogic:
         self.mongo = mongo
 
     async def get_secret(self) -> str | None:
-        wv = await self.mongo.find_one({'secret_date': str(self.date)})
+        wv = await self.mongo.find_one({"secret_date": str(self.date)})
         if wv:
-            secret: str = wv['word']
+            secret: str = wv["word"]
             return secret
         else:
             return None
 
     async def set_secret(self, secret: str) -> None:
         await self.mongo.update_one(
-            {'word': secret},
-            {'$set': {'secret_date': str(self.date)}}
-
+            {"word": secret}, {"$set": {"secret_date": str(self.date)}}
         )
 
     async def get_all_secrets(
-            self, with_future: bool
+        self, with_future: bool
     ) -> Generator[tuple[str, str], None, None]:
-        date_filter: dict[str, Any] = {'$exists': True, '$ne': None}
+        date_filter: dict[str, Any] = {"$exists": True, "$ne": None}
         if not with_future:
             date_filter["$lt"] = str(self.date)
         secrets = self.mongo.find({"secret_date": date_filter})
-        return ((secret['word'], secret['secret_date']) for secret in await secrets.to_list(None))
+        return (
+            (secret["word"], secret["secret_date"])
+            for secret in await secrets.to_list(None)
+        )
 
     async def get_and_update_solver_count(self) -> int:
         secret = await self.mongo.find_one_and_update(
-            {'secret_date': str(self.date)}, {'$inc': {'solver_count': 1}}
+            {"secret_date": str(self.date)}, {"$inc": {"solver_count": 1}}
         )
-        solver_count: int = secret.get('solver_count', 0)
+        solver_count: int = secret.get("solver_count", 0)
         return solver_count
 
 
@@ -59,9 +62,9 @@ class VectorLogic:
     _secret_cache: dict[str, np_float_arr] = {}
 
     def __init__(
-            self, mongo: AgnosticCollection[Any], model: GensimModel, dt: datetime.date
+        self, mongo: AgnosticCollection[Any], model: GensimModel, dt: datetime.date
     ):
-        self.model  = model
+        self.model = model
         self.mongo = mongo
         self.date = str(dt)
         self.secret_logic = SecretLogic(self.mongo, dt=dt)
@@ -102,17 +105,17 @@ class VectorLogic:
 
 
 class CacheSecretLogic:
-    _secret_cache_key_fmt = 'hs:{}:{}'
+    _secret_cache_key_fmt = "hs:{}:{}"
     _cache_dict: dict[str, list[str]] = {}
     MAX_CACHE = 50
 
     def __init__(
-            self,
-            mongo: AgnosticCollection[Any],
-            redis: Redis[Any],
-            secret: str,
-            dt: datetime.date,
-            model: GensimModel
+        self,
+        mongo: AgnosticCollection[Any],
+        redis: Redis[Any],
+        secret: str,
+        dt: datetime.date,
+        model: GensimModel,
     ):
         self.mongo = mongo
         self.redis = redis
@@ -129,7 +132,9 @@ class CacheSecretLogic:
     @property
     def secret_cache_key(self) -> str:
         if self._secret_cache_key is None:
-            self._secret_cache_key = self._secret_cache_key_fmt.format(self.secret, self.date)
+            self._secret_cache_key = self._secret_cache_key_fmt.format(
+                self.secret, self.date
+            )
         return self._secret_cache_key
 
     def _get_secret_vector(self) -> np_float_arr:
@@ -144,10 +149,10 @@ class CacheSecretLogic:
             if await self.vector_logic.secret_logic.get_secret() is not None:
                 raise ValueError("There is already a secret for this date")
 
-            wv = await self.mongo.find_one({'word': self.secret})
+            wv = await self.mongo.find_one({"word": self.secret})
             if wv is None:
                 raise ValueError("This word is not in the database")
-            if wv.get('secret_date') is not None:
+            if wv.get("secret_date") is not None:
                 raise ValueError("This word was a secret in the past")
 
         secret_vec = self._get_secret_vector()
@@ -164,7 +169,9 @@ class CacheSecretLogic:
             await self.do_populate()
 
     async def do_populate(self) -> None:
-        expiration = self.date_ - datetime.datetime.utcnow().date() + datetime.timedelta(days=4)
+        expiration = (
+            self.date_ - datetime.datetime.utcnow().date() + datetime.timedelta(days=4)
+        )
         await self.redis.delete(self.secret_cache_key)
         await self.redis.rpush(self.secret_cache_key, *await self.cache)
         await self.redis.expire(self.secret_cache_key, expiration)
@@ -176,7 +183,7 @@ class CacheSecretLogic:
         if cache is None or len(cache) < 1000:
             if len(self._cache_dict) > self.MAX_CACHE:
                 self._cache_dict.clear()
-            cached : list[str] = await self.redis.lrange(self.secret_cache_key, 0, -1)
+            cached: list[str] = await self.redis.lrange(self.secret_cache_key, 0, -1)
             self._cache_dict[self.date] = cached
         return self._cache_dict[self.date]
 

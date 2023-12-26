@@ -1,13 +1,17 @@
 from __future__ import annotations
+
 from typing import TYPE_CHECKING
+
+import gensim.models.keyedvectors as word2vec
 from motor.motor_asyncio import AsyncIOMotorClient as MongoClient
 from redis.asyncio import Redis
+
 from common import config
 from model import GensimModel
-import gensim.models.keyedvectors as word2vec
 
 if TYPE_CHECKING:
     from typing import Any
+
     import motor.core
 
 

@@ -1,22 +1,23 @@
 from __future__ import annotations
+
 import glob
 import json
 import os
 import sys
+from abc import ABC
+from abc import abstractmethod
 from pathlib import Path
 from typing import TYPE_CHECKING
-from abc import ABC, abstractmethod
 
+import gensim.models.keyedvectors as word2vec
 import numpy as np
 
 base = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.extend([base])
 
-import gensim.models.keyedvectors as word2vec
-from argparse import ArgumentParser
+from argparse import ArgumentParser  # noqa: E402
 
-from common.session import get_mongo
-
+from common.session import get_mongo  # noqa: E402
 
 if TYPE_CHECKING:
     from typing import Iterable
@@ -33,7 +34,7 @@ class BasePopulater(ABC):
         pass
 
     def _is_all_he(self, word: str) -> bool:
-        return all(ord('א') <= ord(c) <= ord('ת') for c in word)
+        return all(ord("א") <= ord(c) <= ord("ת") for c in word)
 
 
 class GensimPopulater(BasePopulater):
@@ -58,8 +59,8 @@ class JsonPopulater(BasePopulater):
 
 class ListsPopulater(BasePopulater):
     def __init__(self, folder: str):
-        (vecs_file,) = glob.glob(f'{folder}/*.npy')
-        (words_file,) = glob.glob(f'{folder}/*.txt')
+        (vecs_file,) = glob.glob(f"{folder}/*.npy")
+        (words_file,) = glob.glob(f"{folder}/*.txt")
         self.vecs = np.load(vecs_file).astype(np.float32)
         self.words = [w.strip() for w in open(words_file).readlines()]
 
@@ -70,10 +71,15 @@ class ListsPopulater(BasePopulater):
 
 def main() -> None:
     parser = ArgumentParser("Populate vector table")
-    parser.add_argument('-i', '--input', required=True, help='Input file (or folder for `lists`)')
     parser.add_argument(
-        '-t', '--input-type', help='Type of input', choices=['gensim', 'json', 'lists'],
-        default='gensim'
+        "-i", "--input", required=True, help="Input file (or folder for `lists`)"
+    )
+    parser.add_argument(
+        "-t",
+        "--input-type",
+        help="Type of input",
+        choices=["gensim", "json", "lists"],
+        default="gensim",
     )
     args = parser.parse_args()
 
@@ -82,9 +88,9 @@ def main() -> None:
         input_path = Path(__file__).resolve().parent.parent / input_path
     input_path_str = str(input_path)
     populator: BasePopulater
-    if args.input_type == 'gensim':
+    if args.input_type == "gensim":
         populator = GensimPopulater(input_path_str)
-    elif args.input_type == 'json':
+    elif args.input_type == "json":
         populator = JsonPopulater(input_path_str)
     else:
         populator = ListsPopulater(input_path_str)
@@ -93,12 +99,12 @@ def main() -> None:
     to_insert = []
     for i, w2v in enumerate(populator.get_w2v()):
         word, vec, count = w2v
-        doc: dict[str, str | bytes | int] = {'word': word, 'vec': vec}
+        doc: dict[str, str | bytes | int] = {"word": word, "vec": vec}
         if count is not None:
-            doc['count'] = count
+            doc["count"] = count
         to_insert.append(doc)
         if i % 5000 == 0:
-            if hasattr(populator, 'words'):
+            if hasattr(populator, "words"):
                 print(f"Done {i}/{len(populator.words)}")
             mongo.insert_many(to_insert)
             to_insert = []

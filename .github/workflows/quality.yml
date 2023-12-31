@@ -1,0 +1,24 @@
+name: Hooks
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  pre-commit-hooks:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    - uses: snok/install-poetry@v1
+      with:
+        virtualenvs-create: false
+    - name: Install Dependancies
+      run: |
+        poetry install --no-root --no-interaction 
+    - uses: pre-commit/action@v3.0.0
+

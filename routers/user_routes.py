@@ -1,21 +1,21 @@
 #!/usr/bin/env python
+from __future__ import annotations
+
 import datetime
 import hashlib
-import hmac
-import json
-from typing import Annotated
 
 from fastapi import APIRouter
-from fastapi import Form
 from fastapi import HTTPException
-from fastapi.requests import Request
 from fastapi import status
+from fastapi.requests import Request
 
 from common import config
+
 user_router = APIRouter(prefix="/api/user")
 
+
 @user_router.get("/info")
-async def get_user_info(request: Request):
+async def get_user_info(request: Request) -> dict[str, str | datetime.datetime | None]:
     user = request.state.user
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)

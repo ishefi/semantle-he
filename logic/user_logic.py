@@ -1,26 +1,37 @@
 #!/usr/bin/env python
+from __future__ import annotations
+
 import datetime
 import hashlib
 import sys
+from typing import TYPE_CHECKING
+
 from dateutil.relativedelta import relativedelta
 
 from common import config
 from common import schemas
+
+if TYPE_CHECKING:
+    from typing import Any
+    from typing import Awaitable
+    from typing import Callable
+
+    import motor.core
 
 
 class UserLogic:
     USER = "User"
     SUPER_ADMIN = config.super_admin
 
-    PERMISSIONS = (
+    PERMISSIONS = (  # TODO: enum
         USER,
         SUPER_ADMIN,
     )
 
-    def __init__(self, mongo):
+    def __init__(self, mongo: motor.core.AgnosticDatabase[Any]) -> None:
         self.mongo = mongo
 
-    async def create_user(self, user_info):
+    async def create_user(self, user_info: dict[str, str]) -> dict[str, Any]:
         user = {
             "email": user_info["email"],
             "user_type": self.USER,
@@ -33,22 +44,28 @@ class UserLogic:
         await self.mongo.users.insert_one(user)
         return user
 
-    async def get_user(self, email) -> dict | None:
-        user = await self.mongo.users.find_one({"email": email}, {"history": 0})
+    async def get_user(self, email: str) -> dict[str, Any] | None:
+        user: dict[str, Any] | None = await self.mongo.users.find_one(
+            {"email": email}, {"history": 0}
+        )
         if not user:
             return None
-        subscription_expiry = user.get("subscription_expiry", datetime.datetime.utcnow())
-        user["has_active_subscription"] = subscription_expiry > datetime.datetime.utcnow()
+        subscription_expiry = user.get(
+            "subscription_expiry", datetime.datetime.utcnow()
+        )
+        user["has_active_subscription"] = (
+            subscription_expiry > datetime.datetime.utcnow()
+        )
         return user
 
     @staticmethod
-    def has_permissions(user, permission):
+    def has_permissions(user: dict[str, Any], permission: str) -> bool:
         return UserLogic.PERMISSIONS.index(
             user["user_type"]
         ) >= UserLogic.PERMISSIONS.index(permission)
 
     async def subscribe(self, subscription: schemas.Subscription) -> bool:
-        user = await self.get_user(subscription.email) # TODO: deal with unknown users
+        user = await self.get_user(subscription.email)  # TODO: deal with unknown users
         if user is None:
             return False
         if subscription.message_id in user.get("subscription_ids", []):
@@ -58,33 +75,40 @@ class UserLogic:
         expiry = max(expiry, now)
         expiry += relativedelta(
             months=subscription.amount // 3,  # one month per 3$
-            days=10 * (subscription.amount % 3)  # 10 days per 1$ reminder
+            days=10 * (subscription.amount % 3),  # 10 days per 1$ reminder
         )
         await self.mongo.users.update_one(
             {"email": subscription.email},
             {
                 "$set": {"subscription_expiry": expiry},
                 "$push": {"subscription_ids": subscription.message_id},
-            }
+            },
         )
         return True
 
 
 class UserHistoryLogic:
-    def __init__(self, mongo, user, date):
+    def __init__(
+        self,
+        mongo: motor.core.AgnosticDatabase[Any],
+        user: dict[str, Any],
+        date: datetime.date,
+    ):
         self.mongo = mongo
         self.user = user
         self.date = str(date)
 
     @property
-    def projection(self):
+    def projection(self) -> dict[str, str]:
         return {"history": f"$history.{self.date}"}
 
     @property
-    def user_filter(self):
+    def user_filter(self) -> dict[str, str]:
         return {"email": self.user["email"]}
 
-    async def update_and_get_history(self, guess: schemas.DistanceResponse):
+    async def update_and_get_history(
+        self, guess: schemas.DistanceResponse
+    ) -> list[schemas.DistanceResponse]:
         history = await self.get_history()
         if guess.similarity is not None:
             history.append(guess)
@@ -92,12 +116,13 @@ class UserHistoryLogic:
         else:
             return [guess] + history
 
-    async def get_history(self):
-        raw_history = (
-            await self.mongo.users.find_one(
-                self.user_filter, projection=self.projection
-            )
-        ).get("history", [])
+    async def get_history(self) -> list[schemas.DistanceResponse]:
+        user_data = await self.mongo.users.find_one(
+            self.user_filter, projection=self.projection
+        )
+        if user_data is None:
+            raise ValueError("User not found")  # TODO: use our own error
+        raw_history = user_data.get("history", [])
         history = []
         guesses = set()
         for document in raw_history:
@@ -109,7 +134,9 @@ class UserHistoryLogic:
             history, update_db=len(history) != len(raw_history)
         )
 
-    async def _fix_history(self, history, update_db: bool):
+    async def _fix_history(
+        self, history: list[schemas.DistanceResponse], update_db: bool
+    ) -> list[schemas.DistanceResponse]:
         for i, historia in enumerate(history, start=1):
             historia.guess_number = i
         if update_db:
@@ -128,7 +155,7 @@ class UserHistoryLogic:
 
 
 class UserStatisticsLogic:
-    def __init__(self, mongo, user):
+    def __init__(self, mongo: motor.core.AgnosticDatabase[Any], user: dict[str, Any]):
         self.mongo = mongo
         self.user = user
 
@@ -137,14 +164,16 @@ class UserStatisticsLogic:
         # we should probably change the way we save the data - instead of having
         # saving history as an object with dates as its members, it should consist of
         # list with dates as its members.
-        user_history = (
-            await self.mongo.users.find_one(
-                {"email": self.user["email"]}, projection={"history": 1}
-            )
-        ).get("history", {})
+        user = await self.mongo.users.find_one(
+            {"email": self.user["email"]}, projection={"history": 1}
+        )
+        if user is None:
+            raise ValueError("User not found")  # TODO: use our own error
+        user_history = user.get("history", {})
         user_history = {
             date: [schemas.DistanceResponse(**guess) for guess in history]
-            for date, history in user_history.items() if history
+            for date, history in user_history.items()
+            if history
         }
 
         game_streak = self._get_game_streak(user_history.keys())
@@ -167,7 +196,7 @@ class UserStatisticsLogic:
             average_guesses=total_guesses / total_games_won if total_games_won else 0,
         )
 
-    def _get_game_streak(self, game_dates):
+    def _get_game_streak(self, game_dates: list[str]) -> int:
         game_dates = sorted(game_dates, reverse=True)
         date = datetime.datetime.utcnow().date()
         game_streak = 0
@@ -186,23 +215,29 @@ class UserClueLogic:
     NO_MORE_CLUES_STR = "אין יותר רמזים"
     CLUE_COOLDOWN_FOR_UNSUBSCRIBED = datetime.timedelta(days=7)
 
-
-    def __init__(self, mongo, user, secret, date):
+    def __init__(
+        self,
+        mongo: motor.core.AgnosticDatabase[Any],
+        user: dict[str, Any],
+        secret: str,
+        date: datetime.date,
+    ):
         self.mongo = mongo
         self.user = user
         self.secret = secret
         self.date = date
 
     @property
-    def clues(self):
+    def clues(self) -> list[Callable[[], Awaitable[str]]]:
         return [
             self._get_clue_char,
             self._get_secret_len,
         ]
 
     @property
-    def clues_used(self):
-        return self.user.get("clues", {}).get(str(self.date), 0)
+    def clues_used(self) -> int:
+        user_clues: dict[str, int] = self.user.get("clues", {})
+        return user_clues.get(str(self.date), 0)
 
     async def get_clue(self) -> str | None:
         if self.clues_used < len(self.clues):
@@ -211,13 +246,13 @@ class UserClueLogic:
         else:
             return None
 
-    async def get_all_clues_used(self):
+    async def get_all_clues_used(self) -> list[str]:
         clues = []
         for i in range(self.clues_used):
             clues.append(await self.clues[i]())
         return clues
 
-    async def _used_max_clues_for_inactive(self):
+    async def _used_max_clues_for_inactive(self) -> bool:
         clues = self.user.get("clues")
         if clues is None:
             return False
@@ -227,20 +262,16 @@ class UserClueLogic:
         else:
             return False
 
-
-    async def _update_clue_usage(self):
+    async def _update_clue_usage(self) -> None:
         await self.mongo.users.update_one(
-            {"email": self.user["email"]},
-            {
-                "$inc": {f"clues.{self.date}": 1}
-            }
+            {"email": self.user["email"]}, {"$inc": {f"clues.{self.date}": 1}}
         )
 
-    async def _get_clue_char(self):
+    async def _get_clue_char(self) -> str:
         digest = hashlib.md5(self.secret.encode()).hexdigest()
         clue_index = int(digest, 16) % len(self.secret)
         # TODO: deal with final letters?
         return self.CLUE_CHAR_FORMAT.format(clue_char=self.secret[clue_index])
 
-    async def _get_secret_len(self):
+    async def _get_secret_len(self) -> str:
         return self.CLUE_LEN_FORMAT.format(clue_len=len(self.secret))

@@ -1,12 +1,15 @@
 #!/usr/bin/env python
+from __future__ import annotations
+
 import json
 import random
-from datetime import timedelta
 import urllib.parse
+from datetime import timedelta
 
 from fastapi import APIRouter
 from fastapi import HTTPException
 from fastapi import Request
+from fastapi import Response
 from fastapi import status
 from fastapi.responses import HTMLResponse
 
@@ -24,8 +27,8 @@ pages_router = APIRouter()
 
 
 @pages_router.get("/", response_class=HTMLResponse, include_in_schema=False)
-async def index(request: Request):
-    logic, cache_logic = get_logics(app=request.app)
+async def index(request: Request) -> Response:
+    logic, cache_logic = await get_logics(app=request.app)
     cache = await cache_logic.cache
     closest1 = await logic.get_similarity(cache[-2])
     closest10 = await logic.get_similarity(cache[-12])
@@ -58,10 +61,13 @@ async def index(request: Request):
     )[0]
 
     if request.state.user:
+        secret = await logic.secret_logic.get_secret()
+        if secret is None:
+            raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE)
         clue_logic = UserClueLogic(
             mongo=request.app.state.mongo,
             user=request.state.user,
-            secret=await logic.secret_logic.get_secret(),
+            secret=secret,
             date=date,
         )
         used_clues = await clue_logic.get_all_clues_used()
@@ -86,7 +92,7 @@ async def index(request: Request):
 @pages_router.get(
     "/yesterday-top-1000", response_class=HTMLResponse, include_in_schema=False
 )
-async def yesterday_top(request: Request):
+async def yesterday_top(request: Request) -> Response:
     return render(
         name="closest1000.html",
         request=request,
@@ -95,13 +101,13 @@ async def yesterday_top(request: Request):
 
 
 @pages_router.get("/secrets", response_class=HTMLResponse)
-async def secrets(request: Request, with_future: bool = False):
+async def secrets(request: Request, with_future: bool = False) -> Response:
     if with_future:
         user = request.state.user
         if not user or not UserLogic.has_permissions(user, UserLogic.SUPER_ADMIN):
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
 
-    logic, _ = get_logics(app=request.app)
+    logic, _ = await get_logics(app=request.app)
     all_secrets = await logic.secret_logic.get_all_secrets(with_future=with_future)
 
     return render(
@@ -112,8 +118,8 @@ async def secrets(request: Request, with_future: bool = False):
 
 
 @pages_router.get("/faq", response_class=HTMLResponse, include_in_schema=False)
-async def faq(request: Request):
-    # _, cache_logic = get_logics(app=request.app, delta=timedelta(days=1))
+async def faq(request: Request) -> Response:
+    # _, cache_logic = await get_logics(app=request.app, delta=timedelta(days=1))
     # cache = await cache_logic.cache
     return render(
         name="faq.html",
@@ -124,22 +130,22 @@ async def faq(request: Request):
 
 
 @pages_router.get("/videos", response_class=HTMLResponse, include_in_schema=False)
-async def videos(request: Request):
+async def videos(request: Request) -> Response:
     return render(name="videos.html", request=request, videos=request.app.state.videos)
 
 
 @pages_router.get("/api/menu", response_class=HTMLResponse, include_in_schema=False)
-async def menu(request: Request):
+async def menu(request: Request) -> Response:
     return render(
         name="menu.html",
         request=request,
         google_auth_client_id=request.app.state.google_app["client_id"],
-        next_page=urllib.parse.urlparse(request.headers.get("referer")).path
+        next_page=urllib.parse.urlparse(request.headers.get("referer")).path,
     )
 
 
 @pages_router.get("/statistics", response_class=HTMLResponse, include_in_schema=False)
-async def get_statistics(request: Request):
+async def get_statistics(request: Request) -> Response:
     if request.state.user is not None:
         logic = UserStatisticsLogic(request.app.state.mongo, request.state.user)
         statistics = await logic.get_statistics()

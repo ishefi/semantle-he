@@ -1,87 +1,54 @@
-import struct
-from abc import ABC, abstractmethod
+from __future__ import annotations
 
-from gensim.models import KeyedVectors
-from numpy import dot
-from numpy.linalg.linalg import norm
+from typing import TYPE_CHECKING
+
 import numpy as np
+from gensim.models import KeyedVectors
 
-from common.consts import VEC_SIZE
+if TYPE_CHECKING:
+    from typing import AsyncIterator
 
-
-class Model(ABC):
-
-    @abstractmethod
-    async def get_vector(self, word: str):
-        pass
-
-    @abstractmethod
-    async def get_similarities(self, words: [str], vector: [float]) -> [float]:
-        pass
-
-    @abstractmethod
-    async def iterate_all(self):
-        pass
-
-    @abstractmethod
-    async def calc_similarity(self, vec1: [float], vec2: [float]):
-        pass
+    from common.typing import np_float_arr
 
 
-class GensimModel(Model):
-
+class GensimModel:
     def __init__(self, model: KeyedVectors):
         self.model = model
 
-    async def get_vector(self, word: str):
-        if not all(ord('א') <= ord(c) <= ord('ת') for c in word):
-            return
+    async def get_vector(self, word: str) -> np_float_arr | None:
+        if not all(ord("א") <= ord(c) <= ord("ת") for c in word):
+            return None
         if len(word) == 1:
-            return
+            return None
         if word not in self.model:
-            return
-        return self.model[word].tolist()
+            return None
+        vector: np_float_arr = self.model[word].tolist()
+        return vector
 
-    async def get_similarities(self, words: [str], vector: [float]) -> [float]:
-        return np.round(self.model.cosine_similarities(vector, np.asarray([self.model[w] for w in words])) * 100, 2)
+    async def get_similarities(
+        self, words: list[str], vector: np_float_arr
+    ) -> np_float_arr:
+        similarities: np_float_arr = np.round(
+            self.model.cosine_similarities(
+                vector, np.asarray([self.model[w] for w in words])
+            )
+            * 100,
+            2,
+        )
+        return similarities
 
-    async def iterate_all(self):
+    async def iterate_all(self) -> AsyncIterator[tuple[str, np_float_arr]]:
         for word in self.model.key_to_index.keys():
-            vector = await self.get_vector(word)
+            if isinstance(word, str):
+                vector = await self.get_vector(word)
+            else:
+                continue
             if vector is None:
                 continue
             yield word, self.model[word]
 
-    async def calc_similarity(self, vec1: [float], vec2: [float]) -> float:
-        return round(self.model.cosine_similarities(vec1, np.expand_dims(vec2, axis=0))[0] * 100 , 2)
-
-
-class MongoModel(Model):
-    _secret_cache = {}
-
-    def __init__(self, mongo):
-        self.mongo = mongo
-
-    async def get_vector(self, word: str):
-        w2v = await self.mongo.find_one({'word': word})
-        if w2v is None:
-            return None
-        else:
-            return self._unpack_vector(w2v['vec'])
-
-    def _unpack_vector(self, raw_vec):
-        return struct.unpack(VEC_SIZE, raw_vec)
-
-    async def get_similarities(self, words: [str], vector: [float]) -> [float]:
-        wvs = self.mongo.find({'word': {'$in': words}})
-        return {
-            wv['word']: await self.calc_similarity(vector, self._unpack_vector(wv['vec']))
-            for wv in await wvs.to_list(None)
-        }
-
-    async def calc_similarity(self, vec1: [float], vec2: [float]):
-        return round(dot(vec1, vec2) / (norm(vec1) * norm(vec2)) * 100, 2)
-
-    async def iterate_all(self):
-        for wv in await self.mongo.find().to_list(None):
-            yield wv['word'], self._unpack_vector(wv['vec'])
+    async def calc_similarity(self, vec1: np_float_arr, vec2: np_float_arr) -> float:
+        similarities: np_float_arr = self.model.cosine_similarities(
+            vec1, np.expand_dims(vec2, axis=0)
+        )
+        return round(float(similarities[0]) * 100, 2)

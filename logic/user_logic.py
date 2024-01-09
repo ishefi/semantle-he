@@ -7,9 +7,13 @@ import sys
 from typing import TYPE_CHECKING
 
 from dateutil.relativedelta import relativedelta
+from sqlmodel import select
 
 from common import config
 from common import schemas
+from common import tables
+from common.logger import logger
+from common.session import hs_transaction
 
 if TYPE_CHECKING:
     from typing import Any
@@ -17,6 +21,7 @@ if TYPE_CHECKING:
     from typing import Callable
 
     import motor.core
+    from sqlmodel import Session
 
 
 class UserLogic:
@@ -28,8 +33,11 @@ class UserLogic:
         SUPER_ADMIN,
     )
 
-    def __init__(self, mongo: motor.core.AgnosticDatabase[Any]) -> None:
+    def __init__(
+        self, mongo: motor.core.AgnosticDatabase[Any], session: Session
+    ) -> None:
         self.mongo = mongo
+        self.session = session
 
     async def create_user(self, user_info: dict[str, str]) -> dict[str, Any]:
         user = {
@@ -42,6 +50,8 @@ class UserLogic:
             "first_login": datetime.datetime.utcnow(),
         }
         await self.mongo.users.insert_one(user)
+        with hs_transaction(self.session) as session:
+            session.add(tables.User(**user))
         return user
 
     async def get_user(self, email: str) -> dict[str, Any] | None:
@@ -91,11 +101,14 @@ class UserHistoryLogic:
     def __init__(
         self,
         mongo: motor.core.AgnosticDatabase[Any],
+        session: Session,
         user: dict[str, Any],
         date: datetime.date,
     ):
         self.mongo = mongo
+        self.session = session
         self.user = user
+        self.dt = date  # TODO: use this
         self.date = str(date)
 
     @property
@@ -112,6 +125,25 @@ class UserHistoryLogic:
         history = await self.get_history()
         if guess.similarity is not None:
             history.append(guess)
+            with hs_transaction(self.session) as session:
+                user_query = select(tables.User).where(
+                    tables.User.email == self.user["email"]
+                )
+                user = session.exec(user_query).first()
+                if user is None:
+                    logger.warning("User not found")
+                else:
+                    session.add(
+                        tables.UserHistory(
+                            user_id=user.id,
+                            guess=guess.guess,
+                            similarity=guess.similarity,
+                            distance=guess.distance,
+                            egg=guess.egg,
+                            game_date=self.dt,
+                            solver_count=guess.solver_count,
+                        )
+                    )
             return await self._fix_history(history, update_db=True)
         else:
             return [guess] + history
@@ -146,7 +178,7 @@ class UserHistoryLogic:
                 {
                     "$set": {
                         f"history.{self.date}": [
-                            historia.dict() for historia in history
+                            historia.model_dump() for historia in history
                         ]
                     }
                 },

@@ -24,7 +24,9 @@ async def login(
     try:
         parsed_state = urllib.parse.parse_qs(state)
         auth_logic = AuthLogic(
-            request.app.state.mongo, request.app.state.google_app["client_id"]
+            request.app.state.mongo,
+            request.app.state.session,
+            request.app.state.google_app["client_id"],
         )
         session_id = await auth_logic.session_id_from_credential(credential)
         if state is None or "next" not in parsed_state:
@@ -52,7 +54,9 @@ async def logout(
     session_id: str | None = Cookie(None),
 ) -> RedirectResponse:
     auth_logic = AuthLogic(
-        request.app.state.mongo, request.app.state.google_app["client_id"]
+        request.app.state.mongo,
+        request.app.state.session,
+        request.app.state.google_app["client_id"],
     )
     if session_id is not None:
         await auth_logic.logout(session_id)

@@ -66,6 +66,7 @@ async def get_clue(request: Request) -> dict[str, str]:
             raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE)
         user_logic = UserClueLogic(
             mongo=request.app.state.mongo,
+            session=request.app.state.session,
             user=request.state.user,
             secret=secret,
             date=get_date(request.app.state.days_delta),

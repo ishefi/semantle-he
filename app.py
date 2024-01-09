@@ -20,6 +20,7 @@ from common import config
 from common.session import get_model
 from common.session import get_mongo
 from common.session import get_redis
+from common.session import get_session
 from logic.user_logic import UserLogic
 from routers import routers
 
@@ -52,6 +53,7 @@ app.state.js_version = JS_VERSION
 app.state.css_version = CSS_VERSION
 app.state.model = get_model()
 app.state.google_app = config.google_app
+app.state.session = get_session()
 
 
 try:
@@ -116,7 +118,7 @@ async def get_user(
         if session is None:
             request.state.user = None
         else:
-            user_logic = UserLogic(mongo)
+            user_logic = UserLogic(mongo, request.app.state.session)
             request.state.user = await user_logic.get_user(session["user_email"])
     else:
         request.state.user = None

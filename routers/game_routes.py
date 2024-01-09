@@ -45,6 +45,7 @@ async def distance(
         if request.state.user:
             history_logic = UserHistoryLogic(
                 request.app.state.mongo,
+                request.app.state.session,
                 request.state.user,
                 get_date(request.app.state.days_delta),
             )

@@ -14,13 +14,17 @@ if TYPE_CHECKING:
     from typing import Any
 
     import motor.core
+    from sqlmodel import Session
 
 
 class AuthLogic:
     def __init__(
-        self, mongo: motor.core.AgnosticDatabase[Any], auth_client_id: str
+        self,
+        mongo: motor.core.AgnosticDatabase[Any],
+        session: Session,
+        auth_client_id: str,
     ) -> None:
-        self.user_logic = UserLogic(mongo)
+        self.user_logic = UserLogic(mongo, session)
         self.sessions = mongo.sessions
         self.auth_client_id = auth_client_id
 

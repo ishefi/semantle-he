@@ -28,3 +28,12 @@ class UserHistory(SQLModel, table=True):
     egg: str | None = None
     game_date: datetime.date
     solver_count: int | None = None
+
+
+class UserClueCount(SQLModel, table=True):
+    __table_args__ = (UniqueConstraint("user_id", "game_date"),)
+
+    id: int = Field(default=None, primary_key=True)
+    user_id: int = Field(foreign_key="user.id")
+    clue_count: int
+    game_date: datetime.date

@@ -250,11 +250,13 @@ class UserClueLogic:
     def __init__(
         self,
         mongo: motor.core.AgnosticDatabase[Any],
+        session: Session,
         user: dict[str, Any],
         secret: str,
         date: datetime.date,
     ):
         self.mongo = mongo
+        self.session = session
         self.user = user
         self.secret = secret
         self.date = date
@@ -298,6 +300,29 @@ class UserClueLogic:
         await self.mongo.users.update_one(
             {"email": self.user["email"]}, {"$inc": {f"clues.{self.date}": 1}}
         )
+        with hs_transaction(self.session) as session:
+            user_query = select(tables.User).where(
+                tables.User.email == self.user["email"]
+            )
+            user = session.exec(user_query).first()
+            if user is None:
+                logger.warning("User not found")
+                return
+            else:
+                clue_count_query = select(tables.UserClueCount).where(
+                    tables.UserClueCount.user_id == user.id,
+                    tables.UserClueCount.game_date == self.date,
+                )
+                clue_count = session.exec(clue_count_query).first()
+                if clue_count is None:
+                    clue_count = tables.UserClueCount(
+                        user_id=user.id,
+                        game_date=self.date,
+                        clue_count=1,
+                    )
+                else:
+                    clue_count.clue_count += 1
+            session.add(clue_count)
 
     async def _get_clue_char(self) -> str:
         digest = hashlib.md5(self.secret.encode()).hexdigest()

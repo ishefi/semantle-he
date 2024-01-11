@@ -18,12 +18,12 @@ pymongo = {extras = ["srv"], version = "^4.6.1"}
 uvicorn = {extras = ["standard"], version = "^0.25.0"}
 pydantic = "^2.5.3"
 gensim = "^4.3.2"
-gdown = "^4.7.1"
 google-auth = "^2.25.2"
 python-dateutil = "^2.8.2"
 python-multipart = "^0.0.6"
 sqlmodel = "^0.0.14"
 sqlalchemy-libsql = "^0.1.0"
+dropbox = "^11.36.2"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -49,7 +49,7 @@ strict = true
 
 [[tool.mypy.overrides]]
 module = [
-  "gdown",
+  "dropbox",
   "gensim.*",
   "google.oauth2",
   "google.auth.transport",

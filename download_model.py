@@ -1,11 +1,13 @@
 import shutil
 
-import gdown
+import dropbox
 
-from common.config import conf
+from common import config
 
 if __name__ == "__main__":
-    url = f"https://drive.google.com/uc?id={conf.model_zip_id}"
+    client = dropbox.Dropbox(config.dropbox_token)
     destination = "model.zip"
-    gdown.download(url, destination, quiet=False)
-    shutil.unpack_archive("model.zip")
+    _, response = client.files_download("/model.zip")
+    with open(destination, "wb") as f:
+        f.write(response.content)
+    shutil.unpack_archive(destination)

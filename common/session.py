@@ -45,3 +45,5 @@ def hs_transaction(session: Session) -> Iterator[Session]:
     except Exception:
         session.rollback()
         raise
+    finally:
+        session.close()

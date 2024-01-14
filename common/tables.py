@@ -37,3 +37,12 @@ class UserClueCount(SQLModel, table=True):
     user_id: int = Field(foreign_key="user.id")
     clue_count: int
     game_date: datetime.date
+
+
+class SecretWord(SQLModel, table=True):
+    __table_args__ = (UniqueConstraint("game_date"), UniqueConstraint("word"))
+
+    id: int = Field(default=None, primary_key=True)
+    word: str = Field(unique=True)
+    game_date: datetime.date
+    solver_count: int = 0

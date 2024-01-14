@@ -298,7 +298,7 @@ let Semantle = (function() {
                 inner += guessRow(entry.similarity, entry.guess, entry.distance, entry.guess_number, newGuess, entry.egg);
             }
         }
-        $('#guesses')[0].innerHTML = inner;
+        $('#guesses').html(inner);
         twemoji.parse($('#guesses')[0]);
     }
 
@@ -413,19 +413,19 @@ let Semantle = (function() {
            }
         }
 
-        $("#rules-button")[0].addEventListener('click', openRules);
-        $("#settings-button")[0].addEventListener('click', openSettings);
+        $("#rules-button").click(openRules);
+        $("#settings-button").click(openSettings);
 
         popupBlocks.forEach((blockType) => {
             let blockId = "#" + blockType + "-";
             [$(blockId + "underlay"), $(blockId + "close")].forEach((el) => {
-                el[0].addEventListener('click', () => {
+                el.click(() => {
                     document.body.classList.remove(blockType + '-open');
                 });
             });
         });
 
-        $("#rules")[0].addEventListener("click", (event) => {
+        $("#rules").click((event) => {
             // prevents click from propagating to the underlay, which closes the rules
             event.stopPropagation();
         });
@@ -459,7 +459,7 @@ let Semantle = (function() {
           });
         });
 
-        $("#dark-mode")[0].addEventListener('click', function(event) {
+        $("#dark-mode").click(function(event) {
             storage.setItem("prefersDarkColorScheme", event.target.checked);
             darkModeMql.onchange = null;
             darkMode = event.target.checked;
@@ -517,11 +517,11 @@ let Semantle = (function() {
             firstGuess = false;
         }
 
-        $('#form')[0].addEventListener('submit', async function(event) {
+        $('#form').submit(async function(event) {
             event.preventDefault();
             $('#guess').focus();
-            $('#error')[0].textContent = "";
-            let guess = $('#guess')[0].value.trim().replace("!", "").replace("*", "");
+            $('#error').text("");
+            let guess = $('#guess').val().trim().replace("!", "").replace("*", "");
             $('#guess-btn').prop('disabled', true);
             if (!guess) {
                 return false;
@@ -535,12 +535,12 @@ let Semantle = (function() {
               allGuessData = allGuessData.slice(0, allGuessData.length - 1);
             }
             if (guessData == null || guessData.similarity === null) {
-                $('#error')[0].textContent = `אני לא מכיר את המילה ${guess}.`;
+                $('#error').text(`אני לא מכיר את המילה ${guess}.`);
                 $('#guess')[0].select();
                 return false;
             }
 
-            $('#guess')[0].value = "";
+            $('#guess').val("");
             if (allGuessData.length > 1) {
               dealWithHistory(allGuessData);
             }
@@ -575,7 +575,7 @@ let Semantle = (function() {
             snackbarAlert(clue, response.status === 200 ? GREEN : YELLOW);
         });
 
-        let oldGuessesStr = $("#old_guesses")[0].innerText;
+        let oldGuessesStr = $("#old_guesses").text();
         if (oldGuessesStr && oldGuessesStr.length > 1) {
              let oldGuesses = JSON.parse(oldGuessesStr);
              clearState(true);
@@ -704,7 +704,7 @@ Stats (since we started recording, on day 23): <br/>
 </table>
 `;
         }
-        $('#response')[0].innerHTML = response;
+        $('#response').html(response);
         twemoji.parse($('#response')[0]);
         if (endGame) {
             saveGame(guesses.length, won ? 1 : 0);

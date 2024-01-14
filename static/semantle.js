@@ -522,11 +522,13 @@ let Semantle = (function() {
             $('#guess').focus();
             $('#error')[0].textContent = "";
             let guess = $('#guess')[0].value.trim().replace("!", "").replace("*", "");
+            $('#guess-btn').prop('disabled', true);
             if (!guess) {
                 return false;
             }
 
             let allGuessData = await getSim(guess);
+            $('#guess-btn').prop('disabled', false);
             let guessData = null;
             if (allGuessData) {
               guessData = allGuessData[allGuessData.length - 1];

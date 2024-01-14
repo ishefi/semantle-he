@@ -29,12 +29,12 @@ async def get_logics(
 ) -> tuple[VectorLogic, CacheSecretLogic]:
     delta += app.state.days_delta
     date = get_date(delta)
-    logic = VectorLogic(app.state.mongo.word2vec2, dt=date, model=app.state.model)
+    logic = VectorLogic(app.state.session, dt=date, model=app.state.model)
     secret = await logic.secret_logic.get_secret()
     if secret is None:
         raise Exception("No secret found!")  # TODO: better exception
     cache_logic = CacheSecretLogic(
-        app.state.mongo.word2vec2,
+        app.state.session,
         app.state.redis,
         secret=secret,
         dt=date,

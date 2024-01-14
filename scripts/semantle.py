@@ -3,11 +3,12 @@ import os
 import sys
 from datetime import datetime
 
+from common.session import get_session
+
 base = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.extend([base])
 
 from common.session import get_model  # noqa: E402
-from common.session import get_mongo  # noqa: E402
 from common.session import get_redis  # noqa: E402
 from logic.game_logic import CacheSecretLogic  # noqa: E402
 from logic.game_logic import VectorLogic  # noqa: E402
@@ -16,24 +17,24 @@ from logic.game_logic import VectorLogic  # noqa: E402
 async def main() -> None:
     print("Welcome! Take a guess:")
     inp = None
-    mongo = get_mongo().word2vec2
     redis = get_redis()
     model = get_model()
+    session = get_session()
     date = datetime.utcnow().date()
-    logic = VectorLogic(mongo, dt=date, model=model)
+    logic = VectorLogic(session, dt=date, model=model)
     secret = await logic.secret_logic.get_secret()
     if secret is None:
         raise Exception("No secret for today!")  # TODO: better exception
-    cache_logic = CacheSecretLogic(mongo, redis, secret=secret, dt=date, model=model)
+    cache_logic = CacheSecretLogic(session, redis, secret=secret, dt=date, model=model)
     while inp != "exit":
         if datetime.utcnow().date() != date:
             date = datetime.utcnow().date()
-            logic = VectorLogic(mongo, dt=date, model=model)
+            logic = VectorLogic(session, dt=date, model=model)
             secret = await logic.secret_logic.get_secret()
             if secret is None:
                 raise Exception("No secret for today!")  # TODO: better exception
             cache_logic = CacheSecretLogic(
-                mongo, redis, secret=secret, dt=date, model=model
+                session, redis, secret=secret, dt=date, model=model
             )
         inp = input(">")
         print(inp[::-1])

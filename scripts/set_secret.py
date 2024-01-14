@@ -4,24 +4,29 @@ from __future__ import annotations
 import asyncio
 import datetime
 import os
+import random
 import sys
 from argparse import ArgumentParser
 from argparse import ArgumentTypeError
 from typing import TYPE_CHECKING
 
+from sqlmodel import select
+
 base = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.extend([base])
 
+from common import tables  # noqa: E402
 from common.session import get_model  # noqa: E402
-from common.session import get_mongo  # noqa: E402
 from common.session import get_redis  # noqa: E402
+from common.session import get_session  # noqa: E402
+from common.session import hs_transaction  # noqa: E402
 from logic.game_logic import CacheSecretLogic  # noqa: E402
 
 if TYPE_CHECKING:
     from typing import Any
 
-    from motor.core import AgnosticCollection
     from redis.asyncio import Redis
+    from sqlmodel import Session
 
     from model import GensimModel
 
@@ -64,49 +69,58 @@ async def main() -> None:
         action="store_true",
         help="If provided, run in an iterative mode, starting the given date",
     )
+    parser.add_argument(
+        "--top-sample",
+        type=int,
+        help="Top n words to choose from when choosing a random word. If not provided, will use all words in the model.",
+    )
 
     args = parser.parse_args()
 
-    mongo = get_mongo().word2vec2
+    session = get_session()
     redis = get_redis()
     model = get_model()
 
     if args.date:
         date = args.date
     else:
-        date = await get_date(mongo)
+        date = await get_date(session)
     if args.secret:
         secret = args.secret
     else:
-        secret = await get_random_word(mongo)
+        secret = await get_random_word(model, args.top_sample)
     while True:
-        await do_populate(mongo, redis, secret, date, model, args.force)
+        await do_populate(
+            session, redis, secret, date, model, args.force, args.top_sample
+        )
         if not args.iterative:
             break
         date += datetime.timedelta(days=1)
         print(f"Now doing {date}")
-        secret = await get_random_word(mongo)
+        secret = await get_random_word(model, args.top_sample)
 
 
-async def get_date(word2vec: AgnosticCollection[Any]) -> datetime.date:
-    cursor = word2vec.find({"secret_date": {"$exists": 1}})
-    cursor = cursor.sort("secret_date", -1)
-    latest: dict[str, Any] = await cursor.next()
-    date_str = latest["secret_date"]
-    dt = valid_date(date_str) + datetime.timedelta(days=1)
+async def get_date(session: Session) -> datetime.date:
+    query = select(tables.SecretWord.game_date)  # type: ignore
+    query = query.order_by(tables.SecretWord.game_date.desc())  # type: ignore
+    with hs_transaction(session) as s:
+        latest: datetime.date = s.exec(query).first()
+
+    dt = latest + datetime.timedelta(days=1)
     print(f"Now doing {dt}")
     return dt
 
 
 async def do_populate(
-    mongo: AgnosticCollection[Any],
+    session: Session,
     redis: Redis[Any],
     secret: str,
     date: datetime.date,
     model: GensimModel,
     force: bool,
+    top_sample: int | None,
 ) -> bool:
-    logic = CacheSecretLogic(mongo, redis, secret, dt=date, model=model)
+    logic = CacheSecretLogic(session, redis, secret, dt=date, model=model)
     await logic.set_secret(dry=True, force=force)
     cache = [w[::-1] for w in (await logic.cache)[::-1]]
     print(" ,".join(cache))
@@ -121,17 +135,17 @@ async def do_populate(
         print("Done!")
         return True
     else:
-        secret = await get_random_word(mongo)
-        return await do_populate(mongo, redis, secret, date, model, force)
+        secret = await get_random_word(model, top_sample)  # TODO: use model
+        return await do_populate(session, redis, secret, date, model, force, top_sample)
 
 
-async def get_random_word(word2vec: AgnosticCollection[Any]) -> str:
+async def get_random_word(model: GensimModel, top_sample: int | None) -> str:
     while True:
-        secrets = word2vec.aggregate([{"$sample": {"size": 100}}])
-        async for doc in secrets:
-            secret = doc["word"]
-            if best_secret := get_best_secret(secret):
-                return best_secret
+        if top_sample is None:
+            top_sample = len(model.model.index_to_key)
+        rand_index = random.randint(0, top_sample)
+        if best_secret := get_best_secret(model.model.index_to_key[rand_index]):
+            return best_secret
 
 
 def get_best_secret(secret: str) -> str:

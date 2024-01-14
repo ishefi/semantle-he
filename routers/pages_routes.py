@@ -38,7 +38,7 @@ async def index(request: Request) -> Response:
     number = (date - FIRST_DATE).days + 1
 
     yestersecret = await VectorLogic(
-        mongo=request.app.state.mongo.word2vec2,
+        session=request.app.state.session,
         model=request.app.state.model,
         dt=date - timedelta(days=1),
     ).secret_logic.get_secret()

@@ -44,7 +44,9 @@ class UserLogic:
             "email": user_info["email"],
             "user_type": self.USER,
             "active": True,
-            "picture": user_info["picture"],
+            "picture": user_info.get(
+                "picture", "https://www.ishefi.com/images/favicon.ico"
+            ),
             "given_name": user_info["given_name"],
             "family_name": user_info.get("family_name", ""),
             "first_login": datetime.datetime.utcnow(),

@@ -44,8 +44,12 @@ def get_session() -> Session:
 
 
 @contextmanager
-def hs_transaction(session: Session) -> Iterator[Session]:
+def hs_transaction(
+    session: Session, expire_on_commit: bool = True
+) -> Iterator[Session]:
     try:
+        if not expire_on_commit:
+            session.expire_on_commit = False
         session.begin()
         yield session
         session.commit()
@@ -53,4 +57,5 @@ def hs_transaction(session: Session) -> Iterator[Session]:
         session.rollback()
         raise
     finally:
+        session.expire_on_commit = True
         session.close()

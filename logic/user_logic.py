@@ -7,12 +7,12 @@ import sys
 from typing import TYPE_CHECKING
 
 from dateutil.relativedelta import relativedelta
+from sqlalchemy import func
 from sqlmodel import select
 
 from common import config
 from common import schemas
 from common import tables
-from common.logger import logger
 from common.session import hs_transaction
 
 if TYPE_CHECKING:
@@ -22,6 +22,7 @@ if TYPE_CHECKING:
 
     import motor.core
     from sqlmodel import Session
+    from sqlmodel.sql.expression import SelectOfScalar
 
 
 class UserLogic:
@@ -39,7 +40,7 @@ class UserLogic:
         self.mongo = mongo
         self.session = session
 
-    async def create_user(self, user_info: dict[str, str]) -> dict[str, Any]:
+    async def create_user(self, user_info: dict[str, str]) -> tables.User:
         user = {
             "email": user_info["email"],
             "user_type": self.USER,
@@ -52,32 +53,31 @@ class UserLogic:
             "first_login": datetime.datetime.utcnow(),
         }
         await self.mongo.users.insert_one(user)
-        with hs_transaction(self.session) as session:
-            session.add(tables.User(**user))
-        return user
+        with hs_transaction(self.session, expire_on_commit=False) as session:
+            db_user = tables.User(**user)
+            session.add(db_user)
+            return db_user
 
-    async def get_user(self, email: str) -> dict[str, Any] | None:
-        user: dict[str, Any] | None = await self.mongo.users.find_one(
-            {"email": email}, {"history": 0}
-        )
-        if not user:
-            return None
-        subscription_expiry = user.get(
-            "subscription_expiry", datetime.datetime.utcnow()
-        )
-        user["has_active_subscription"] = (
-            subscription_expiry > datetime.datetime.utcnow()
-        )
-        return user
+    async def get_user(self, email: str) -> tables.User | None:
+        with hs_transaction(self.session, expire_on_commit=False) as session:
+            query = select(tables.User).where(tables.User.email == email)
+            user = session.exec(query).one_or_none()
+            if user is None:
+                return None
+            else:
+                return user
 
     @staticmethod
-    def has_permissions(user: dict[str, Any], permission: str) -> bool:
+    def has_permissions(user: tables.User, permission: str) -> bool:
         return UserLogic.PERMISSIONS.index(
-            user["user_type"]
+            user.user_type
         ) >= UserLogic.PERMISSIONS.index(permission)
 
     async def subscribe(self, subscription: schemas.Subscription) -> bool:
-        user = await self.get_user(subscription.email)  # TODO: deal with unknown users
+        # TODO: change logic to use sql
+        user = await self.mongo.users.find_one(
+            {"email": subscription.email}, projection={"subscription_ids": 1}
+        )
         if user is None:
             return False
         if subscription.message_id in user.get("subscription_ids", []):
@@ -104,7 +104,7 @@ class UserHistoryLogic:
         self,
         mongo: motor.core.AgnosticDatabase[Any],
         session: Session,
-        user: dict[str, Any],
+        user: tables.User,
         date: datetime.date,
     ):
         self.mongo = mongo
@@ -119,7 +119,7 @@ class UserHistoryLogic:
 
     @property
     def user_filter(self) -> dict[str, str]:
-        return {"email": self.user["email"]}
+        return {"email": self.user.email}
 
     async def update_and_get_history(
         self, guess: schemas.DistanceResponse
@@ -170,7 +170,7 @@ class UserHistoryLogic:
 
 
 class UserStatisticsLogic:
-    def __init__(self, mongo: motor.core.AgnosticDatabase[Any], user: dict[str, Any]):
+    def __init__(self, mongo: motor.core.AgnosticDatabase[Any], user: tables.User):
         self.mongo = mongo
         self.user = user
 
@@ -180,7 +180,7 @@ class UserStatisticsLogic:
         # saving history as an object with dates as its members, it should consist of
         # list with dates as its members.
         user = await self.mongo.users.find_one(
-            {"email": self.user["email"]}, projection={"history": 1}
+            {"email": self.user.email}, projection={"history": 1}
         )
         if user is None:
             raise ValueError("User not found")  # TODO: use our own error
@@ -229,16 +229,15 @@ class UserClueLogic:
     CLUE_LEN_FORMAT = "המילה הסודית מכילה {clue_len} אותיות"
     NO_MORE_CLUES_STR = "אין יותר רמזים"
     CLUE_COOLDOWN_FOR_UNSUBSCRIBED = datetime.timedelta(days=7)
+    MAX_CLUES_DURING_COOLDOWN = 1
 
     def __init__(
         self,
-        mongo: motor.core.AgnosticDatabase[Any],
         session: Session,
-        user: dict[str, Any],
+        user: tables.User,
         secret: str,
         date: datetime.date,
     ):
-        self.mongo = mongo
         self.session = session
         self.user = user
         self.secret = secret
@@ -253,13 +252,17 @@ class UserClueLogic:
 
     @property
     def clues_used(self) -> int:
-        user_clues: dict[str, int] = self.user.get("clues", {})
-        return user_clues.get(str(self.date), 0)
+        with hs_transaction(self.session) as session:
+            query = select(tables.UserClueCount.clue_count)
+            query = query.where(tables.UserClueCount.user_id == self.user.id)
+            query = query.where(tables.UserClueCount.game_date == self.date)
+            return session.exec(query).one_or_none() or 0
 
     async def get_clue(self) -> str | None:
         if self.clues_used < len(self.clues):
+            clue = await self.clues[self.clues_used]()
             await self._update_clue_usage()
-            return await self.clues[self.clues_used]()
+            return clue
         else:
             return None
 
@@ -270,41 +273,34 @@ class UserClueLogic:
         return clues
 
     async def _used_max_clues_for_inactive(self) -> bool:
-        clues = self.user.get("clues")
-        if clues is None:
-            return False
-        max_date = datetime.datetime.fromisoformat(max(clues)).date()
-        if max_date + self.CLUE_COOLDOWN_FOR_UNSUBSCRIBED > self.date:
-            return True
-        else:
-            return False
+        # TODO: verify this logic is correct
+        with hs_transaction(self.session) as session:
+            query: SelectOfScalar[int] = select(
+                func.sum(tables.UserClueCount.clue_count)
+            )
+            query = query.where(tables.UserClueCount.user_id == self.user.id)
+            query = query.where(
+                tables.UserClueCount.game_date
+                > self.date - self.CLUE_COOLDOWN_FOR_UNSUBSCRIBED
+            )
+            used_clues = session.exec(query).one()
+            return used_clues > self.MAX_CLUES_DURING_COOLDOWN
 
     async def _update_clue_usage(self) -> None:
-        await self.mongo.users.update_one(
-            {"email": self.user["email"]}, {"$inc": {f"clues.{self.date}": 1}}
-        )
         with hs_transaction(self.session) as session:
-            user_query = select(tables.User).where(
-                tables.User.email == self.user["email"]
+            clue_count_query = select(tables.UserClueCount).where(
+                tables.UserClueCount.user_id == self.user.id,
+                tables.UserClueCount.game_date == self.date,
             )
-            user = session.exec(user_query).first()
-            if user is None:
-                logger.warning("User not found")
-                return
-            else:
-                clue_count_query = select(tables.UserClueCount).where(
-                    tables.UserClueCount.user_id == user.id,
-                    tables.UserClueCount.game_date == self.date,
+            clue_count = session.exec(clue_count_query).first()
+            if clue_count is None:
+                clue_count = tables.UserClueCount(
+                    user_id=self.user.id,
+                    game_date=self.date,
+                    clue_count=1,
                 )
-                clue_count = session.exec(clue_count_query).first()
-                if clue_count is None:
-                    clue_count = tables.UserClueCount(
-                        user_id=user.id,
-                        game_date=self.date,
-                        clue_count=1,
-                    )
-                else:
-                    clue_count.clue_count += 1
+            else:
+                clue_count.clue_count += 1
             session.add(clue_count)
 
     async def _get_clue_char(self) -> str:

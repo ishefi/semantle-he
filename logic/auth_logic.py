@@ -38,7 +38,7 @@ class AuthLogic:
         await self.sessions.insert_one(
             {
                 "session_id": session_id,
-                "user_email": user["email"],
+                "user_email": user.email,
                 "session_start": datetime.datetime.utcnow(),
             }
         )

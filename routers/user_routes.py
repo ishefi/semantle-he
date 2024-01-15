@@ -22,11 +22,11 @@ async def get_user_info(request: Request) -> dict[str, str | datetime.datetime |
     else:
         hasher = hashlib.sha3_256()
         # TODO: make this consistent
-        hasher.update(user["email"].encode() + config.secret_key.encode())
+        hasher.update(user.email.encode() + config.secret_key.encode())
         return {
             "id": hasher.hexdigest()[:8],
-            "email": user["email"],
-            "picture": user["picture"],
-            "name": f"{user['given_name']} {user['family_name']}",
-            "subscription_expiry": user.get("subscription_expiry"),
+            "email": user.email,
+            "picture": user.picture,
+            "name": f"{user.given_name} {user.family_name}",
+            "subscription_expiry": user.subscription_expiry,
         }

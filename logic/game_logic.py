@@ -16,7 +16,6 @@ from common.typing import np_float_arr
 if TYPE_CHECKING:
     from typing import Any
     from typing import AsyncIterator
-    from typing import Generator
 
     from redis.asyncio import Redis
     from sqlmodel import Session
@@ -48,13 +47,13 @@ class SecretLogic:
 
     async def get_all_secrets(
         self, with_future: bool
-    ) -> Generator[tuple[str, str], None, None]:  # TODO: better return type
+    ) -> list[tuple[str, str]]:  # TODO: better return type
         query = select(tables.SecretWord)
         if not with_future:
             query = query.where(tables.SecretWord.game_date < self.date)
         with hs_transaction(self.session) as session:
             secrets = session.exec(query)
-            return ((secret.word, str(secret.game_date)) for secret in secrets)
+            return [(secret.word, str(secret.game_date)) for secret in secrets]
 
     @no_type_check
     async def get_and_update_solver_count(self) -> int:

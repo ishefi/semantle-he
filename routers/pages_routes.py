@@ -66,7 +66,6 @@ async def index(request: Request) -> Response:
         if secret is None:
             raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE)
         clue_logic = UserClueLogic(
-            mongo=request.app.state.mongo,
             session=request.app.state.session,
             user=request.state.user,
             secret=secret,

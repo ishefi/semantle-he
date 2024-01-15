@@ -46,3 +46,12 @@ class SecretWord(SQLModel, table=True):
     word: str = Field(unique=True)
     game_date: datetime.date
     solver_count: int = 0
+
+
+class UserSubscription(SQLModel, table=True):
+    id: int = Field(default=None, primary_key=True)
+    user_id: int = Field(foreign_key="user.id")
+    amount: float
+    tier_name: str | None
+    uuid: str = Field(unique=True)
+    timestamp: datetime.datetime

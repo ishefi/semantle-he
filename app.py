@@ -119,7 +119,12 @@ async def get_user(
             request.state.user = None
         else:
             user_logic = UserLogic(mongo, request.app.state.session)
-            request.state.user = await user_logic.get_user(session["user_email"])
+            user = await user_logic.get_user(session["user_email"])
+            if user is not None:
+                request.state.user = user
+                if expiry := user_logic.get_subscription_expiry(request.state.user):
+                    is_active = expiry > datetime.utcnow()
+                    request.state.has_active_subscription = is_active
     else:
         request.state.user = None
     return await call_next(request)

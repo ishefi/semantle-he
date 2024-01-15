@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING
 
 from dateutil.relativedelta import relativedelta
 from sqlalchemy import func
+from sqlmodel import asc
 from sqlmodel import select
 
 from common import config
@@ -61,11 +62,7 @@ class UserLogic:
     async def get_user(self, email: str) -> tables.User | None:
         with hs_transaction(self.session, expire_on_commit=False) as session:
             query = select(tables.User).where(tables.User.email == email)
-            user = session.exec(query).one_or_none()
-            if user is None:
-                return None
-            else:
-                return user
+            return session.exec(query).one_or_none()
 
     @staticmethod
     def has_permissions(user: tables.User, permission: str) -> bool:
@@ -75,28 +72,53 @@ class UserLogic:
 
     async def subscribe(self, subscription: schemas.Subscription) -> bool:
         # TODO: change logic to use sql
-        user = await self.mongo.users.find_one(
-            {"email": subscription.email}, projection={"subscription_ids": 1}
-        )
+        user = await self.get_user(subscription.email)
         if user is None:
             return False
-        if subscription.message_id in user.get("subscription_ids", []):
-            return False
+
+        with hs_transaction(self.session) as session:
+            query = select(tables.UserSubscription)
+            query = query.where(tables.UserSubscription.uuid == subscription.message_id)
+            if session.exec(query).one_or_none() is None:
+                return False
+
+            session.add(
+                tables.UserSubscription(
+                    user_id=user.id,
+                    amount=subscription.amount,
+                    tier_name=subscription.tier_name,
+                    uuid=subscription.message_id,
+                    timestamp=subscription.timestamp,
+                )
+            )
+            return True
+
+    def get_subscription_expiry(self, user: tables.User) -> datetime.datetime | None:
+        with hs_transaction(self.session, expire_on_commit=False) as session:
+            query = select(tables.UserSubscription)
+            query = query.where(tables.UserSubscription.user_id == user.id)
+            query = query.order_by(asc(tables.UserSubscription.timestamp))
+            subscriptions = session.exec(query).all()
+
+        expiry = None
         now = datetime.datetime.utcnow()
-        expiry = user.get("subscription_expiry", now)
-        expiry = max(expiry, now)
-        expiry += relativedelta(
-            months=subscription.amount // 3,  # one month per 3$
-            days=10 * (subscription.amount % 3),  # 10 days per 1$ reminder
+        for subscription in subscriptions:
+            if expiry is None:
+                expiry = subscription.timestamp
+            expiry += self._get_subscription_duration(subscription)
+            if expiry < now:
+                expiry = None
+        return expiry
+
+    @staticmethod
+    def _get_subscription_duration(
+        subscription: tables.UserSubscription,
+    ) -> relativedelta:
+        round_amount = round(subscription.amount)
+        return relativedelta(
+            months=round_amount // 3,  # one month per 3$
+            days=10 * (round_amount % 3),  # 10 days per 1$ reminder
         )
-        await self.mongo.users.update_one(
-            {"email": subscription.email},
-            {
-                "$set": {"subscription_expiry": expiry},
-                "$push": {"subscription_ids": subscription.message_id},
-            },
-        )
-        return True
 
 
 class UserHistoryLogic:

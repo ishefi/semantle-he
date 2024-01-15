@@ -46,8 +46,8 @@
     {% set user = request.state.user %}
     {% if user %}
     <div id="profile-pic">
-        <img src="{{user['picture']}}" style="height: 2rem; border-radius: 50%"
-             {% if user['has_active_subscription'] %} class="shimmer" {% endif %}
+        <img src="{{user.picture}}" style="height: 2rem; border-radius: 50%"
+             {% if request.state.has_active_subscription %} class="shimmer" {% endif %}
              id="profile-image"
              referrerpolicy="no-referrer">
         <div id="tooltip-menu" class="hidden">

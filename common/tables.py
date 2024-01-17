@@ -55,3 +55,11 @@ class UserSubscription(SQLModel, table=True):
     tier_name: str | None
     uuid: str = Field(unique=True)
     timestamp: datetime.datetime
+
+
+class HotClue(SQLModel, table=True):
+    __table_args__ = (UniqueConstraint("secret_word_id", "clue"),)
+
+    id: int = Field(default=None, primary_key=True)
+    secret_word_id: int = Field(foreign_key="secretword.id")
+    clue: str

@@ -21,7 +21,7 @@ function snackbarAlert(alertText, alertColor) {
 function getSolverCountStory(beforePronoun) {
     let solverCountStory = "";
     if (localStorage.getItem("solverCount"))  {
-        const solversBefore = parseInt(localStorage.getItem("solverCount"));
+        const solversBefore = parseInt(localStorage.getItem("solverCount")) - 1;
         if (solversBefore === 0) {
             solverCountStory = `🤩 מקום ראשון! 🤩`;
             if (Math.random() >= 0.5) {

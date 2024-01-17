@@ -550,7 +550,9 @@ let Semantle = (function() {
         $("#clue-btn").click(async function(event) {
             const url = "/api/clue";
             var clue;
+            var keepDisabled = false;
             try {
+                $("#clue-btn").attr("disabled", true)
                 const response = await fetch(url);
                 if (response.status === 200) {
                     clue = (await response.json()).clue;
@@ -559,7 +561,7 @@ let Semantle = (function() {
                 }
                 else if (response.status === 204 ) {
                     clue = "אין יותר רמזים";
-                    $("#clue-btn").attr("disabled", true)
+                    keepDisabled = true;
                 }
                 else if (response.status === 401) {
                     clue = "רמזים זמינים רק למשתמשים מחוברים, יש להתחבר";
@@ -571,6 +573,7 @@ let Semantle = (function() {
                 console.log(e);
                 clue =  "בעיה בקבלת רמז. אפשר לנסות שוב מאוחר יותר.";
             }
+            $("#clue-btn").attr("disabled", keepDisabled);
             snackbarAlert(clue, response.status === 200 ? GREEN : YELLOW);
         });
 

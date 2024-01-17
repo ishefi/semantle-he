@@ -249,9 +249,11 @@ class UserStatisticsLogic:
 class UserClueLogic:
     CLUE_CHAR_FORMAT = 'המילה הסודית מכילה את האות "{clue_char}"'
     CLUE_LEN_FORMAT = "המילה הסודית מכילה {clue_len} אותיות"
+    HOT_CLUE_FORMAT = "המילה '{hot_clue}' קרובה למילה הסודית"
     NO_MORE_CLUES_STR = "אין יותר רמזים"
     CLUE_COOLDOWN_FOR_UNSUBSCRIBED = datetime.timedelta(days=7)
     MAX_CLUES_DURING_COOLDOWN = 1
+    HOT_CLUES_CACHE: dict[str, list[str]] = {}
 
     def __init__(
         self,
@@ -270,6 +272,7 @@ class UserClueLogic:
         return [
             self._get_clue_char,
             self._get_secret_len,
+            *self._get_hot_clue_funcs(),
         ]
 
     @property
@@ -333,3 +336,27 @@ class UserClueLogic:
 
     async def _get_secret_len(self) -> str:
         return self.CLUE_LEN_FORMAT.format(clue_len=len(self.secret))
+
+    def _get_hot_clue_funcs(self) -> list[Callable[[], Awaitable[str]]]:
+        def hot_clue_func_generator(hot_clue: str) -> Callable[[], Awaitable[str]]:
+            async def get_hot_clue() -> str:
+                return self.HOT_CLUE_FORMAT.format(hot_clue=hot_clue)
+
+            return get_hot_clue
+
+        hot_clues = self._get_hot_clues()
+        return [hot_clue_func_generator(clue) for clue in hot_clues]
+
+    def _get_hot_clues(self) -> list[str]:
+        if self.secret not in self.HOT_CLUES_CACHE:
+            with hs_transaction(self.session) as session:
+                query = (
+                    select(tables.HotClue)
+                    .join(tables.SecretWord)
+                    .where(tables.SecretWord.game_date == self.date)
+                )
+                hot_clues = session.exec(query).all()
+                self.HOT_CLUES_CACHE[self.secret] = [
+                    hot_clue.clue for hot_clue in hot_clues
+                ]
+        return self.HOT_CLUES_CACHE[self.secret]

@@ -2,6 +2,7 @@ import datetime
 
 from sqlalchemy import UniqueConstraint
 from sqlmodel import Field
+from sqlmodel import Relationship
 from sqlmodel import SQLModel
 
 
@@ -63,3 +64,5 @@ class HotClue(SQLModel, table=True):
     id: int = Field(default=None, primary_key=True)
     secret_word_id: int = Field(foreign_key="secretword.id")
     clue: str
+
+    secret: SecretWord = Relationship()

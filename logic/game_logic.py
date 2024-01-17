@@ -41,9 +41,13 @@ class SecretLogic:
             else:
                 return None
 
-    async def set_secret(self, secret: str) -> None:
+    async def set_secret(self, secret: str, clues: list[str]) -> None:
+        with hs_transaction(self.session, expire_on_commit=False) as session:
+            db_secret = tables.SecretWord(word=secret, game_date=self.date)
+            session.add(secret)
         with hs_transaction(self.session) as session:
-            session.add(tables.SecretWord(word=secret, game_date=self.date))
+            for clue in clues:
+                session.add(tables.HotClue(secret_word_id=db_secret.id, clue=clue))
 
     async def get_all_secrets(
         self, with_future: bool
@@ -154,7 +158,10 @@ class CacheSecretLogic:
     def _iterate_all_wv(self) -> AsyncIterator[tuple[str, np_float_arr]]:
         return self.vector_logic.iterate_all()
 
-    async def set_secret(self, dry: bool = False, force: bool = False) -> None:
+    async def simulate_set_secret(self, force: bool = False) -> None:
+        """Simulates setting a secret, but does not actually do it.
+        In order to actually set the secret, call do_populate()
+        """
         if not force:
             if await self.vector_logic.secret_logic.get_secret() is not None:
                 raise ValueError("There is already a secret for this date")
@@ -178,17 +185,15 @@ class CacheSecretLogic:
                 heapq.heappop(nearest)
         nearest.sort()
         self._cache_dict[self.date] = [w[1] for w in nearest]
-        if not dry:
-            await self.do_populate()
 
-    async def do_populate(self) -> None:
+    async def do_populate(self, clues: list[str]) -> None:
         expiration = (
             self.date_ - datetime.datetime.utcnow().date() + datetime.timedelta(days=4)
         )
         await self.redis.delete(self.secret_cache_key)
         await self.redis.rpush(self.secret_cache_key, *await self.cache)
         await self.redis.expire(self.secret_cache_key, expiration)
-        await self.vector_logic.secret_logic.set_secret(self.secret)
+        await self.vector_logic.secret_logic.set_secret(self.secret, clues)
 
     @property
     async def cache(self) -> list[str]:

@@ -121,7 +121,7 @@ async def do_populate(
     top_sample: int | None,
 ) -> bool:
     logic = CacheSecretLogic(session, redis, secret, dt=date, model=model)
-    await logic.set_secret(dry=True, force=force)
+    await logic.simulate_set_secret(force=force)
     cache = [w[::-1] for w in (await logic.cache)[::-1]]
     print(" ,".join(cache))
     print(cache[0])
@@ -131,7 +131,14 @@ async def do_populate(
             print(f"{i}: {w}")
     pop = input("Populate?\n")
     if pop in ("y", "Y"):
-        await logic.do_populate()
+        hot_clues = input("Clues? Space separated\n")
+        clues = []
+        for hot_clue in hot_clues.split(" "):
+            if input(f"Add clue?\n{hot_clue[::-1]}\n[Yn] > ").lower() == "n":
+                continue
+            else:
+                clues.append(hot_clue)
+        await logic.do_populate(clues)
         print("Done!")
         return True
     else:

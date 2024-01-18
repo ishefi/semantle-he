@@ -140,7 +140,6 @@ async def menu(request: Request) -> Response:
     return render(
         name="menu.html",
         request=request,
-        google_auth_client_id=request.app.state.google_app["client_id"],
         next_page=urllib.parse.urlparse(request.headers.get("referer")).path,
     )
 
@@ -156,5 +155,4 @@ async def get_statistics(request: Request) -> Response:
         name="statistics.html",
         request=request,
         statistics=statistics,
-        google_auth_client_id=request.app.state.google_app["client_id"],
     )

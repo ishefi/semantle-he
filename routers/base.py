@@ -48,4 +48,5 @@ def render(name: str, request: Request, **kwargs: Any) -> Response:
     kwargs["css_version"] = request.app.state.css_version
     kwargs["request"] = request
     kwargs["enumerate"] = enumerate
+    kwargs["google_auth_client_id"] = request.app.state.google_app["client_id"]
     return templates.TemplateResponse(name, context=kwargs)

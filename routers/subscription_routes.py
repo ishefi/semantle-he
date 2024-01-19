@@ -30,7 +30,7 @@ async def subscribe(request: Request, data: Annotated[str, Form()]) -> dict[str,
     )
     if not is_valid_token or not is_new_message:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
-    logic = UserLogic(mongo=request.app.state.mongo, session=request.state.session)
+    logic = UserLogic(mongo=request.app.state.mongo, session=request.app.state.session)
     success = await logic.subscribe(subscription)
     success_message = "Success :smile:" if success else "Failed :rage:"
     requests.post(

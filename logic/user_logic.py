@@ -149,6 +149,25 @@ class UserHistoryLogic:
         history = await self.get_history()
         if guess.similarity is not None:
             history.append(guess)
+            with hs_transaction(self.session) as session:
+                user_query = select(tables.User).where(
+                    tables.User.email == self.user["email"]
+                )
+                user = session.exec(user_query).first()
+                if user is None:
+                    logger.warning("User not found")
+                else:
+                    session.add(
+                        tables.UserHistory(
+                            user_id=user.id,
+                            guess=guess.guess,
+                            similarity=guess.similarity,
+                            distance=guess.distance,
+                            egg=guess.egg,
+                            game_date=self.dt,
+                            solver_count=guess.solver_count,
+                        )
+                    )
             return await self._fix_history(history, update_db=True)
         else:
             return [guess] + history

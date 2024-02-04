@@ -80,18 +80,18 @@ class UserLogic:
             query = select(tables.UserSubscription)
             query = query.where(tables.UserSubscription.uuid == subscription.message_id)
             if session.exec(query).one_or_none() is None:
-                return False
-
-            session.add(
-                tables.UserSubscription(
-                    user_id=user.id,
-                    amount=subscription.amount,
-                    tier_name=subscription.tier_name,
-                    uuid=subscription.message_id,
-                    timestamp=subscription.timestamp,
+                session.add(
+                    tables.UserSubscription(
+                        user_id=user.id,
+                        amount=subscription.amount,
+                        tier_name=subscription.tier_name,
+                        uuid=subscription.message_id,
+                        timestamp=subscription.timestamp,
+                    )
                 )
-            )
-            return True
+                return True
+            else:
+                return False
 
     def get_subscription_expiry(self, user: tables.User) -> datetime.datetime | None:
         with hs_transaction(self.session, expire_on_commit=False) as session:

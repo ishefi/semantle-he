@@ -44,7 +44,7 @@ class SecretLogic:
     async def set_secret(self, secret: str, clues: list[str]) -> None:
         with hs_transaction(self.session, expire_on_commit=False) as session:
             db_secret = tables.SecretWord(word=secret, game_date=self.date)
-            session.add(secret)
+            session.add(db_secret)
         with hs_transaction(self.session) as session:
             for clue in clues:
                 session.add(tables.HotClue(secret_word_id=db_secret.id, clue=clue))

@@ -90,13 +90,13 @@ async def main() -> None:
     else:
         secret = await get_random_word(model, args.top_sample)
     while True:
-        await do_populate(
+        if await do_populate(
             session, redis, secret, date, model, args.force, args.top_sample
-        )
-        if not args.iterative:
-            break
-        date += datetime.timedelta(days=1)
-        print(f"Now doing {date}")
+        ):
+            if not args.iterative:
+                break
+            date += datetime.timedelta(days=1)
+            print(f"Now doing {date}")
         secret = await get_random_word(model, args.top_sample)
 
 
@@ -121,7 +121,11 @@ async def do_populate(
     top_sample: int | None,
 ) -> bool:
     logic = CacheSecretLogic(session, redis, secret, dt=date, model=model)
-    await logic.simulate_set_secret(force=force)
+    try:
+        await logic.simulate_set_secret(force=force)
+    except ValueError as err:
+        print(err)
+        return False
     cache = [w[::-1] for w in (await logic.cache)[::-1]]
     print(" ,".join(cache))
     print(cache[0])

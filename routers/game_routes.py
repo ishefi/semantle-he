@@ -44,7 +44,6 @@ async def distance(
     if request.headers.get("x-sh-version", "2022-02-20") >= "2023-09-10":
         if request.state.user:
             history_logic = UserHistoryLogic(
-                request.app.state.mongo,
                 request.app.state.session,
                 request.state.user,
                 get_date(request.app.state.days_delta),

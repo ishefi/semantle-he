@@ -45,7 +45,6 @@ async def index(request: Request) -> Response:
 
     if request.state.user:
         history_logic = UserHistoryLogic(
-            request.app.state.mongo,
             request.app.state.session,
             request.state.user,
             get_date(request.app.state.days_delta),
@@ -147,7 +146,7 @@ async def menu(request: Request) -> Response:
 @pages_router.get("/statistics", response_class=HTMLResponse, include_in_schema=False)
 async def get_statistics(request: Request) -> Response:
     if request.state.user is not None:
-        logic = UserStatisticsLogic(request.app.state.mongo, request.state.user)
+        logic = UserStatisticsLogic(request.app.state.session, request.state.user)
         statistics = await logic.get_statistics()
     else:
         statistics = None

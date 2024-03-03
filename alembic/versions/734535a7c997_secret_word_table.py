@@ -23,7 +23,9 @@ def upgrade() -> None:
     op.create_table(
         "secretword",
         sa.Column("id", sa.Integer(), nullable=False, autoincrement=True),
-        sa.Column("word", sa.String(), nullable=False),
+        sa.Column(
+            "word", sa.String(32, collation="Hebrew_100_CI_AI_SC_UTF8"), nullable=False
+        ),
         sa.Column("game_date", sa.Date(), nullable=False),
         sa.Column("solver_count", sa.Integer(), nullable=False, default=0),
         sa.PrimaryKeyConstraint("id"),

@@ -26,7 +26,7 @@ def upgrade() -> None:
         sa.Column("user_id", sa.Integer(), nullable=False),
         sa.Column("amount", sa.Float(), nullable=False),
         sa.Column("tier_name", sa.String(), nullable=True),
-        sa.Column("uuid", sa.String(), nullable=False),
+        sa.Column("uuid", sa.String(36), nullable=False),
         sa.Column("timestamp", sa.DateTime(), nullable=False),
         sa.ForeignKeyConstraint(
             ["user_id"],
@@ -38,4 +38,4 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    pass
+    op.drop_table("usersubscription")

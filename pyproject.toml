@@ -24,6 +24,7 @@ python-multipart = "^0.0.6"
 sqlmodel = "^0.0.14"
 sqlalchemy-libsql = "^0.1.0"
 dropbox = "^11.36.2"
+pyodbc = "^5.1.0"
 
 
 [tool.poetry.group.dev.dependencies]

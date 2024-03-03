@@ -118,7 +118,7 @@ async def get_user(
         if session is None:
             request.state.user = None
         else:
-            user_logic = UserLogic(mongo, request.app.state.session)
+            user_logic = UserLogic(request.app.state.session)
             user = await user_logic.get_user(session["user_email"])
             if user is not None:
                 request.state.user = user

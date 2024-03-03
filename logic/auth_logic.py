@@ -24,7 +24,7 @@ class AuthLogic:
         session: Session,
         auth_client_id: str,
     ) -> None:
-        self.user_logic = UserLogic(mongo, session)
+        self.user_logic = UserLogic(session)
         self.sessions = mongo.sessions
         self.auth_client_id = auth_client_id
 

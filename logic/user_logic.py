@@ -129,20 +129,10 @@ class UserHistoryLogic:
     async def update_and_get_history(
         self, guess: schemas.DistanceResponse
     ) -> list[schemas.DistanceResponse]:
-        history = await self.get_history()
         if guess.similarity is not None:
-            history.append(guess)
             with hs_transaction(self.session) as session:
-                count_query = select(func.count())
-                count_query = count_query.select_from(tables.UserHistory)
-                count_query = count_query.where(
-                    tables.UserHistory.user_id == self.user.id
-                )
-                count_query = count_query.where(tables.UserHistory.guess == guess.guess)
-                count_query = count_query.where(
-                    tables.UserHistory.game_date == self.date
-                )
-                if session.exec(count_query).one() == 0:
+                history = await self._begun_get_history(session)
+                if guess.guess not in [h.guess for h in history]:
                     session.add(
                         tables.UserHistory(
                             user_id=self.user.id,
@@ -154,21 +144,23 @@ class UserHistoryLogic:
                             solver_count=guess.solver_count,
                         )
                     )
+                    history.append(guess)
             return history
         else:
-            return [guess] + history
+            return [guess] + await self.get_history()
 
     async def get_history(self) -> list[schemas.DistanceResponse]:
         with hs_transaction(self.session, expire_on_commit=False) as session:
-            history_query = select(tables.UserHistory)
-            history_query = history_query.where(
-                tables.UserHistory.user_id == self.user.id
-            )
-            history_query = history_query.where(
-                tables.UserHistory.game_date == self.date
-            )
-            history_query = history_query.order_by(col(tables.UserHistory.id))
-            history = session.exec(history_query).all()
+            return await self._begun_get_history(session=session)
+
+    async def _begun_get_history(
+        self, session: Session
+    ) -> list[schemas.DistanceResponse]:
+        history_query = select(tables.UserHistory)
+        history_query = history_query.where(tables.UserHistory.user_id == self.user.id)
+        history_query = history_query.where(tables.UserHistory.game_date == self.date)
+        history_query = history_query.order_by(col(tables.UserHistory.id))
+        history = session.exec(history_query).all()
         return [
             schemas.DistanceResponse(
                 guess=historia.guess,

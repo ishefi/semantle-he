@@ -32,12 +32,12 @@ STATIC_FOLDER = "static"
 js_hasher = hashlib.sha3_256()
 with open(STATIC_FOLDER + "/semantle.js", "rb") as f:
     js_hasher.update(f.read())
-JS_VERSION = js_hasher.hexdigest()[:8]
+JS_VERSION = js_hasher.hexdigest()[:6]
 
 css_hasher = hashlib.sha3_256()
 with open(STATIC_FOLDER + "/styles.css", "rb") as f:
     css_hasher.update(f.read())
-CSS_VERSION = css_hasher.hexdigest()[:8]
+CSS_VERSION = css_hasher.hexdigest()[:6]
 
 app = FastAPI()
 app.state.mongo = get_mongo()

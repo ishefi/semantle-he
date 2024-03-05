@@ -22,7 +22,7 @@ def NoFinalHebrewString(length: int | None = None, *args: Any, **kwargs: Any) ->
 
 class User(SQLModel, table=True):
     id: int = Field(default=None, primary_key=True)
-    email: str = NoFinalHebrewString(128, unique=True, index=True)
+    email: str = NoFinalHebrewString(128, unique=True)
     user_type: str = "User"  # TODO: enum
     active: bool = True
     picture: str
@@ -35,7 +35,12 @@ class User(SQLModel, table=True):
 class UserHistory(SQLModel, table=True):
     __table_args__ = (
         UniqueConstraint("user_id", "game_date", "guess"),
-        Index("ux_user_id__game_date", "user_id", "game_date"),
+        Index(
+            "nci_user_id__game_date",
+            "user_id",
+            "game_date",
+            mssql_include=["distance", "egg", "guess", "similarity", "solver_count"],
+        ),
     )
 
     id: int = Field(default=None, primary_key=True)
@@ -49,10 +54,7 @@ class UserHistory(SQLModel, table=True):
 
 
 class UserClueCount(SQLModel, table=True):
-    __table_args__ = (
-        UniqueConstraint("user_id", "game_date"),
-        Index("ux_user_id__game_date", "user_id", "game_date"),
-    )
+    __table_args__ = (UniqueConstraint("user_id", "game_date"),)
 
     id: int = Field(default=None, primary_key=True)
     user_id: int = Field(foreign_key="user.id")
@@ -65,7 +67,7 @@ class SecretWord(SQLModel, table=True):
 
     id: int = Field(default=None, primary_key=True)
     word: str = HebrewString(32, unique=True)
-    game_date: datetime.date = Field(index=True)
+    game_date: datetime.date
     solver_count: int = 0
 
 

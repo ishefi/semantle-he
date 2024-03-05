@@ -124,16 +124,7 @@ class UserHistoryLogic:
     ):
         self.session = session
         self.user = user
-        self.dt = date  # TODO: use this
-        self.date = str(date)
-
-    @property
-    def projection(self) -> dict[str, str]:
-        return {"history": f"$history.{self.date}"}
-
-    @property
-    def user_filter(self) -> dict[str, str]:
-        return {"email": self.user.email}
+        self.date = date  # TODO: use this
 
     async def update_and_get_history(
         self, guess: schemas.DistanceResponse
@@ -142,17 +133,27 @@ class UserHistoryLogic:
         if guess.similarity is not None:
             history.append(guess)
             with hs_transaction(self.session) as session:
-                session.add(
-                    tables.UserHistory(
-                        user_id=self.user.id,
-                        guess=guess.guess,
-                        similarity=guess.similarity,
-                        distance=guess.distance,
-                        egg=guess.egg,
-                        game_date=self.dt,
-                        solver_count=guess.solver_count,
-                    )
+                count_query = select(func.count())
+                count_query = count_query.select_from(tables.UserHistory)
+                count_query = count_query.where(
+                    tables.UserHistory.user_id == self.user.id
                 )
+                count_query = count_query.where(tables.UserHistory.guess == guess.guess)
+                count_query = count_query.where(
+                    tables.UserHistory.game_date == self.date
+                )
+                if session.exec(count_query).one() == 0:
+                    session.add(
+                        tables.UserHistory(
+                            user_id=self.user.id,
+                            guess=guess.guess,
+                            similarity=guess.similarity,
+                            distance=guess.distance,
+                            egg=guess.egg,
+                            game_date=self.date,
+                            solver_count=guess.solver_count,
+                        )
+                    )
             return history
         else:
             return [guess] + history

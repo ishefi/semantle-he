@@ -29,7 +29,7 @@ COPY ./routers/ /code/routers
 COPY ./*.py /code
 
 RUN python /code/download_model.py
-COPY ./model.mdl* /code
+RUN rm /code/model.zip
 
 EXPOSE 5000
 

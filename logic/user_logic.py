@@ -3,10 +3,12 @@ from __future__ import annotations
 
 import datetime
 import hashlib
+from functools import lru_cache
 from typing import TYPE_CHECKING
 
 from dateutil.relativedelta import relativedelta
 from sqlalchemy import func
+from sqlalchemy.exc import NoResultFound
 from sqlmodel import asc
 from sqlmodel import col
 from sqlmodel import select
@@ -54,9 +56,17 @@ class UserLogic:
             return db_user
 
     async def get_user(self, email: str) -> tables.User | None:
-        with hs_transaction(self.session, expire_on_commit=False) as session:
+        try:
+            return self._get_cached_user(self.session, email)
+        except NoResultFound:
+            return None
+
+    @staticmethod
+    @lru_cache(maxsize=2048)
+    def _get_cached_user(session: Session, email: str) -> tables.User:
+        with hs_transaction(session, expire_on_commit=False) as session:
             query = select(tables.User).where(tables.User.email == email)
-            return session.exec(query).one_or_none()
+            return session.exec(query).one()
 
     @staticmethod
     def has_permissions(user: tables.User, permission: str) -> bool:
@@ -65,7 +75,6 @@ class UserLogic:
         ) >= UserLogic.PERMISSIONS.index(permission)
 
     async def subscribe(self, subscription: schemas.Subscription) -> bool:
-        # TODO: change logic to use sql
         user = await self.get_user(subscription.email)
         if user is None:
             return False

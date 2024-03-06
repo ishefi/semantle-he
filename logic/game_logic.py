@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import datetime
 import heapq
+from functools import lru_cache
 from typing import TYPE_CHECKING
 from typing import no_type_check
 
@@ -31,10 +32,18 @@ class SecretLogic:
         self.session = session
 
     async def get_secret(self) -> str | None:
-        query = select(tables.SecretWord)
-        query = query.where(tables.SecretWord.game_date == self.date)
+        return self._get_cached_secret(session=self.session, date=self.date)
 
-        with hs_transaction(self.session) as session:
+    @staticmethod
+    @lru_cache
+    def _get_cached_secret(session: Session, date: datetime.date) -> str | None:
+        # TODO: this function is accessing db but is NOT ASYNC, which might be
+        # problematic if we choose to do async stuff with sql in the future.
+        # the reason for that is `@lru_cache` does not support async.
+        query = select(tables.SecretWord)
+        query = query.where(tables.SecretWord.game_date == date)
+
+        with hs_transaction(session) as session:
             secret_word = session.exec(query).one_or_none()
             if secret_word is not None:
                 return secret_word.word

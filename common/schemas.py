@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 import datetime
-from typing import Optional
 
 from pydantic import BaseModel
 from pydantic import validator
@@ -8,16 +7,16 @@ from pydantic import validator
 
 class DistanceResponse(BaseModel):
     guess: str
-    similarity: Optional[float]
+    similarity: float | None
     distance: int
-    egg: Optional[str] = None
-    solver_count: Optional[int] = None
+    egg: str | None = None
+    solver_count: int | None = None
     guess_number: int = 0
 
 
 class UserStatistics(BaseModel):
     game_streak: int
-    highest_rank: Optional[int]
+    highest_rank: int | None
     total_games_played: int
     total_games_won: int
     average_guesses: float

@@ -226,8 +226,8 @@ class UserStatisticsLogic:
             game_streak=game_streak,
             highest_rank=highest_rank,
             total_games_played=total_games_played,
-            total_games_won=total_games_won,
-            average_guesses=avg_guesses,
+            total_games_won=total_games_won or 0,
+            average_guesses=avg_guesses or 0,
         )
 
     def _get_game_streak_and_total(self) -> tuple[int, int]:

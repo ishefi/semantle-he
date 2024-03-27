@@ -109,7 +109,7 @@
     <input type="submit" value="ניחוש" id="guess-btn">
     </div>
     </form>
-    <input id="clue-btn" type="button" value="רמז">
+    <input id="clue-btn" type="button" value="רמז" style="cursor:pointer">
     <div id="response"></div>
     <p><b id="timer" hidden></b></p>
     <div style="display:none">
@@ -117,7 +117,7 @@
     </div>
     <ul id="clueList">
         {% for clue in clues %}
-        <li style="red">{{ clue }}</li>
+        <li style="color: red">{{ clue }}</li>
         {% endfor %}
     </ul>
     <table id="guesses">

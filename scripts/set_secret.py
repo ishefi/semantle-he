@@ -71,6 +71,7 @@ async def main() -> None:
     )
     parser.add_argument(
         "--top-sample",
+        default=10000,
         type=int,
         help="Top n words to choose from when choosing a random word. If not provided, will use all words in the model.",
     )

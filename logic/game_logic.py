@@ -56,7 +56,8 @@ class SecretLogic:
             session.add(db_secret)
         with hs_transaction(self.session) as session:
             for clue in clues:
-                session.add(tables.HotClue(secret_word_id=db_secret.id, clue=clue))
+                if clue:
+                    session.add(tables.HotClue(secret_word_id=db_secret.id, clue=clue))
 
     async def get_all_secrets(
         self, with_future: bool

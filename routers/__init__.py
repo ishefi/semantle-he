@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from routers.admin_routes import admin_router
 from routers.auth_routes import auth_router
 from routers.game_routes import game_router
 from routers.legal_routes import legal_router
@@ -7,6 +8,7 @@ from routers.subscription_routes import subscription_router
 from routers.user_routes import user_router
 
 routers = [
+    admin_router,
     auth_router,
     game_router,
     pages_router,

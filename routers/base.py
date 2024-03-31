@@ -8,8 +8,9 @@ from fastapi import FastAPI
 from fastapi import HTTPException
 from fastapi import status
 from fastapi.templating import Jinja2Templates
-from starlette.responses import HTMLResponse
+from fastapi.responses import HTMLResponse
 
+from fastapi import Request
 from logic.game_logic import CacheSecretLogic
 from logic.game_logic import VectorLogic
 from logic.user_logic import UserLogic
@@ -18,8 +19,6 @@ templates = Jinja2Templates(directory="templates")
 
 if TYPE_CHECKING:
     from typing import Any
-
-    from fastapi import Request
 
 
 def get_date(delta: datetime.timedelta) -> datetime.date:
@@ -55,7 +54,6 @@ def super_admin(request: Request) -> None:
 def render(name: str, request: Request, **kwargs: Any) -> HTMLResponse:
     kwargs["js_version"] = request.app.state.js_version
     kwargs["css_version"] = request.app.state.css_version
-    kwargs["request"] = request
     kwargs["enumerate"] = enumerate
     kwargs["google_auth_client_id"] = request.app.state.google_app["client_id"]
-    return templates.TemplateResponse(name, context=kwargs)
+    return templates.TemplateResponse(request=request, name=name, context=kwargs)

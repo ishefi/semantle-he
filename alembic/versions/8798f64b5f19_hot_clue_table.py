@@ -5,6 +5,7 @@ Revises: 8240e5d61928
 Create Date: 2024-01-17 21:31:45.610168
 
 """
+
 from typing import Sequence
 from typing import Union
 

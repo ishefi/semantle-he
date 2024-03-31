@@ -17,11 +17,11 @@ from common.consts import FIRST_DATE
 from logic.game_logic import VectorLogic
 from logic.user_logic import UserClueLogic
 from logic.user_logic import UserHistoryLogic
-from logic.user_logic import UserLogic
 from logic.user_logic import UserStatisticsLogic
 from routers.base import get_date
 from routers.base import get_logics
 from routers.base import render
+from routers.base import super_admin
 
 pages_router = APIRouter()
 
@@ -50,7 +50,7 @@ async def index(request: Request) -> Response:
             get_date(request.app.state.days_delta),
         )
         history = json.dumps(
-            [historia.dict() for historia in await history_logic.get_history()]
+            [historia.model_dump() for historia in await history_logic.get_history()]
         )
     else:
         history = ""
@@ -103,9 +103,7 @@ async def yesterday_top(request: Request) -> Response:
 @pages_router.get("/secrets", response_class=HTMLResponse)
 async def secrets(request: Request, with_future: bool = False) -> Response:
     if with_future:
-        user = request.state.user
-        if not user or not UserLogic.has_permissions(user, UserLogic.SUPER_ADMIN):
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
+        super_admin(request)
 
     logic, _ = await get_logics(app=request.app)
     all_secrets = await logic.secret_logic.get_all_secrets(with_future=with_future)
@@ -119,12 +117,9 @@ async def secrets(request: Request, with_future: bool = False) -> Response:
 
 @pages_router.get("/faq", response_class=HTMLResponse, include_in_schema=False)
 async def faq(request: Request) -> Response:
-    # _, cache_logic = await get_logics(app=request.app, delta=timedelta(days=1))
-    # cache = await cache_logic.cache
     return render(
         name="faq.html",
         request=request,
-        # yesterday=cache[-11:]
         yesterday=[],
     )
 

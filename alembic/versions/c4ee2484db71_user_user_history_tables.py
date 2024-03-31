@@ -1,10 +1,11 @@
 """user + user history tables
 
 Revision ID: c4ee2484db71
-Revises: 
+Revises:
 Create Date: 2024-01-09 17:19:56.323607
 
 """
+
 from typing import Sequence
 from typing import Union
 

@@ -37,7 +37,7 @@ class SecretLogic:
 
     @staticmethod
     @lru_cache
-    def _get_cached_secret(session: Session, date: datetime.date) -> str | None:
+    def _get_cached_secret(session: Session, date: datetime.date) -> str:
         # TODO: this function is accessing db but is NOT ASYNC, which might be
         # problematic if we choose to do async stuff with sql in the future.
         # the reason for that is `@lru_cache` does not support async.

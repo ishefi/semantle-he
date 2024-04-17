@@ -6,11 +6,11 @@ from typing import TYPE_CHECKING
 
 from fastapi import FastAPI
 from fastapi import HTTPException
-from fastapi import status
-from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse
-
 from fastapi import Request
+from fastapi import status
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
+
 from logic.game_logic import CacheSecretLogic
 from logic.game_logic import VectorLogic
 from logic.user_logic import UserLogic
@@ -32,7 +32,9 @@ async def get_logics(
     delta += app.state.days_delta
     date = get_date(delta)
     logic = VectorLogic(app.state.session, dt=date, model=app.state.model)
-    secret = await logic.secret_logic.get_secret()  # TODO: raise a user-friendly exception
+    secret = (
+        await logic.secret_logic.get_secret()
+    )  # TODO: raise a user-friendly exception
     cache_logic = CacheSecretLogic(
         app.state.session,
         app.state.redis,

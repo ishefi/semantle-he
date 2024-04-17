@@ -36,6 +36,7 @@ types-redis = "^4.6.0.11"
 ruff = "0.3.4"
 alembic = "^1.13.1"
 pytest = "^8.1.1"
+pytest-sugar = "^1.0.0"
 
 [tool.ruff]
 fix = true

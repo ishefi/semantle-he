@@ -3,13 +3,12 @@ import os
 import sys
 from datetime import datetime
 
-
 base = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.extend([base])
 
-from common.session import get_session # noqa: E402
 from common.session import get_model  # noqa: E402
 from common.session import get_redis  # noqa: E402
+from common.session import get_session  # noqa: E402
 from logic.game_logic import CacheSecretLogic  # noqa: E402
 from logic.game_logic import VectorLogic  # noqa: E402
 

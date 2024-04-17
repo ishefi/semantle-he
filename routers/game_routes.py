@@ -22,7 +22,7 @@ game_router = APIRouter()
 async def distance(
     request: Request,
     word: str = Query(default=..., min_length=2, max_length=24, regex=r"^[א-ת ']+$"),
-) -> schemas.DistanceResponse | list[schemas.DistanceResponse]:
+) -> list[schemas.DistanceResponse]:
     word = word.replace("'", "")
     if egg := EasterEggLogic.get_easter_egg(word):
         response = schemas.DistanceResponse(
@@ -42,17 +42,15 @@ async def distance(
             distance=cache_score,
             solver_count=solver_count,
         )
-    if request.headers.get("x-sh-version", "2022-02-20") >= "2023-09-10":
-        if request.state.user:
-            history_logic = UserHistoryLogic(
-                request.app.state.session,
-                request.state.user,
-                get_date(request.app.state.days_delta),
-            )
-            return await history_logic.update_and_get_history(response)
-        else:
-            return [response]
-    return response
+    if request.state.user:
+        history_logic = UserHistoryLogic(
+            request.app.state.session,
+            request.state.user,
+            get_date(request.app.state.days_delta),
+        )
+        return await history_logic.update_and_get_history(response)
+    else:
+        return [response]
 
 
 @game_router.get("/api/clue")

@@ -46,7 +46,7 @@ class UserHistory(SQLModel, table=True):
     id: int = Field(default=None, primary_key=True)
     user_id: int = Field(foreign_key="user.id", index=True)
     guess: str = HebrewString(32)
-    similarity: float | None
+    similarity: float
     distance: int
     egg: str | None = NoFinalHebrewString(default=None)
     game_date: datetime.date

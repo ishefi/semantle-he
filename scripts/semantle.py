@@ -3,6 +3,8 @@ import os
 import sys
 from datetime import datetime
 
+from common.error import HSError
+
 base = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.extend([base])
 
@@ -33,8 +35,9 @@ async def main() -> None:
             )
         inp = input(">")
         print(inp[::-1])
-        similarity = await logic.get_similarity(inp)
-        if similarity is None or similarity < 0:
+        try:
+            similarity = await logic.get_similarity(inp)
+        except HSError:
             print("I don't know this word!")
         else:
             cache_score = await cache_logic.get_cache_score(inp)

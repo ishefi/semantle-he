@@ -108,10 +108,10 @@ class VectorLogic:
             self._secret_cache[self.date] = vector
         return self._secret_cache[self.date]
 
-    async def get_similarity(self, word: str) -> float | None:
+    async def get_similarity(self, word: str) -> float:
         word_vector = await self.get_vector(word)
         if word_vector is None:
-            return None
+            raise HSError("Word not found", code=100796)
         secret_vector = await self.get_secret_vector()
         return await self.calc_similarity(secret_vector, word_vector)
 

@@ -17,6 +17,7 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from common import config
+from common.error import HSError
 from common.session import get_model
 from common.session import get_mongo
 from common.session import get_redis
@@ -128,6 +129,16 @@ async def get_user(
     else:
         request.state.user = None
     return await call_next(request)
+
+
+@app.middleware("http")
+async def catch_known_errors(
+    request: Request, call_next: Callable[[Request], Awaitable[Response]]
+) -> Response:
+    try:
+        return await call_next(request)
+    except HSError as e:
+        return JSONResponse(content=str(e), status_code=status.HTTP_400_BAD_REQUEST)
 
 
 @app.get("/health")

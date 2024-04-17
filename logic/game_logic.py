@@ -11,6 +11,7 @@ from sqlmodel import update
 
 from common import config
 from common import tables
+from common.error import HSError
 from common.session import hs_transaction
 from common.typing import np_float_arr
 
@@ -31,7 +32,7 @@ class SecretLogic:
         self.date = dt
         self.session = session
 
-    async def get_secret(self) -> str | None:
+    async def get_secret(self) -> str:
         return self._get_cached_secret(session=self.session, date=self.date)
 
     @staticmethod
@@ -48,7 +49,7 @@ class SecretLogic:
             if secret_word is not None:
                 return secret_word.word
             else:
-                return None
+                raise HSError("No secret found!", code=250722)
 
     async def set_secret(self, secret: str, clues: list[str]) -> None:
         with hs_transaction(self.session, expire_on_commit=False) as session:
@@ -101,8 +102,6 @@ class VectorLogic:
     async def get_secret_vector(self) -> np_float_arr:
         if self._secret_cache.get(self.date) is None:
             secret = await self.secret_logic.get_secret()
-            if secret is None:
-                raise ValueError("No secret found!")  # TODO: better exception
             vector = await self.get_vector(secret)
             if vector is None:
                 raise ValueError("No secret found!")  # TODO: better exception
@@ -161,10 +160,6 @@ class CacheSecretLogic:
             )
         return self._secret_cache_key
 
-    def _get_secret_vector(self) -> np_float_arr:
-        vector: np_float_arr = self.model[self.secret]
-        return vector
-
     def _iterate_all_wv(self) -> AsyncIterator[tuple[str, np_float_arr]]:
         return self.vector_logic.iterate_all()
 
@@ -173,8 +168,11 @@ class CacheSecretLogic:
         In order to actually set the secret, call do_populate()
         """
         if not force:
-            if await self.vector_logic.secret_logic.get_secret() is not None:
+            try:
+                await self.vector_logic.secret_logic.get_secret()
                 raise ValueError("There is already a secret for this date")
+            except HSError:
+                pass
 
             query = select(tables.SecretWord.game_date)  # type: ignore
             query = query.where(tables.SecretWord.word == self.secret)
@@ -185,7 +183,7 @@ class CacheSecretLogic:
             if self.secret not in self.words:
                 raise ValueError("This word is not in the model")
 
-        secret_vec = self._get_secret_vector()
+        secret_vec = self.model[self.secret]
 
         nearest: list[tuple[float, str]] = []
         async for word, vec in self._iterate_all_wv():

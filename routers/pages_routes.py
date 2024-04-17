@@ -14,6 +14,7 @@ from fastapi import status
 from fastapi.responses import HTMLResponse
 
 from common.consts import FIRST_DATE
+from common.error import HSError
 from logic.game_logic import VectorLogic
 from logic.user_logic import UserClueLogic
 from logic.user_logic import UserHistoryLogic
@@ -41,7 +42,7 @@ async def index(request: Request) -> Response:
         session=request.app.state.session,
         model=request.app.state.model,
         dt=date - timedelta(days=1),
-    ).secret_logic.get_secret()
+    ).secret_logic.get_secret()  # TODO: raise a user friendly exception
 
     if request.state.user:
         history_logic = UserHistoryLogic(
@@ -61,8 +62,9 @@ async def index(request: Request) -> Response:
     )[0]
 
     if request.state.user:
-        secret = await logic.secret_logic.get_secret()
-        if secret is None:
+        try:
+            secret = await logic.secret_logic.get_secret()
+        except HSError:
             raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE)
         clue_logic = UserClueLogic(
             session=request.app.state.session,

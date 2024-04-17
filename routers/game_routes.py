@@ -8,6 +8,7 @@ from fastapi import Request
 from fastapi import status
 
 from common import schemas
+from common.error import HSError
 from logic.game_logic import EasterEggLogic
 from logic.user_logic import UserClueLogic
 from logic.user_logic import UserHistoryLogic
@@ -60,8 +61,9 @@ async def get_clue(request: Request) -> dict[str, str]:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
     else:
         logic, _ = await get_logics(app=request.app)
-        secret = await logic.secret_logic.get_secret()
-        if secret is None:
+        try:
+            secret = await logic.secret_logic.get_secret()
+        except HSError:
             raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE)
         user_logic = UserClueLogic(
             session=request.app.state.session,

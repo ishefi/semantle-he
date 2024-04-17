@@ -32,9 +32,7 @@ async def get_logics(
     delta += app.state.days_delta
     date = get_date(delta)
     logic = VectorLogic(app.state.session, dt=date, model=app.state.model)
-    secret = await logic.secret_logic.get_secret()
-    if secret is None:
-        raise Exception("No secret found!")  # TODO: better exception
+    secret = await logic.secret_logic.get_secret()  # TODO: raise a user-friendly exception
     cache_logic = CacheSecretLogic(
         app.state.session,
         app.state.redis,

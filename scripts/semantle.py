@@ -3,11 +3,11 @@ import os
 import sys
 from datetime import datetime
 
-from common.session import get_session
 
 base = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.extend([base])
 
+from common.session import get_session # noqa: E402
 from common.session import get_model  # noqa: E402
 from common.session import get_redis  # noqa: E402
 from logic.game_logic import CacheSecretLogic  # noqa: E402
@@ -23,16 +23,12 @@ async def main() -> None:
     date = datetime.utcnow().date()
     logic = VectorLogic(session, dt=date, model=model)
     secret = await logic.secret_logic.get_secret()
-    if secret is None:
-        raise Exception("No secret for today!")  # TODO: better exception
     cache_logic = CacheSecretLogic(session, redis, secret=secret, dt=date, model=model)
     while inp != "exit":
         if datetime.utcnow().date() != date:
             date = datetime.utcnow().date()
             logic = VectorLogic(session, dt=date, model=model)
             secret = await logic.secret_logic.get_secret()
-            if secret is None:
-                raise Exception("No secret for today!")  # TODO: better exception
             cache_logic = CacheSecretLogic(
                 session, redis, secret=secret, dt=date, model=model
             )

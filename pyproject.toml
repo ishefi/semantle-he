@@ -35,6 +35,7 @@ types-requests = "^2.31.0.10"
 types-redis = "^4.6.0.11"
 ruff = "0.3.4"
 alembic = "^1.13.1"
+pytest = "^8.1.1"
 
 [tool.ruff]
 fix = true

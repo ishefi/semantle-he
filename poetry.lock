@@ -994,6 +994,19 @@ files = [
 ]
 
 [[package]]
+name = "milon"
+version = "0.0.1"
+description = "A hebrew dictionary"
+optional = false
+python-versions = "*"
+files = [
+    {file = "milon-0.0.1.tar.gz", hash = "sha256:60507b4ce7180fd175c95de69267ed740ba5db316e8e1d0d3173d2e972bc5ab4"},
+]
+
+[package.dependencies]
+six = "*"
+
+[[package]]
 name = "motor"
 version = "3.4.0"
 description = "Non-blocking MongoDB driver for Tornado or asyncio"
@@ -2618,4 +2631,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "f22b27dbc406d1f1e30627897959ab3b040ea5270469bbcc89602a5e1712d04b"
+content-hash = "6be061c9991d64eb30405b6652cd583acd2a45f12f6d28ebfc6d30c4ff6c52f6"

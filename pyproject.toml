@@ -25,6 +25,7 @@ sqlmodel = "^0.0.14"
 sqlalchemy-libsql = "^0.1.0"
 dropbox = "^11.36.2"
 pyodbc = "^5.1.0"
+milon = "^0.0.1"
 
 
 [tool.poetry.group.dev.dependencies]

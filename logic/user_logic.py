@@ -255,7 +255,7 @@ class UserClueLogic:
     HOT_CLUE_FORMAT = "המילה '{hot_clue}' קרובה למילה הסודית"
     NO_MORE_CLUES_STR = "אין יותר רמזים"
     CLUE_COOLDOWN_FOR_UNSUBSCRIBED = datetime.timedelta(days=7)
-    MAX_CLUES_DURING_COOLDOWN = 1
+    MAX_CLUES_DURING_COOLDOWN = 5
     HOT_CLUES_CACHE: dict[str, list[str]] = {}
 
     def __init__(

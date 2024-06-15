@@ -288,6 +288,8 @@ class UserClueLogic:
 
     async def get_clue(self) -> str | None:
         if self.clues_used < len(self.clues):
+            if not self.user.active and await self._used_max_clues_for_inactive():
+                raise ValueError()  # TODO: custom exception
             clue = await self.clues[self.clues_used]()
             await self._update_clue_usage()
             return clue

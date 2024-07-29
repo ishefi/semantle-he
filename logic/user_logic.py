@@ -288,7 +288,10 @@ class UserClueLogic:
 
     async def get_clue(self) -> str | None:
         if self.clues_used < len(self.clues):
-            if not self.user.active and await self._used_max_clues_for_inactive():
+            if (
+                not self.user.has_active_subscription()
+                and await self._used_max_clues_for_inactive()
+            ):
                 raise ValueError()  # TODO: custom exception
             clue = await self.clues[self.clues_used]()
             await self._update_clue_usage()
@@ -313,8 +316,8 @@ class UserClueLogic:
                 tables.UserClueCount.game_date
                 > self.date - self.CLUE_COOLDOWN_FOR_UNSUBSCRIBED
             )
-            used_clues = session.exec(query).one()
-            return used_clues > self.MAX_CLUES_DURING_COOLDOWN
+            used_clues = session.exec(query).one() or 0
+            return used_clues >= self.MAX_CLUES_DURING_COOLDOWN
 
     async def _update_clue_usage(self) -> None:
         with hs_transaction(self.session) as session:

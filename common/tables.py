@@ -31,6 +31,12 @@ class User(SQLModel, table=True):
     first_login: datetime.datetime = Field(default_factory=datetime.datetime.utcnow)
     subscription_expiry: datetime.datetime | None = None
 
+    def has_active_subscription(self) -> bool:
+        if self.subscription_expiry is None:
+            return False
+        else:
+            return self.subscription_expiry > datetime.datetime.utcnow()
+
 
 class UserHistory(SQLModel, table=True):
     __table_args__ = (

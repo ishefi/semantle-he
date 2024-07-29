@@ -14,7 +14,8 @@ function snackbarAlert(alertText, alertColor) {
     x.innerText = alertText;
     x.style.backgroundColor = alertColor;
     x.className = "show";
-    setTimeout(function(){ x.className = x.className.replace("show", ""); }, 4000);
+    let duration = 60 * alertText.length;
+    setTimeout(function(){ x.className = x.className.replace("show", ""); }, duration);
 }
 
 

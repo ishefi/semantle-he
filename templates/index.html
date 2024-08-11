@@ -50,6 +50,7 @@
     </div>
 </div>
 </header>
+
     <figure>
         <blockquote class="review" cite="{{quote[3]}}">
             <p class="review__quote">{{quote[0]}}</p>
@@ -109,6 +110,13 @@
     <input type="submit" value="ניחוש" id="guess-btn">
     </div>
     </form>
+    <div>
+                            {% if request.state.has_active_subscription %}
+            <i id="subscription-badge">
+            תודה על התרומה! רמזים חופשי עד  {{ request.state.expires_at }}
+            </i>
+            {% endif %}
+    </div>
     <input id="clue-btn" type="button" value="רמז">
     <div id="response"></div>
     <p><b id="timer" hidden></b></p>

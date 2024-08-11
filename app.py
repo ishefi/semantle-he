@@ -126,6 +126,7 @@ async def get_user(
                 if expiry := user_logic.get_subscription_expiry(request.state.user):
                     is_active = expiry > datetime.utcnow()
                     request.state.has_active_subscription = is_active
+                    request.state.expires_at = str(expiry.date())
     else:
         request.state.user = None
     return await call_next(request)

@@ -29,13 +29,8 @@ class User(SQLModel, table=True):
     given_name: str = NoFinalHebrewString()
     family_name: str = NoFinalHebrewString()
     first_login: datetime.datetime = Field(default_factory=datetime.datetime.utcnow)
-    subscription_expiry: datetime.datetime | None = None
-
-    def has_active_subscription(self) -> bool:
-        if self.subscription_expiry is None:
-            return False
-        else:
-            return self.subscription_expiry > datetime.datetime.utcnow()
+    # subscription_expiry: datetime.datetime | None = None
+    subscriptions: "UserSubscription" = Relationship()
 
 
 class UserHistory(SQLModel, table=True):

@@ -287,9 +287,15 @@ class UserClueLogic:
             return session.exec(query).one_or_none() or 0
 
     async def get_clue(self) -> str | None:
+        user_logic = UserLogic(self.session)
+        expiry = user_logic.get_subscription_expiry(self.user)
+        if expiry is None or expiry < datetime.datetime.utcnow():
+            has_active_subscription = False
+        else:
+            has_active_subscription = True
         if self.clues_used < len(self.clues):
             if (
-                not self.user.has_active_subscription()
+                not has_active_subscription
                 and await self._used_max_clues_for_inactive()
             ):
                 raise ValueError()  # TODO: custom exception

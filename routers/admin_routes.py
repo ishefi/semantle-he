@@ -10,6 +10,7 @@ from sqlmodel import Session
 from sqlmodel import select
 
 from common import tables
+from common.consts import FIRST_DATE
 from common.session import hs_transaction
 from logic.game_logic import CacheSecretLogic
 from logic.game_logic import SecretLogic
@@ -43,7 +44,7 @@ async def index(request: Request) -> HTMLResponse:
 @admin_router.get("/model", include_in_schema=False)
 async def get_word_data(
     request: Request, word: str
-) -> dict[str, list[str] | datetime.date]:
+) -> dict[str, list[str] | datetime.date | int]:
     session = request.app.state.session
     redis = request.app.state.redis
     model = request.app.state.model
@@ -58,6 +59,7 @@ async def get_word_data(
     cache = await logic.cache
     return {
         "date": logic.date_,
+        "game_number": (logic.date_ - FIRST_DATE).days + 1,
         "data": cache[::-1],
     }
 

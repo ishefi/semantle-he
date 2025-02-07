@@ -38,6 +38,7 @@ ruff = "0.3.4"
 alembic = "^1.13.1"
 pytest = "^8.1.1"
 pytest-sugar = "^1.0.0"
+tqdm = "^4.67.1"
 
 [tool.ruff]
 fix = true

@@ -1,29 +1,41 @@
+/* Base styles */
 body, input {
-    font-size: 17px;
-    line-height: 27px;
-    -webkit-font-smoothing: subpixel-antialiased;
-    font-family:-apple-system-font, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
-    text-rendering: optimizeLegibility;
-    font-weight:200;
+    font-size: 16px;
+    line-height: 1.6;
+    font-family: 'Inter', -apple-system-font, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+    font-weight: 400;
+    color: #2d3436;
 }
 
 body {
     margin: 0 auto;
     max-width: 800px;
-    padding: 1em;
+    padding: 2rem;
+    background-color: #f9fafb;
 }
 
+/* Modern input styling */
 #guess-wrapper {
     display: flex;
-    margin: 20px 0;
+    margin: 1.5rem 0;
     align-items: center;
+    gap: 1rem;
     width: 120%;
 }
 
-#guess-wrapper input {
-    height: 44px;
-    display: flex;
-    font-size: 25px;
+input {
+    height: 50px;
+    font-size: 1.2rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 0 1rem;
+    transition: all 0.2s ease;
+}
+
+input:focus {
+    border-color: #4299e1;
+    box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.15);
+    outline: none;
 }
 
 #guess {
@@ -158,18 +170,12 @@ body.dialog-open {
     overflow: hidden;
 }
 
+/* Dialog styling */
 .dialog {
     background: white;
-    left: 2em;
-    margin-bottom: 2em;
-    margin-left: auto;
-    margin-right: auto;
-    max-width: 40em;
+    border-radius: 15px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
     overflow: hidden;
-    position: fixed;
-    right: 2em;
-    top: 2em;
-    z-index: 1;
 }
 
 .dialog-close {
@@ -185,9 +191,7 @@ body.dialog-open {
 }
 
 .dialog-content {
-    max-height: calc(100vh - 4em);
-    padding: 2em;
-    overflow: auto;
+    padding: 2.5rem;
 }
 
 .dialog-content > *:first-child {

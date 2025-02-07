@@ -3,6 +3,7 @@ import random
 
 from fastapi import APIRouter
 from fastapi import Depends
+from fastapi import HTTPException
 from fastapi.requests import Request
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
@@ -55,7 +56,10 @@ async def get_word_data(
         dt=await get_date(session),
         model=model,
     )
-    await logic.simulate_set_secret(force=False)
+    try:
+        await logic.simulate_set_secret(force=False)
+    except ValueError as ex:
+        raise HTTPException(status_code=400, detail=str(ex))
     cache = await logic.cache
     return {
         "date": logic.date_,

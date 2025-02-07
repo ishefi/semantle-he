@@ -18,7 +18,7 @@ COPY poetry.lock pyproject.toml /code/
 
 #
 RUN pip install --no-cache-dir --upgrade poetry
-RUN poetry config virtualenvs.create false && poetry install --no-dev
+RUN poetry config virtualenvs.create false && poetry install --only main
 #
 
 COPY ./common /code/common

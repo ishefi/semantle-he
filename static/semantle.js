@@ -82,7 +82,7 @@ function solveStory(guesses, puzzleNumber) {
             txt += '🟩'.repeat(greens) + '⬜'.repeat(whites) + ' ';
         }
         txt += ' ' + guess_number;
-        if (greens != 0) {
+        if (distance > 0) {
             txt += ' (' + distance + '/1000)';
         }
         txt += '\n'

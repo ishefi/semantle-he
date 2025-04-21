@@ -17,7 +17,7 @@ WORKDIR /code
 COPY poetry.lock pyproject.toml /code/
 
 #
-RUN pip install --no-cache-dir --upgrade poetry==2.12.2
+RUN pip install --no-cache-dir --upgrade poetry==2.1.2
 RUN poetry config virtualenvs.create false && poetry install --only main --no-root
 #
 

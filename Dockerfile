@@ -3,6 +3,7 @@ FROM --platform=linux/amd64 python:3.12
 #
 ARG YAML_CONFIG_STR
 ENV YAML_CONFIG_STR=${YAML_CONFIG_STR}
+ENV UV_PROJECT_ENVIRONMENT="/usr/local/"
 
 #
 RUN curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /usr/share/keyrings/microsoft-prod.gpg
@@ -14,11 +15,11 @@ RUN ACCEPT_EULA=Y apt-get install -y msodbcsql18
 WORKDIR /code
 
 #
-COPY poetry.lock pyproject.toml /code/
+COPY uv.lock pyproject.toml /code/
 
 #
-RUN pip install --no-cache-dir --upgrade poetry==2.1.2
-RUN poetry config virtualenvs.create false && poetry install --only main --no-root
+RUN pip install --no-cache-dir --upgrade uv==0.6.17
+RUN uv sync --no-install-project
 RUN pip install setuptools
 #
 

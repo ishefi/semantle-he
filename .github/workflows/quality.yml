@@ -20,6 +20,6 @@ jobs:
         version: "0.6.17"
     - name: Install Dependancies
       run: |
-        uv sync --no-install-project --system
+        UV_PROJECT_ENVIRONMENT=/usr/local uv sync --no-install-project
     - uses: pre-commit/action@v3.0.0
 

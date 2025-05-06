@@ -15,11 +15,9 @@ jobs:
       with:
         python-version: '3.11'
     - name: Install uv
-        uses: astral-sh/setup-uv@v5
-        with:
-          version: "0.6.17"
-        arguments:
-          --system
+      uses: astral-sh/setup-uv@v5
+      with:
+        version: "0.6.17"
     - name: Install Dependancies
       run: |
         uv sync --no-install-project

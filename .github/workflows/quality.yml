@@ -20,6 +20,7 @@ jobs:
         version: "0.6.17"
     - name: Install Dependancies
       run: |
-        UV_PROJECT_ENVIRONMENT=/usr/local uv sync --no-install-project
+        export UV_PROJECT_ENVIRONMENT="${pythonLocation}"
+        uv sync --locked
     - uses: pre-commit/action@v3.0.0
 

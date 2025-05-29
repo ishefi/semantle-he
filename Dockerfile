@@ -19,7 +19,7 @@ COPY uv.lock pyproject.toml /code/
 
 #
 RUN pip install --no-cache-dir --upgrade uv==0.6.17
-RUN uv sync --no-install-project
+RUN uv sync --no-install-project --locked
 RUN pip install setuptools
 #
 

@@ -42,7 +42,12 @@ def upgrade() -> None:
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("user_id", sa.Integer(), nullable=False),
         sa.Column(
-            "guess", sa.String(32, collation="Hebrew_100_CI_AI_SC_UTF8"), nullable=False
+            "guess",
+            sa.String(
+                32,
+                # collation="Hebrew_100_CI_AI_SC_UTF8",
+            ),
+            nullable=False,
         ),
         sa.Column("similarity", sa.Float(), nullable=True),
         sa.Column("distance", sa.Integer(), nullable=False),

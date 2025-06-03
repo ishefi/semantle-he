@@ -26,7 +26,12 @@ def upgrade() -> None:
         sa.Column("id", sa.Integer(), nullable=False, autoincrement=True),
         sa.Column("secret_word_id", sa.Integer(), nullable=False),
         sa.Column(
-            "clue", sa.String(32, collation="Hebrew_100_CI_AI_SC_UTF8"), nullable=False
+            "clue",
+            sa.String(
+                32,
+                # collation="Hebrew_100_CI_AI_SC_UTF8",
+            ),
+            nullable=False,
         ),
         sa.ForeignKeyConstraint(
             ["secret_word_id"],

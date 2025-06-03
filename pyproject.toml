@@ -25,6 +25,8 @@ dependencies = [
     "dropbox>=11.36.2,<12",
     "pyodbc>=5.1.0,<6",
     "milon>=0.0.1,<0.0.2",
+    "sqlalchemy[postgress]>=2.0.29",
+    "psycopg2-binary>=2.9.10",
 ]
 
 [dependency-groups]

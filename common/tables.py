@@ -1,5 +1,4 @@
 import datetime
-from typing import Any
 
 from sqlalchemy import Index
 from sqlalchemy import String
@@ -9,25 +8,14 @@ from sqlmodel import Relationship
 from sqlmodel import SQLModel
 
 
-def HebrewString(length: int | None = None, *args: Any, **kwargs: Any) -> Any:
-    return Field(
-        sa_type=String(length, collation="Hebrew_100_CI_AI_SC_UTF8"), *args, **kwargs
-    )  # type: ignore
-
-
-def NoFinalHebrewString(length: int | None = None, *args: Any, **kwargs: Any) -> Any:
-    """Hebrew string with no different indexing for fin:20al and non-final chars"""
-    return Field(sa_type=String(length, collation="Hebrew_CI_AI"), *args, **kwargs)  # type: ignore
-
-
 class User(SQLModel, table=True):
     id: int = Field(default=None, primary_key=True)
-    email: str = NoFinalHebrewString(128, unique=True)
+    email: str = Field(String(128), unique=True)
     user_type: str = "User"  # TODO: enum
     active: bool = True
     picture: str
-    given_name: str = NoFinalHebrewString()
-    family_name: str = NoFinalHebrewString()
+    given_name: str
+    family_name: str
     first_login: datetime.datetime = Field(default_factory=datetime.datetime.utcnow)
     # subscription_expiry: datetime.datetime | None = None
     subscriptions: "UserSubscription" = Relationship()
@@ -46,10 +34,10 @@ class UserHistory(SQLModel, table=True):
 
     id: int = Field(default=None, primary_key=True)
     user_id: int = Field(foreign_key="user.id", index=True)
-    guess: str = HebrewString(32)
+    guess: str = Field(String(32))
     similarity: float
     distance: int
-    egg: str | None = NoFinalHebrewString(default=None)
+    egg: str | None = None
     game_date: datetime.date
     solver_count: int | None = None
 
@@ -67,7 +55,7 @@ class SecretWord(SQLModel, table=True):
     __table_args__ = (UniqueConstraint("game_date"), UniqueConstraint("word"))
 
     id: int = Field(default=None, primary_key=True)
-    word: str = HebrewString(32, unique=True)
+    word: str = Field(String(32), unique=True)
     game_date: datetime.date
     solver_count: int = 0
 
@@ -77,7 +65,7 @@ class UserSubscription(SQLModel, table=True):
     user_id: int = Field(foreign_key="user.id")
     amount: float
     tier_name: str | None
-    uuid: str = NoFinalHebrewString(36, unique=True)
+    uuid: str = Field(String(36), unique=True)
     timestamp: datetime.datetime
 
 
@@ -86,6 +74,6 @@ class HotClue(SQLModel, table=True):
 
     id: int = Field(default=None, primary_key=True)
     secret_word_id: int = Field(foreign_key="secretword.id", index=True)
-    clue: str = HebrewString(32)
+    clue: str = Field(String(32))
 
     secret: SecretWord = Relationship()

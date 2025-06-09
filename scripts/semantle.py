@@ -9,7 +9,6 @@ base = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.extend([base])
 
 from common.session import get_model  # noqa: E402
-from common.session import get_redis  # noqa: E402
 from common.session import get_session  # noqa: E402
 from logic.game_logic import CacheSecretLogic  # noqa: E402
 from logic.game_logic import VectorLogic  # noqa: E402
@@ -18,21 +17,18 @@ from logic.game_logic import VectorLogic  # noqa: E402
 async def main() -> None:
     print("Welcome! Take a guess:")
     inp = None
-    redis = get_redis()
     model = get_model()
     session = get_session()
     date = datetime.utcnow().date()
     logic = VectorLogic(session, dt=date, model=model)
     secret = await logic.secret_logic.get_secret()
-    cache_logic = CacheSecretLogic(session, redis, secret=secret, dt=date, model=model)
+    cache_logic = CacheSecretLogic(session, secret=secret, dt=date, model=model)
     while inp != "exit":
         if datetime.utcnow().date() != date:
             date = datetime.utcnow().date()
             logic = VectorLogic(session, dt=date, model=model)
             secret = await logic.secret_logic.get_secret()
-            cache_logic = CacheSecretLogic(
-                session, redis, secret=secret, dt=date, model=model
-            )
+            cache_logic = CacheSecretLogic(session, secret=secret, dt=date, model=model)
         inp = input(">")
         print(inp[::-1])
         try:

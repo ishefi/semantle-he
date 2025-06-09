@@ -19,7 +19,8 @@ pip install poetry
 poetry install
 ```
 
-Install [mongodb](https://www.mongodb.com/docs/manual/installation/) and [redis](https://redis.io/docs/getting-started/installation/).
+Install [mongodb](https://www.mongodb.com/docs/manual/installation/) and some sql 
+server. 
 
 ### Docker Compose
 install Docker Compose from [here](https://docs.docker.com/compose/install/)

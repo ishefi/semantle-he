@@ -16,7 +16,9 @@ class User(SQLModel, table=True):
     picture: str
     given_name: str
     family_name: str
-    first_login: datetime.datetime = Field(default_factory=datetime.datetime.utcnow)
+    first_login: datetime.datetime = Field(
+        default_factory=lambda: datetime.datetime.now(datetime.UTC)
+    )
     # subscription_expiry: datetime.datetime | None = None
     subscriptions: "UserSubscription" = Relationship()
 
@@ -59,6 +61,8 @@ class SecretWord(SQLModel, table=True):
     game_date: datetime.date
     solver_count: int = 0
 
+    closest1000: list["Closest1000"] = Relationship()
+
 
 class UserSubscription(SQLModel, table=True):
     id: int = Field(default=None, primary_key=True)
@@ -77,3 +81,13 @@ class HotClue(SQLModel, table=True):
     clue: str = Field(String(32))
 
     secret: SecretWord = Relationship()
+
+
+class Closest1000(SQLModel, table=True):
+    __tableargs__ = (UniqueConstraint("secret_word_id", "out_of_1000"),)
+
+    id: int = Field(default=None, primary_key=True)
+
+    word: str = Field(String(32), index=True)
+    secret_word_id: int = Field(foreign_key="secretword.id", index=True)
+    out_of_1000: int = Field(ge=1, le=1000)

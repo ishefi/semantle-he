@@ -47,11 +47,9 @@ async def get_word_data(
     request: Request, word: str
 ) -> dict[str, list[str] | datetime.date | int]:
     session = request.app.state.session
-    redis = request.app.state.redis
     model = request.app.state.model
     logic = CacheSecretLogic(
         session=session,
-        redis=redis,
         secret=word,
         dt=await get_date(session),
         model=model,
@@ -60,7 +58,7 @@ async def get_word_data(
         await logic.simulate_set_secret(force=False)
     except ValueError as ex:
         raise HTTPException(status_code=400, detail=str(ex))
-    cache = await logic.cache
+    cache = await logic.get_cache()
     return {
         "date": logic.date_,
         "game_number": (logic.date_ - FIRST_DATE).days + 1,
@@ -76,11 +74,9 @@ class SetSecretRequest(BaseModel):
 @admin_router.post("/set-secret", include_in_schema=False)
 async def set_new_secret(request: Request, set_secret: SetSecretRequest) -> str:
     session = request.app.state.session
-    redis = request.app.state.redis
     model = request.app.state.model
     logic = CacheSecretLogic(
         session=session,
-        redis=redis,
         secret=set_secret.secret,
         dt=await get_date(session),
         model=model,

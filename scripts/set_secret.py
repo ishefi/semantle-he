@@ -17,15 +17,11 @@ sys.path.extend([base])
 
 from common import tables  # noqa: E402
 from common.session import get_model  # noqa: E402
-from common.session import get_redis  # noqa: E402
 from common.session import get_session  # noqa: E402
 from common.session import hs_transaction  # noqa: E402
 from logic.game_logic import CacheSecretLogic  # noqa: E402
 
 if TYPE_CHECKING:
-    from typing import Any
-
-    from redis.asyncio import Redis
     from sqlmodel import Session
 
     from model import GensimModel
@@ -79,7 +75,6 @@ async def main() -> None:
     args = parser.parse_args()
 
     session = get_session()
-    redis = get_redis()
     model = get_model()
 
     if args.date:
@@ -91,9 +86,7 @@ async def main() -> None:
     else:
         secret = await get_random_word(model, args.top_sample)
     while True:
-        if await do_populate(
-            session, redis, secret, date, model, args.force, args.top_sample
-        ):
+        if await do_populate(session, secret, date, model, args.force, args.top_sample):
             if not args.iterative:
                 break
             date += datetime.timedelta(days=1)
@@ -114,20 +107,19 @@ async def get_date(session: Session) -> datetime.date:
 
 async def do_populate(
     session: Session,
-    redis: Redis[Any],
     secret: str,
     date: datetime.date,
     model: GensimModel,
     force: bool,
     top_sample: int | None,
 ) -> bool:
-    logic = CacheSecretLogic(session, redis, secret, dt=date, model=model)
+    logic = CacheSecretLogic(session, secret, dt=date, model=model)
     try:
         await logic.simulate_set_secret(force=force)
     except ValueError as err:
         print(err)
         return False
-    cache = [w[::-1] for w in (await logic.cache)[::-1]]
+    cache = [w[::-1] for w in (await logic.get_cache())[::-1]]
     print(" ,".join(cache))
     print(cache[0])
     for rng in (range(i, i + 10) for i in [1, 50, 100, 300, 550, 750]):
@@ -148,7 +140,7 @@ async def do_populate(
         return True
     else:
         secret = await get_random_word(model, top_sample)  # TODO: use model
-        return await do_populate(session, redis, secret, date, model, force, top_sample)
+        return await do_populate(session, secret, date, model, force, top_sample)
 
 
 async def get_random_word(model: GensimModel, top_sample: int | None) -> str:

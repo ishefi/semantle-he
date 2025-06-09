@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING
 
 import gensim.models.keyedvectors as word2vec
 from motor.motor_asyncio import AsyncIOMotorClient as MongoClient
-from redis.asyncio import Redis
 from sqlmodel import Session
 from sqlmodel import create_engine
 
@@ -21,10 +20,6 @@ if TYPE_CHECKING:
 
 def get_mongo() -> motor.core.AgnosticDatabase[Any]:
     return MongoClient(config.mongo).Semantle
-
-
-def get_redis() -> Redis[Any]:
-    return Redis.from_url(config.redis, decode_responses=True, max_connections=10)
 
 
 def get_model() -> GensimModel:

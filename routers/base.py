@@ -37,7 +37,6 @@ async def get_logics(
     )  # TODO: raise a user-friendly exception
     cache_logic = CacheSecretLogic(
         app.state.session,
-        app.state.redis,
         secret=secret,
         dt=date,
         model=app.state.model,

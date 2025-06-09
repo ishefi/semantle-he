@@ -20,7 +20,6 @@ from common import config
 from common.error import HSError
 from common.session import get_model
 from common.session import get_mongo
-from common.session import get_redis
 from common.session import get_session
 from logic.user_logic import UserLogic
 from routers import routers
@@ -42,7 +41,6 @@ CSS_VERSION = css_hasher.hexdigest()[:6]
 
 app = FastAPI()
 app.state.mongo = get_mongo()
-app.state.redis = get_redis()
 app.state.limit = int(os.environ.get("LIMIT", getattr(config, "limit", 10)))
 app.state.period = int(os.environ.get("PERIOD", getattr(config, "period", 20)))
 app.state.videos = config.videos

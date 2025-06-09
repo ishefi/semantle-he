@@ -30,7 +30,7 @@ pages_router = APIRouter()
 @pages_router.get("/", response_class=HTMLResponse, include_in_schema=False)
 async def index(request: Request) -> Response:
     logic, cache_logic = await get_logics(app=request.app)
-    cache = await cache_logic.cache
+    cache = await cache_logic.get_cache()
     closest1 = await logic.get_similarity(cache[-2])
     closest10 = await logic.get_similarity(cache[-12])
     closest1000 = await logic.get_similarity(cache[0])

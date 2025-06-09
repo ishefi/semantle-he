@@ -16,10 +16,8 @@ from common.session import hs_transaction
 from common.typing import np_float_arr
 
 if TYPE_CHECKING:
-    from typing import Any
     from typing import AsyncIterator
 
-    from redis.asyncio import Redis
     from sqlmodel import Session
 
     from model import GensimModel
@@ -134,13 +132,11 @@ class CacheSecretLogic:
     def __init__(
         self,
         session: Session,
-        redis: Redis[Any],
         secret: str,
         dt: datetime.date,
         model: GensimModel,
     ):
         self.session = session
-        self.redis = redis
         if dt is None:
             dt = datetime.datetime.utcnow().date()
         self.date_ = dt
@@ -151,14 +147,6 @@ class CacheSecretLogic:
         self.model = model.model
         self.words = self.model.key_to_index.keys()
         self.session = session
-
-    @property
-    def secret_cache_key(self) -> str:
-        if self._secret_cache_key is None:
-            self._secret_cache_key = self._secret_cache_key_fmt.format(
-                self.secret, self.date
-            )
-        return self._secret_cache_key
 
     def _iterate_all_wv(self) -> AsyncIterator[tuple[str, np_float_arr]]:
         return self.vector_logic.iterate_all()
@@ -195,27 +183,49 @@ class CacheSecretLogic:
         self._cache_dict[self.date] = [w[1] for w in nearest]
 
     async def do_populate(self, clues: list[str]) -> None:
-        expiration = (
-            self.date_ - datetime.datetime.utcnow().date() + datetime.timedelta(days=4)
-        )
-        await self.redis.delete(self.secret_cache_key)
-        await self.redis.rpush(self.secret_cache_key, *await self.cache)
-        await self.redis.expire(self.secret_cache_key, expiration)
+        # expiration = (  # TODO: implement this for SQL
+        #     self.date_
+        #     - datetime.datetime.now(datetime.UTC).date()
+        #     + datetime.timedelta(days=4)
+        # )
         await self.vector_logic.secret_logic.set_secret(self.secret, clues)
+        closest1000 = []
+        for out_of, word in enumerate(self._cache_dict[self.date], start=1):
+            closest1000.append(tables.Closest1000(word=word, out_of_1000=out_of))
+        with hs_transaction(self.session) as session:
+            secret_word = select(tables.SecretWord).where(
+                tables.SecretWord.game_date == self.date,
+                tables.SecretWord.word == self.secret,
+            )
+            secret_word = session.execute(secret_word).scalar_one()
+            secret_word.closest1000 = closest1000  # type: ignore
+            session.add(secret_word)
 
-    @property
-    async def cache(self) -> list[str]:
+    async def get_cache(self) -> list[str]:
         cache = self._cache_dict.get(self.date)
         if cache is None or len(cache) < 1000:
             if len(self._cache_dict) > self.MAX_CACHE:
                 self._cache_dict.clear()
-            cached: list[str] = await self.redis.lrange(self.secret_cache_key, 0, -1)
+            with hs_transaction(self.session) as session:
+                query = select(tables.SecretWord).where(
+                    tables.SecretWord.game_date == self.date,
+                    tables.SecretWord.word == self.secret,
+                )
+                secret_word = session.exec(query).one()
+                if secret_word is None:
+                    raise HSError("Secret not found", code=100796)
+                cached = [
+                    closest.word
+                    for closest in sorted(
+                        secret_word.closest1000, key=lambda c: c.out_of_1000
+                    )
+                ]
             self._cache_dict[self.date] = cached
         return self._cache_dict[self.date]
 
     async def get_cache_score(self, word: str) -> int:
         try:
-            return (await self.cache).index(word) + 1
+            return (await self.get_cache()).index(word) + 1
         except ValueError:
             return -1
 

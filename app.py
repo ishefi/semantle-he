@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING
 
 import uvicorn
 from fastapi import FastAPI
+from fastapi import HTTPException
 from fastapi import Request
 from fastapi import Response
 from fastapi import status
@@ -23,6 +24,7 @@ from common.session import get_mongo
 from common.session import get_session
 from logic.user_logic import UserLogic
 from routers import routers
+from routers.base import get_logics
 
 if TYPE_CHECKING:
     from typing import Awaitable
@@ -141,8 +143,14 @@ async def catch_known_errors(
 
 
 @app.get("/health")
-async def health() -> dict[str, str]:
-    return {"message": "Healthy!"}
+async def health() -> JSONResponse:
+    try:
+        await get_logics(app=app)
+    except (ValueError, HSError) as ex:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(ex)
+        )
+    return JSONResponse(content="OK", status_code=status.HTTP_200_OK)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-5B2VVCJ');</script>
+    <!-- End Google Tag Manager -->
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>אופס! משהו השתבש</title>
+    <link id="favicon" rel="icon" type="image/x-icon" href="{{ url_for('static', path='/favicon.ico') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='/styles.css?version=' + css_version) }}">
+    <script src="/static/twemoji.min.js" crossorigin="anonymous"></script>
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-PP8J7V4T0X"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-PP8J7V4T0X');
+</script>
+{% if not request.state.has_active_subscription %}
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2098371592785764" crossorigin="anonymous"></script>
+{% endif %}
+</head>
+<body dir='rtl'>
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-5B2VVCJ"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
+<header>
+<h1><a href="https://www.ishefi.com"><img src="https://www.ishefi.com/images/favicon.ico"></a> סמנטעל</h1>
+<div w3-include-html="/api/menu"></div>
+</header>
+
+<div style="text-align: center; padding: 2rem; max-width: 600px; margin: 0 auto;">
+    <div style="font-size: 4rem; margin-bottom: 1rem;">😕</div>
+    
+    <h2 style="color: #e74c3c; margin-bottom: 1rem;">{{ error_heading | default('אופס! משהו השתבש') }}</h2>
+    
+    <div style="background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 10px; padding: 1.5rem; margin: 1rem 0;">
+        <p style="margin: 0; font-size: 1.1rem; color: #495057;">
+            {{ error_message | default('אירעה שגיאה לא צפויה. אנא נסה שוב מאוחר יותר.') }}
+        </p>
+    </div>
+</div>
+
+<footer align="center">
+    <hr>
+    <a href="/legal/privacy">Privacy Policy</a>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="/static/semantle.js?version={{js_version}}"></script>
+</footer>
+
+</body>
+</html>

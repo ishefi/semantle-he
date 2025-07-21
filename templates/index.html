@@ -65,6 +65,7 @@
 
 {% if not request.state.user %}
 <div style="display: flex; align-items: center; flex-direction: column; direction: ltr;">
+    <small dir="rtl"><i>כדאי להתחבר בשביל רמזים, סטטיסטיקות ועוד!</i></small>
   <script src="https://accounts.google.com/gsi/client" async></script>
   <div style="color-scheme: light">
     <div id="g_id_onload"
@@ -84,6 +85,21 @@
     </div>
   </div>
 </div>
+{% else %}
+    <div align="center">
+        <b>רצף משחקים:</b> {{ statistics.game_streak }}
+        {% if statistics.game_streak >= 5 %} 🔥 {% endif %}
+        <br>
+        <span class="streak-stars">
+            {% set full_stars = [statistics.game_streak, 5] | min %}
+            {% for _ in range(5 - full_stars) %}
+                ☆ {# Empty star emoji #}
+            {% endfor %}
+            {% for _ in range(full_stars) %}
+                &#11088; {# Full star emoji #}
+            {% endfor %}
+        </span>
+    </div>
 {% endif %}
 
 <p>

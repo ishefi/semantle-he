@@ -413,6 +413,7 @@ body.dark .accordion.active:after {
 
 img.emoji {
   height: 1rem;
+  vertical-align: text-top;
 }
 
 #tooltip-menu {

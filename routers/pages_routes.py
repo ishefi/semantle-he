@@ -12,7 +12,10 @@ from fastapi import Request
 from fastapi import Response
 from fastapi import status
 from fastapi.responses import HTMLResponse
+from sqlmodel import Session
 
+from common import schemas
+from common import tables
 from common.consts import FIRST_DATE
 from common.error import HSError
 from logic.game_logic import VectorLogic
@@ -25,6 +28,16 @@ from routers.base import render
 from routers.base import super_admin
 
 pages_router = APIRouter()
+
+
+async def get_stats(
+    session: Session, user: tables.User
+) -> schemas.UserStatistics | None:
+    if user is None:
+        return None
+    else:
+        logic = UserStatisticsLogic(session, user)
+        return await logic.get_statistics()
 
 
 @pages_router.get("/", response_class=HTMLResponse, include_in_schema=False)
@@ -84,6 +97,9 @@ async def index(request: Request) -> Response:
     else:
         used_clues = []
 
+    statistics = await get_stats(
+        session=request.app.state.session, user=request.state.user
+    )
     return render(
         name="index.html",
         request=request,
@@ -96,6 +112,7 @@ async def index(request: Request) -> Response:
         guesses=history,
         notification=request.app.state.notification,
         clues=used_clues,
+        statistics=statistics,
     )
 
 
@@ -150,11 +167,7 @@ async def menu(request: Request) -> Response:
 
 @pages_router.get("/statistics", response_class=HTMLResponse, include_in_schema=False)
 async def get_statistics(request: Request) -> Response:
-    if request.state.user is not None:
-        logic = UserStatisticsLogic(request.app.state.session, request.state.user)
-        statistics = await logic.get_statistics()
-    else:
-        statistics = None
+    statistics = await get_stats(request.app.state.session, request.state.user)
     return render(
         name="statistics.html",
         request=request,

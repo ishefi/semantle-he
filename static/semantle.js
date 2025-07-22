@@ -186,6 +186,9 @@ let Semantle = (function() {
                     if (gameStreak >= 5) {
                         totalStreak.innerText += " 🔥";
                     }
+                    if (gameStreak == 0) {
+                        totalStreak.innerHTML += "<br>מספיק לנחש ניחוש אחד בשביל לשמר את הרצף שלך!";
+                    }
                     const fullStars = Math.min(gameStreak, 5);
                     const starStreak = document.getElementById("star-streak");
                     let starText = "";

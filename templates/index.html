@@ -87,18 +87,9 @@
 </div>
 {% else %}
     <div align="center">
-        <b>רצף משחקים:</b> {{ statistics.game_streak }}
-        {% if statistics.game_streak >= 5 %} 🔥 {% endif %}
+        <b id="total-streak"></b>
         <br>
-        <span class="streak-stars">
-            {% set full_stars = [statistics.game_streak, 5] | min %}
-            {% for _ in range(5 - full_stars) %}
-                ☆ {# Empty star emoji #}
-            {% endfor %}
-            {% for _ in range(full_stars) %}
-                &#11088; {# Full star emoji #}
-            {% endfor %}
-        </span>
+        <span id="star-streak"></span>
     </div>
 {% endif %}
 
@@ -185,7 +176,6 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdn.statically.io/gh/zenorocha/clipboard.js/v2.0.10/dist/clipboard.min.js"></script>
     <script src="/static/semantle.js?version={{js_version}}"></script>
-
 
 </footer>
 

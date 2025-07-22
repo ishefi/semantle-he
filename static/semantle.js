@@ -166,6 +166,45 @@ let Semantle = (function() {
 
     includeHTML();
 
+    async function updateStats() {
+        const totalStreak = document.getElementById("total-streak");
+        if (!totalStreak) return;
+
+        const url = "/api/user/info";
+        fetch(url, {headers: new Headers({'X-SH-Version': "2023-09-10"})})
+            .then(
+            response => {
+                if (!response.ok) {
+                    return;
+                }
+                return response.json();
+            }).then(
+                data => {
+                    const gameStreak = data.game_streak;
+                     const totalStreak = document.getElementById("total-streak");
+                    totalStreak.innerText = "רצף משחקים: " + gameStreak;
+                    if (gameStreak >= 5) {
+                        totalStreak.innerText += " 🔥";
+                    }
+                    const fullStars = Math.min(gameStreak, 5);
+                    const starStreak = document.getElementById("star-streak");
+                    let starText = "";
+                    for (let i = 0; i < 5 - fullStars; i++) {
+                        starText += "☆";
+                    }
+                    for (let i = 0; i < fullStars; i++) {
+                        starText += "⭐";
+                    }
+                    starStreak.innerText = starText;
+                    if (fullStars == 5) {
+                        starStreak.className = "shimmer";
+                    }
+                    twemoji.parse(totalStreak);
+                    twemoji.parse(starStreak);
+                }
+            )
+        }
+
     async function getSim(word) {
         if (cache.hasOwnProperty(word)) {
             let cached = cache[word];
@@ -394,8 +433,6 @@ let Semantle = (function() {
       });
     });
 
-
-
     async function init() {
         let notification = document.getElementById("notification");
         let popupBlocks = ["rules"];
@@ -515,6 +552,9 @@ let Semantle = (function() {
                 saveGame(-1, -1);
             }
             updateGuesses(guess);
+            if (firstGuess) {
+                updateStats().then(() => {console.log("updated stats")});
+            }
             firstGuess = false;
         }
 
@@ -630,6 +670,7 @@ let Semantle = (function() {
             if (window.location.host === 'semantle-he.herokuapp.com') {
               window.location.replace("https://semantle.ishefi.com?guesses=" + JSON.stringify(guesses));
             }
+            updateStats();
             twemoji.parse(document.body);
         } // end init
 

@@ -1,13 +1,13 @@
 from __future__ import annotations
 
+import datetime
 import hashlib
 import os
 import time
 from collections import defaultdict
-from datetime import datetime
-from datetime import timedelta
 from typing import TYPE_CHECKING
 
+import jwt
 import uvicorn
 from fastapi import FastAPI
 from fastapi import HTTPException
@@ -20,7 +20,6 @@ from fastapi.staticfiles import StaticFiles
 from common import config
 from common.error import HSError
 from common.session import get_model
-from common.session import get_mongo
 from common.session import get_session
 from logic.user_logic import UserLogic
 from routers import routers
@@ -42,7 +41,6 @@ with open(STATIC_FOLDER + "/styles.css", "rb") as f:
 CSS_VERSION = css_hasher.hexdigest()[:6]
 
 app = FastAPI()
-app.state.mongo = get_mongo()
 app.state.limit = int(os.environ.get("LIMIT", getattr(config, "limit", 10)))
 app.state.period = int(os.environ.get("PERIOD", getattr(config, "period", 20)))
 app.state.videos = config.videos
@@ -58,11 +56,13 @@ app.state.session = get_session()
 
 
 try:
-    date = datetime.strptime(os.environ.get("GAME_DATE", ""), "%Y-%m-%d").date()
-    delta = (datetime.utcnow().date() - date).days
+    date = datetime.datetime.strptime(
+        os.environ.get("GAME_DATE", ""), "%Y-%m-%d"
+    ).date()
+    delta = (datetime.datetime.now(datetime.UTC).date() - date).days
 except ValueError:
     delta = 0
-app.state.days_delta = timedelta(days=delta)
+app.state.days_delta = datetime.timedelta(days=delta)
 app.mount(f"/{STATIC_FOLDER}", StaticFiles(directory=STATIC_FOLDER), name=STATIC_FOLDER)
 for router in routers:
     app.include_router(router)
@@ -111,20 +111,23 @@ async def is_limited(
 
 @app.middleware("http")
 async def get_user(
-    request: Request, call_next: Callable[[Request], Awaitable[Response]]
+    request: Request,
+    call_next: Callable[[Request], Awaitable[Response]],
 ) -> Response:
-    if session_id := request.cookies.get("session_id"):
-        mongo = request.app.state.mongo
-        session = await mongo.sessions.find_one({"session_id": session_id})
-        if session is None:
+    access_token = request.cookies.get("access_token")
+    if access_token is not None:
+        payload = jwt.decode(
+            access_token, config.jwt_key, algorithms=[config.jwt_algorithm]
+        )
+        if payload["exp"] < datetime.datetime.now().timestamp():
             request.state.user = None
         else:
             user_logic = UserLogic(request.app.state.session)
-            user = await user_logic.get_user(session["user_email"])
+            user = await user_logic.get_user(payload["sub"])
             if user is not None:
                 request.state.user = user
                 if expiry := user_logic.get_subscription_expiry(request.state.user):
-                    is_active = expiry > datetime.utcnow()
+                    is_active = expiry > datetime.datetime.now(datetime.UTC)
                     request.state.has_active_subscription = is_active
                     request.state.expires_at = str(expiry.date())
     else:

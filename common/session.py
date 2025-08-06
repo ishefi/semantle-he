@@ -4,7 +4,6 @@ from contextlib import contextmanager
 from typing import TYPE_CHECKING
 
 import gensim.models.keyedvectors as word2vec
-from motor.motor_asyncio import AsyncIOMotorClient as MongoClient
 from sqlmodel import Session
 from sqlmodel import create_engine
 
@@ -12,14 +11,7 @@ from common import config
 from model import GensimModel
 
 if TYPE_CHECKING:
-    from typing import Any
     from typing import Iterator
-
-    import motor.core
-
-
-def get_mongo() -> motor.core.AgnosticDatabase[Any]:
-    return MongoClient(config.mongo).Semantle
 
 
 def get_model() -> GensimModel:

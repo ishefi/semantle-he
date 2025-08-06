@@ -3,7 +3,6 @@ import urllib.parse
 from typing import Annotated
 
 from fastapi import APIRouter
-from fastapi import Cookie
 from fastapi import Form
 from fastapi import HTTPException
 from fastapi import Request
@@ -24,21 +23,21 @@ async def login(
     try:
         parsed_state = urllib.parse.parse_qs(state)
         auth_logic = AuthLogic(
-            request.app.state.mongo,
             request.app.state.session,
             request.app.state.google_app["client_id"],
         )
-        session_id = await auth_logic.session_id_from_credential(credential)
+        encoded_jwt = await auth_logic.jwt_from_credential(credential)
         if state is None or "next" not in parsed_state:
             next_uri = "/"
         else:
             next_uri = parsed_state["next"][0]
         response = RedirectResponse(next_uri, status_code=status.HTTP_302_FOUND)
         response.set_cookie(
-            key="session_id",
-            value=session_id,
+            key="access_token",
+            value=encoded_jwt,
             secure=True,
             httponly=True,
+            samesite="strict",
         )
         return response
     except ValueError:
@@ -51,20 +50,12 @@ async def login(
 @auth_router.get("/logout")
 async def logout(
     request: Request,
-    session_id: str | None = Cookie(None),
 ) -> RedirectResponse:
-    auth_logic = AuthLogic(
-        request.app.state.mongo,
-        request.app.state.session,
-        request.app.state.google_app["client_id"],
-    )
-    if session_id is not None:
-        await auth_logic.logout(session_id)
     redirect = urllib.parse.urlparse(request.headers.get("referer"))
     if isinstance(redirect.path, bytes):
         path = redirect.path.decode()
     else:
         path = redirect.path
     response = RedirectResponse(path, status_code=status.HTTP_302_FOUND)
-    response.delete_cookie(key="session_id")
+    response.delete_cookie(key="access_token")
     return response

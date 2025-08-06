@@ -9,10 +9,8 @@ license = "MIT"
 dependencies = [
     "fastapi==0.110.0",
     "jinja2>=3.1.2,<4",
-    "motor>=3.3.2,<4",
     "numpy>=1.26.2,<2",
     "omegaconf>=2.3.0,<3",
-    "pymongo[srv]>=4.6.1,<5",
     "uvicorn[standard]>=0.25.0,<0.26",
     "pydantic>=2.5.3,<3",
     "gensim>=4.3.2,<5",
@@ -26,6 +24,7 @@ dependencies = [
     "milon>=0.0.1,<0.0.2",
     "sqlalchemy[postgress]>=2.0.29",
     "psycopg2-binary>=2.9.10",
+    "pyjwt>=2.10.1",
 ]
 
 [dependency-groups]

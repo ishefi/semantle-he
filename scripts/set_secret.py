@@ -55,11 +55,6 @@ async def main() -> None:
         help="Allow rewriting dates or reusing secrets. Use with caution!",
     )
     parser.add_argument(
-        "-m",
-        "--model_path",
-        help="Path to a gensim w2v model. If not provided, will use w2v data stored in mongodb.",
-    )
-    parser.add_argument(
         "-i",
         "--iterative",
         action="store_true",

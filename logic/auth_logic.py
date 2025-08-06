@@ -36,7 +36,7 @@ class AuthLogic:
         return jwt.encode(
             {"sub": user.email, "exp": expire},
             key=config.jwt_key,
-            algorithm=config.jwt_algoritm,
+            algorithm=config.jwt_algorithm,
         )
 
     def _verify_credential(self, credential: str) -> dict[str, Any]:

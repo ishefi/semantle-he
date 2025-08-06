@@ -150,9 +150,9 @@ async def menu(request: Request) -> Response:
 
 @pages_router.get("/statistics", response_class=HTMLResponse, include_in_schema=False)
 async def get_statistics(request: Request) -> Response:
-    logic = UserStatisticsLogic(request.app.state.session, request.state.user)
-    return render(
-        name="statistics.html",
-        request=request,
-        statistics=await logic.get_statistics(),
-    )
+    if request.state.user is None:
+        statistics = None
+    else:
+        logic = UserStatisticsLogic(request.app.state.session, request.state.user)
+        statistics = await logic.get_statistics()
+    return render(name="statistics.html", request=request, statistics=statistics)

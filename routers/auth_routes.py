@@ -8,6 +8,7 @@ from fastapi import HTTPException
 from fastapi import Request
 from fastapi import status
 from fastapi.responses import RedirectResponse
+from starlette.responses import HTMLResponse
 
 from logic.auth_logic import AuthLogic
 
@@ -19,7 +20,7 @@ async def login(
     request: Request,
     credential: Annotated[str, Form()],
     state: Annotated[str, Form()] = "",
-) -> RedirectResponse:
+) -> HTMLResponse:
     try:
         parsed_state = urllib.parse.parse_qs(state)
         auth_logic = AuthLogic(
@@ -31,7 +32,22 @@ async def login(
             next_uri = "/"
         else:
             next_uri = parsed_state["next"][0]
-        response = RedirectResponse(next_uri, status_code=status.HTTP_302_FOUND)
+
+        response = HTMLResponse(
+            content=f"""
+        <html>
+          <head>
+            <script>
+              window.location.href = '{next_uri}';
+            </script>
+          </head>
+          <body>
+            Login successful, redirecting...
+          </body>
+        </html>
+        """
+        )
+
         response.set_cookie(
             key="access_token",
             value=encoded_jwt,

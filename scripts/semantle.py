@@ -1,17 +1,15 @@
 import asyncio
-import os
-import sys
-from datetime import datetime
+import datetime
 
 from common.error import HSError
+from common.session import get_model
+from common.session import get_session
+from logic.game_logic import CacheSecretLogic
+from logic.game_logic import VectorLogic
 
-base = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-sys.path.extend([base])
 
-from common.session import get_model  # noqa: E402
-from common.session import get_session  # noqa: E402
-from logic.game_logic import CacheSecretLogic  # noqa: E402
-from logic.game_logic import VectorLogic  # noqa: E402
+def _get_todays_date() -> datetime.date:
+    return datetime.datetime.now(datetime.UTC).date()
 
 
 async def main() -> None:
@@ -19,13 +17,13 @@ async def main() -> None:
     inp = None
     model = get_model()
     session = get_session()
-    date = datetime.utcnow().date()
+    date = _get_todays_date()
     logic = VectorLogic(session, dt=date, model=model)
     secret = await logic.secret_logic.get_secret()
     cache_logic = CacheSecretLogic(session, secret=secret, dt=date, model=model)
     while inp != "exit":
-        if datetime.utcnow().date() != date:
-            date = datetime.utcnow().date()
+        if _get_todays_date() != date:
+            date = _get_todays_date()
             logic = VectorLogic(session, dt=date, model=model)
             secret = await logic.secret_logic.get_secret()
             cache_logic = CacheSecretLogic(session, secret=secret, dt=date, model=model)

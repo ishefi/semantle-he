@@ -22,7 +22,7 @@ if TYPE_CHECKING:
 
 
 def get_date(delta: datetime.timedelta) -> datetime.date:
-    return datetime.datetime.utcnow().date() - delta
+    return datetime.datetime.now(datetime.UTC).date() - delta
 
 
 # TODO: replace this with a dependency

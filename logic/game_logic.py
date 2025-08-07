@@ -26,7 +26,7 @@ if TYPE_CHECKING:
 class SecretLogic:
     def __init__(self, session: Session, dt: datetime.date | None = None):
         if dt is None:
-            dt = datetime.datetime.utcnow().date()
+            dt = datetime.datetime.now(datetime.UTC).date()
         self.date = dt
         self.session = session
 
@@ -138,7 +138,7 @@ class CacheSecretLogic:
     ):
         self.session = session
         if dt is None:
-            dt = datetime.datetime.utcnow().date()
+            dt = datetime.datetime.now(datetime.UTC).date()
         self.date_ = dt
         self.date = str(dt)
         self.vector_logic = VectorLogic(self.session, model=model, dt=dt)

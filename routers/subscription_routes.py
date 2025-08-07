@@ -24,10 +24,10 @@ async def subscribe(request: Request, data: Annotated[str, Form()]) -> dict[str,
     is_valid_token = hmac.compare_digest(
         subscription.verification_token, config.kofi_verification_token
     )
-    message_dt = subscription.timestamp.replace(tzinfo=None)
-    is_new_message = message_dt > datetime.datetime.utcnow() - datetime.timedelta(
-        minutes=5
-    )
+    message_dt = subscription.timestamp
+    is_new_message = message_dt > datetime.datetime.now(
+        datetime.UTC
+    ) - datetime.timedelta(minutes=5)
     if not is_valid_token or not is_new_message:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
     logic = UserLogic(session=request.app.state.session)

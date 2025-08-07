@@ -48,7 +48,7 @@ class UserLogic:
             ),
             "given_name": user_info["given_name"],
             "family_name": user_info.get("family_name", ""),
-            "first_login": datetime.datetime.utcnow(),
+            "first_login": datetime.datetime.now(tz=datetime.UTC),
         }
         with hs_transaction(self.session, expire_on_commit=False) as session:
             db_user = tables.User(**user)
@@ -104,10 +104,10 @@ class UserLogic:
             subscriptions = session.exec(query).all()
 
         expiry = None
-        now = datetime.datetime.utcnow()
+        now = datetime.datetime.now(datetime.UTC)
         for subscription in subscriptions:
             if expiry is None:
-                expiry = subscription.timestamp
+                expiry = subscription.timestamp.replace(tzinfo=datetime.UTC)
             expiry += self._get_subscription_duration(subscription)
             if expiry < now:
                 expiry = None
@@ -238,7 +238,7 @@ class UserStatisticsLogic:
         with hs_transaction(session=self.session, expire_on_commit=False) as session:
             game_dates = session.exec(dates_query).all()
 
-        date = datetime.datetime.utcnow().date()
+        date = datetime.datetime.now(datetime.UTC).date()
         game_streak = 0
         for game_date in game_dates:
             if date == game_date:
@@ -289,7 +289,7 @@ class UserClueLogic:
     async def get_clue(self) -> str | None:
         user_logic = UserLogic(self.session)
         expiry = user_logic.get_subscription_expiry(self.user)
-        if expiry is None or expiry < datetime.datetime.utcnow():
+        if expiry is None or expiry < datetime.datetime.now(datetime.UTC):
             has_active_subscription = False
         else:
             has_active_subscription = True

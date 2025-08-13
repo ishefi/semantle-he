@@ -63,63 +63,71 @@
         </figcaption>
     </figure>
 
-{% if not request.state.user %}
-<div style="display: flex; align-items: center; flex-direction: column; direction: ltr;">
-    <small dir="rtl"><i>כדאי להתחבר בשביל רמזים, סטטיסטיקות ועוד!</i></small>
-  <script src="https://accounts.google.com/gsi/client" async></script>
-  <div style="color-scheme: light">
-    <div id="g_id_onload"
-         data-client_id="{{ google_auth_client_id }}"
-         data-ux_mode="redirect"
-         data-login_uri="/login"
-         data-state="next=/"
-             style="visibility: hidden">
+        {% if not request.state.user %}
+    <div style="display: flex; align-items: center; flex-direction: column; direction: ltr;">
+        <small dir="rtl"><i>כדאי להתחבר בשביל רמזים, סטטיסטיקות ועוד!</i></small>
+      <script src="https://accounts.google.com/gsi/client" async></script>
+      <div style="color-scheme: light">
+        <div id="g_id_onload"
+             data-client_id="{{ google_auth_client_id }}"
+             data-ux_mode="redirect"
+             data-login_uri="/login"
+             data-state="next=/"
+                 style="visibility: hidden">
+        </div>
+        <div class="g_id_signin"
+             data-type="standard"
+             data-size="large"
+             data-theme="outline"
+             data-text="sign_in_with"
+             data-shape="rectangular"
+             data-logo_alignment="left">
+        </div>
+      </div>
     </div>
-    <div class="g_id_signin"
-         data-type="standard"
-         data-size="large"
-         data-theme="outline"
-         data-text="sign_in_with"
-         data-shape="rectangular"
-         data-logo_alignment="left">
-    </div>
-  </div>
-</div>
-{% else %}
-    <div align="center">
-        <b id="total-streak"></b>
-        <br>
-        <span id="star-streak"></span>
-    </div>
-{% endif %}
-
-<p>
-    {% if yesterdays_secret %}
-    המילה של אתמול הייתה
-    <a href="/yesterday-top-1000" class="implicita">
-        <b>{{yesterdays_secret}}</b></a>.
+    {% else %}
+        <div align="center">
+            <b id="total-streak"></b>
+            <br>
+            <span id="star-streak"></span>
+        </div>
     {% endif %}
-    היום, חידה מספר <b id="puzzleNumber">{{number}}</b>,
-    ציון הקרבה של המילה הכי קרובה (999/1000) למילה הסודית היום הוא
-    <b>{{closest1}}</b>,
-    ציון הקרבה של המילה העשירית הכי קרובה (990/1000) הוא
-    {{closest10}}
-    וציון הקרבה של המילה האלף הכי קרובה (1/1000) הוא
-    {{closest1000}}.
-</p>
 
-<div id="error" style="color:#ff0000"></div>
-    <form id="form" autocorrect="off" autocapitalize="none"
-          autocomplete="off" style="display: flex; max-width: 330px;">
-    <br/>
-    <div id="guess-wrapper">
-    <input placeholder="ניחוש" autocorrect="off" autocapitalize="none"
-           autocomplete="off"
-           type="search" id="guess">
-    <input type="submit" value="ניחוש" id="guess-btn">
+    <p>
+        {% if yesterdays_secret %}
+        המילה של אתמול הייתה
+        <a href="/yesterday-top-1000" class="implicita">
+            <b>{{yesterdays_secret}}</b></a>.
+        {% endif %}
+        היום, חידה מספר <b id="puzzleNumber">{{number}}</b>,
+        ציון הקרבה של המילה הכי קרובה (999/1000) למילה הסודית היום הוא
+        <b>{{closest1}}</b>,
+        ציון הקרבה של המילה העשירית הכי קרובה (990/1000) הוא
+        {{closest10}}
+        וציון הקרבה של המילה האלף הכי קרובה (1/1000) הוא
+        {{closest1000}}.
+    </p>
+    <br>
+    <div style="display: flex; justify-content: center" class="shimmer">
+        <i><b>
+            משחק חדש! נסו את <a href="https://wiking.ishefi.com" target="_blank" style="text-decoration: none;">ויקינג🪓</a>, מסע דרך ויקיפדיה!
+            </b></i>
+        <br>
     </div>
-    </form>
-    <div>
+    <br>
+
+    <div id="error" style="color:#ff0000"></div>
+        <form id="form" autocorrect="off" autocapitalize="none"
+              autocomplete="off" style="display: flex; max-width: 330px;">
+        <br/>
+        <div id="guess-wrapper">
+        <input placeholder="ניחוש" autocorrect="off" autocapitalize="none"
+               autocomplete="off"
+               type="search" id="guess">
+        <input type="submit" value="ניחוש" id="guess-btn">
+        </div>
+        </form>
+        <div>
                             {% if request.state.has_active_subscription %}
             <i id="subscription-badge">
             תודה על התרומה! רמזים חופשי עד  {{ request.state.expires_at }}

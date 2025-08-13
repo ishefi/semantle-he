@@ -723,7 +723,8 @@ let Semantle = (function() {
              <br/>
              <a href="https://ko-fi.com/ishefi" target="_blank" style="text-decoration: none;">אפשר גם לקנות לי ☕</a>,
              <br/>
-             לשחק ב<a href="https://degle.ishefi.com" target="_blank" style="text-decoration: none;">דעגעל🚩</a>
+             לשחק ב<a href="https://wiking.ishefi.com" target="_blank" style="text-decoration: none;">ויקינג🪓</a>,
+             ב<a href="https://degle.ishefi.com" target="_blank" style="text-decoration: none;">דעגעל🚩</a>
              <br/>
              או ב־<a href="https://mimamu.ishefi.com" target="_blank" style="text-decoration: none;">MiMaMu</a>
              <br/>

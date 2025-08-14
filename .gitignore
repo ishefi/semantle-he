@@ -5,3 +5,4 @@ __pycache__
 semantle.cfg
 config.json
 config.yaml
+model.mdl*

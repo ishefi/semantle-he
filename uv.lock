@@ -919,6 +919,7 @@ dev = [
     { name = "tqdm" },
     { name = "types-python-dateutil" },
     { name = "types-requests" },
+    { name = "types-tqdm" },
 ]
 
 [package.metadata]
@@ -954,6 +955,7 @@ dev = [
     { name = "tqdm", specifier = ">=4.67.1,<5" },
     { name = "types-python-dateutil", specifier = ">=2.8.19.14,<3" },
     { name = "types-requests", specifier = ">=2.31.0.10,<3" },
+    { name = "types-tqdm", specifier = ">=4.67.0.20250809" },
 ]
 
 [[package]]
@@ -1212,6 +1214,18 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/d1/bb/05c62e972a5a89318ee014aed52af921800e3bdd9a0eabfb3851d9bf0beb/types-requests-2.31.0.20240311.tar.gz", hash = "sha256:b1c1b66abfb7fa79aae09097a811c4aa97130eb8831c60e47aee4ca344731ca5", size = 16824 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/05/22/21c7918c9bb842faa92fd26108e9f669c3dee9b6b239e8f45dd5f673e6cf/types_requests-2.31.0.20240311-py3-none-any.whl", hash = "sha256:47872893d65a38e282ee9f277a4ee50d1b28bd592040df7d1fdaffdf3779937d", size = 14955 },
+]
+
+[[package]]
+name = "types-tqdm"
+version = "4.67.0.20250809"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "types-requests" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/fb/d0/cf498fc630d9fdaf2428b93e60b0e67b08008fec22b78716b8323cf644dc/types_tqdm-4.67.0.20250809.tar.gz", hash = "sha256:02bf7ab91256080b9c4c63f9f11b519c27baaf52718e5fdab9e9606da168d500", size = 17200 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/3f/13/3ff0781445d7c12730befce0fddbbc7a76e56eb0e7029446f2853238360a/types_tqdm-4.67.0.20250809-py3-none-any.whl", hash = "sha256:1a73053b31fcabf3c1f3e2a9d5ecdba0f301bde47a418cd0e0bdf774827c5c57", size = 24020 },
 ]
 
 [[package]]

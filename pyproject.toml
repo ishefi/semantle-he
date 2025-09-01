@@ -38,6 +38,7 @@ dev = [
     "pytest>=8.1.1,<9",
     "pytest-sugar>=1.0.0,<2",
     "tqdm>=4.67.1,<5",
+    "types-tqdm>=4.67.0.20250809",
 ]
 
 [build-system]

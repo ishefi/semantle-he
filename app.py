@@ -116,12 +116,10 @@ async def get_user(
 ) -> Response:
     access_token = request.cookies.get("access_token")
     if access_token is not None:
-        payload = jwt.decode(
-            access_token, config.jwt_key, algorithms=[config.jwt_algorithm]
-        )
-        if payload["exp"] < datetime.datetime.now().timestamp():
-            request.state.user = None
-        else:
+        try:
+            payload = jwt.decode(
+                access_token, config.jwt_key, algorithms=[config.jwt_algorithm]
+            )
             user_logic = UserLogic(request.app.state.session)
             user = await user_logic.get_user(payload["sub"])
             if user is not None:
@@ -130,6 +128,8 @@ async def get_user(
                     is_active = expiry > datetime.datetime.now(datetime.UTC)
                     request.state.has_active_subscription = is_active
                     request.state.expires_at = str(expiry.date())
+        except jwt.exceptions.ExpiredSignatureError:
+            request.state.user = None
     else:
         request.state.user = None
     return await call_next(request)

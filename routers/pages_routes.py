@@ -112,7 +112,7 @@ async def yesterday_top(request: Request) -> Response:
 
 @pages_router.get("/secrets", response_class=HTMLResponse)
 async def secrets(request: Request, with_future: bool = False) -> Response:
-    if with_future:
+    if True:
         super_admin(request)
 
     logic, _ = await get_logics(app=request.app)

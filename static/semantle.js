@@ -723,10 +723,10 @@ let Semantle = (function() {
              <br/>
              <a href="https://ko-fi.com/ishefi" target="_blank" style="text-decoration: none;">אפשר גם לקנות לי ☕</a>,
              <br/>
-             לשחק ב<a href="https://wiking.ishefi.com" target="_blank" style="text-decoration: none;">ויקינג🪓</a>,
-             ב<a href="https://degle.ishefi.com" target="_blank" style="text-decoration: none;">דעגעל🚩</a>
+             לשחק בלשחק ב<a href="https://pitulit.ishefi.com" target="_blank" style="text-decoration: none;">פיתולית🌀</a>,
+             ב<a href="https://wiking.ishefi.com" target="_blank" style="text-decoration: none;">ויקינג🪓</a>,
              <br/>
-             או ב־<a href="https://mimamu.ishefi.com" target="_blank" style="text-decoration: none;">MiMaMu</a>
+             או ב־<a href="https://degle.ishefi.com" target="_blank" style="text-decoration: none;">דעגעל🚩</a>
              <br/>
              או לעקוב אחרי <a href="https://sufganiyot.ishefi.com" target="_blank" style="text-decoration: none;">כמה סופגניות אכלתי </a>
              <br/>
